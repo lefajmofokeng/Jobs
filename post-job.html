@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post a Job — Cronos Employer Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#080d1b;--accent:#0099fa;--accent-hover:#007fd4;--accent-light:#e8f4ff;
+  --amber:#D97706;--amber-light:#FEF3C7;--red:#ef4444;--red-light:#fef2f2;
+  --bg:#f5f6f8;--surface:#fff;--surface-2:#f0eee9;
+  --border:#e4e6ed;--border-strong:#c8ccd8;
+  --text-primary:#0f1628;--text-secondary:#4a5068;--text-muted:#8890a8;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.06);--shadow-md:0 4px 16px rgba(0,0,0,0.08);
+  --nav-height:60px;--max-w:1080px;--font:'DM Sans',-apple-system,sans-serif;--mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;width:100%;z-index:100;height:var(--nav-height);background:var(--navy);border-bottom:1px solid rgba(255,255,255,0.07);}
+.nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.nav-left{display:flex;align-items:center;gap:16px;}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.nav-logo img{height:30px;width:auto;}
+.nav-logo-sep{width:1px;height:18px;background:rgba(255,255,255,0.2);}
+.nav-logo-label{font-size:12px;font-weight:500;color:rgba(255,255,255,0.4);}
+.nav-back{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.15s;}
+.nav-back:hover{color:#fff;}
+.nav-actions{display:flex;align-items:center;gap:10px;}
+.btn{font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;outline:none;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:rgba(255,255,255,0.8);padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,0.35);}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.btn-primary{background:var(--accent);color:#fff;padding:7px 18px;border-radius:50px;}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-primary:disabled{background:var(--border-strong);cursor:not-allowed;}
+.btn-outline-light{background:transparent;color:var(--text-secondary);border:1.5px solid var(--border-strong);padding:7px 16px;border-radius:50px;}
+.btn-outline-light:hover{border-color:var(--accent);color:var(--accent);}
+
+/* PAGE LAYOUT */
+.page-wrap{max-width:var(--max-w);margin:0 auto;padding:calc(var(--nav-height) + 28px) 24px 80px;display:grid;grid-template-columns:1fr 310px;gap:24px;align-items:start;}
+
+/* SUBSCRIPTION GATE */
+.sub-gate{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:40px 32px;text-align:center;max-width:520px;margin:calc(var(--nav-height) + 60px) auto 0;}
+.sub-gate.show{display:block;}
+.sub-gate-icon{width:56px;height:56px;background:var(--amber-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:var(--amber);}
+.sub-gate h2{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:8px;}
+.sub-gate p{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;}
+.sub-gate-btns{display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto;}
+.btn-gate-primary{font-family:var(--font);font-size:15px;font-weight:700;color:#fff;background:var(--accent);border:none;padding:13px;border-radius:50px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-gate-primary:hover{background:var(--accent-hover);}
+.btn-gate-outline{font-family:var(--font);font-size:14px;font-weight:600;color:var(--text-secondary);background:transparent;border:1.5px solid var(--border-strong);padding:11px;border-radius:50px;cursor:pointer;transition:all 0.15s;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-gate-outline:hover{border-color:var(--accent);color:var(--accent);}
+
+/* FORM AREA */
+.form-area{}
+.form-section-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+.form-section-card:last-child{margin-bottom:0;}
+.form-section-header{margin-bottom:20px;}
+.form-section-title{font-size:15px;font-weight:700;letter-spacing:-0.02em;margin-bottom:3px;}
+.form-section-sub{font-size:13px;color:var(--text-secondary);}
+
+.form-grid{display:grid;gap:16px;}
+.form-grid-2{grid-template-columns:1fr 1fr;}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr;}
+.col-2{grid-column:1/-1;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+label.lbl{font-size:12px;font-weight:700;color:var(--text-primary);letter-spacing:0.01em;}
+.lbl-req{color:var(--red);margin-left:2px;}
+.lbl-opt{font-size:11px;font-weight:400;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);padding:1px 5px;border-radius:4px;margin-left:4px;}
+.field{font-family:var(--font);font-size:14px;color:var(--text-primary);background:var(--bg);border:1.5px solid var(--border-strong);border-radius:var(--radius-md);padding:10px 13px;outline:none;width:100%;transition:border-color 0.15s,box-shadow 0.15s,background 0.15s;appearance:none;-webkit-appearance:none;}
+.field:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(0,153,250,0.1);}
+.field.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,0.08);}
+.field::placeholder{color:var(--text-muted);}
+textarea.field{resize:vertical;min-height:100px;line-height:1.65;}
+select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%238890a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
+.field-hint{font-size:11px;color:var(--text-muted);line-height:1.5;}
+.field-err{font-size:11px;color:var(--red);display:none;align-items:center;gap:3px;margin-top:1px;}
+.field-err.show{display:flex;}
+
+/* Bullet list editor */
+.list-editor{display:flex;flex-direction:column;gap:8px;}
+.list-editor-item{display:flex;align-items:flex-start;gap:8px;}
+.list-bullet{flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:13px;}
+.list-item-input{flex:1;font-family:var(--font);font-size:14px;color:var(--text-primary);background:var(--bg);border:1.5px solid var(--border-strong);border-radius:var(--radius-md);padding:9px 12px;outline:none;transition:border-color 0.15s,background 0.15s;resize:none;overflow:hidden;min-height:40px;}
+.list-item-input:focus{border-color:var(--accent);background:#fff;}
+.list-item-remove{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:var(--radius-sm);transition:color 0.15s,background 0.15s;flex-shrink:0;margin-top:4px;}
+.list-item-remove:hover{color:var(--red);background:var(--red-light);}
+.btn-add-item{display:inline-flex;align-items:center;gap:6px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--accent);background:var(--accent-light);border:1px solid #bfdbfe;padding:6px 14px;border-radius:50px;cursor:pointer;transition:all 0.15s;margin-top:4px;}
+.btn-add-item:hover{background:#dbeafe;}
+
+/* Date+time row */
+.date-time-row{display:grid;grid-template-columns:1fr auto;gap:10px;}
+.time-select{width:120px;}
+
+/* Char counter */
+.char-counter{font-size:11px;color:var(--text-muted);text-align:right;margin-top:2px;}
+.char-counter.warn{color:var(--amber);}
+.char-counter.over{color:var(--red);}
+
+/* PREVIEW PANEL */
+.preview-panel{position:sticky;top:calc(var(--nav-height) + 24px);display:flex;flex-direction:column;gap:14px;}
+.preview-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);}
+.preview-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);padding:14px 18px 0;}
+.preview-inner{padding:16px 18px;}
+.prev-co-name{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:4px;}
+.prev-title{font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px;color:var(--text-primary);line-height:1.3;min-height:24px;}
+.prev-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.prev-tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:50px;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);}
+.prev-tag.blue{color:var(--accent);background:var(--accent-light);border-color:#bfdbfe;}
+.prev-tag.amber{color:var(--amber);background:var(--amber-light);border-color:#fde68a;}
+.prev-tag.purple{color:#6D28D9;background:#F3F0FF;border-color:#ddd6fe;}
+.prev-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px;min-height:40px;}
+.prev-dates{font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:3px;}
+.prev-apply{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--surface-2);border-top:1px solid var(--border);}
+.prev-apply span{font-size:12px;color:var(--text-secondary);}
+.prev-apply-btn{font-family:var(--font);font-size:12px;font-weight:700;color:#fff;background:var(--accent);border:none;padding:7px 16px;border-radius:50px;cursor:default;}
+
+.checklist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:18px;box-shadow:var(--shadow-sm);}
+.checklist-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:12px;}
+.checklist-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);margin-bottom:7px;}
+.checklist-item:last-child{margin-bottom:0;}
+.check-dot{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.checklist-item.done .check-dot{background:var(--accent);border-color:var(--accent);}
+.checklist-item.done{color:var(--text-secondary);}
+.check-dot svg{display:none;}
+.checklist-item.done .check-dot svg{display:block;}
+
+/* FORM FOOTER */
+.form-footer-bar{position:fixed;bottom:0;left:0;right:0;z-index:90;background:var(--surface);border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);}
+.form-footer-left{display:flex;align-items:center;gap:8px;}
+.form-footer-right{display:flex;align-items:center;gap:10px;}
+.btn-publish{font-family:var(--font);font-size:14px;font-weight:700;color:#fff;background:var(--accent);border:none;padding:10px 28px;border-radius:50px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(0,153,250,0.3);}
+.btn-publish:hover{background:var(--accent-hover);box-shadow:0 6px 18px rgba(0,153,250,0.4);}
+.btn-publish:disabled{background:var(--border-strong);box-shadow:none;cursor:not-allowed;}
+.btn-draft{font-family:var(--font);font-size:13px;font-weight:600;color:var(--text-secondary);background:transparent;border:1.5px solid var(--border-strong);padding:9px 20px;border-radius:50px;cursor:pointer;transition:all 0.15s;}
+.btn-draft:hover{border-color:var(--accent);color:var(--accent);}
+.autosave-note{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
+
+/* SUCCESS OVERLAY */
+.success-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(8,13,27,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;}
+.success-overlay.show{display:flex;}
+.success-box{background:#fff;border-radius:var(--radius-xl);max-width:460px;width:100%;padding:36px 32px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.18);animation:popIn 0.25s ease;}
+@keyframes popIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}
+.success-icon{width:60px;height:60px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.success-box h2{font-size:22px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px;}
+.success-box p{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;}
+.success-btns{display:flex;flex-direction:column;gap:10px;}
+.btn-success-primary{font-family:var(--font);font-size:14px;font-weight:700;color:#fff;background:var(--accent);border:none;padding:12px;border-radius:50px;cursor:pointer;transition:background 0.15s;text-decoration:none;display:block;}
+.btn-success-primary:hover{background:var(--accent-hover);}
+.btn-success-outline{font-family:var(--font);font-size:13px;font-weight:600;color:var(--text-secondary);background:transparent;border:1.5px solid var(--border-strong);padding:11px;border-radius:50px;cursor:pointer;transition:all 0.15s;text-decoration:none;display:block;}
+.btn-success-outline:hover{border-color:var(--accent);color:var(--accent);}
+
+/* RESPONSIVE */
+@media(max-width:860px){
+  .page-wrap{grid-template-columns:1fr;}
+  .preview-panel{display:none;}
+  .form-footer-bar{padding:12px 16px;}
+}
+@media(max-width:640px){
+  .page-wrap{padding:calc(var(--nav-height) + 18px) 14px 90px;}
+  .form-section-card{padding:18px;}
+  .form-grid-2,.form-grid-3{grid-template-columns:1fr;}
+  .date-time-row{grid-template-columns:1fr;}
+  .time-select{width:100%;}
+  .nav-inner{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="employer-dashboard.html" class="nav-logo">
+        <img src="logo.png" alt="Cronos Jobs"/>
+        <div class="nav-logo-sep"></div>
+        <span class="nav-logo-label">Post a Job</span>
+      </a>
+      <a href="employer-dashboard.html" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to dashboard
+      </a>
+    </div>
+    <div class="nav-actions">
+      <a href="employer-dashboard.html" class="btn btn-ghost">Cancel</a>
+    </div>
+  </div>
+</nav>
+
+<!-- SUBSCRIPTION GATE (shown if no active plan) -->
+<div class="sub-gate" id="sub-gate">
+  <div class="sub-gate-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></div>
+  <h2>Subscription required</h2>
+  <p>Posting jobs on Cronos requires an active subscription plan. Choose a plan to get verified and start advertising your vacancies to thousands of South African job seekers.</p>
+  <div class="sub-gate-btns">
+    <a href="pricing.html" class="btn-gate-primary">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      View subscription plans
+    </a>
+    <a href="employer-dashboard.html" class="btn-gate-outline">Back to dashboard</a>
+  </div>
+</div>
+
+<!-- MAIN FORM -->
+<div class="page-wrap" id="form-page">
+
+  <div class="form-area">
+
+    <!-- Section 1: Core details -->
+    <div class="form-section-card">
+      <div class="form-section-header">
+        <div class="form-section-title">Position details</div>
+        <div class="form-section-sub">The essential information candidates see first in search results.</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group col-2">
+          <label class="lbl" for="f-title">Job title<span class="lbl-req">*</span></label>
+          <input class="field" type="text" id="f-title" placeholder="e.g. Store Manager, Registered Nurse (x2), Delivery Driver" autocomplete="off" oninput="updatePreview()">
+          <span class="field-err" id="err-title"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Job title is required</span>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-dept">Department<span class="lbl-req">*</span></label>
+          <select class="field" id="f-dept" onchange="updatePreview()">
+            <option value="">— Select department —</option>
+            <option>Management</option><option>Store Operations</option><option>Retail</option>
+            <option>Warehouse &amp; Logistics</option><option>Clinical / Healthcare</option>
+            <option>Pharmacy</option><option>IT &amp; Technology</option><option>Finance</option>
+            <option>HR &amp; Administration</option><option>Marketing</option>
+            <option>Customer Service</option><option>Hospitality</option><option>Security</option><option>Other</option>
+          </select>
+          <span class="field-err" id="err-dept"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Select a department</span>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-type">Employment type<span class="lbl-req">*</span></label>
+          <select class="field" id="f-type" onchange="updatePreview()">
+            <option value="">— Select type —</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="contract">Contract</option>
+          </select>
+          <span class="field-err" id="err-type"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Select a type</span>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-slots">Number of openings<span class="lbl-req">*</span></label>
+          <select class="field" id="f-slots">
+            <option value="1">1 position</option>
+            <option value="2">2 positions</option>
+            <option value="3">3 positions</option>
+            <option value="4">4 positions</option>
+            <option value="5">5 positions</option>
+            <option value="6+">6 or more</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-province">Province<span class="lbl-req">*</span></label>
+          <select class="field" id="f-province" onchange="updatePreview()">
+            <option value="">— Select province —</option>
+            <option>Gauteng</option><option>KwaZulu-Natal</option><option>Western Cape</option>
+            <option>Eastern Cape</option><option>Limpopo</option><option>Mpumalanga</option>
+            <option>North West</option><option>Free State</option><option>Northern Cape</option>
+          </select>
+          <span class="field-err" id="err-province"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Select a province</span>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-city">City / Town<span class="lbl-req">*</span></label>
+          <input class="field" type="text" id="f-city" placeholder="e.g. Johannesburg, Durban, Cape Town" oninput="updatePreview()">
+          <span class="field-err" id="err-city"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>City is required</span>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-salary">Salary / Remuneration<span class="lbl-opt">Optional</span></label>
+          <input class="field" type="text" id="f-salary" placeholder="e.g. R18 000–R22 000 pm, Market related, Negotiable">
+          <div class="field-hint">Listings with salary ranges receive significantly more applications.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Description -->
+    <div class="form-section-card">
+      <div class="form-section-header">
+        <div class="form-section-title">About this role</div>
+        <div class="form-section-sub">A clear summary shown at the top of the listing. Write to the candidate directly.</div>
+      </div>
+      <div class="form-group">
+        <label class="lbl" for="f-desc">Job description<span class="lbl-req">*</span></label>
+        <textarea class="field" id="f-desc" rows="5" placeholder="Describe what the candidate will be doing day-to-day, why this role exists, and what makes this a good opportunity…" oninput="updatePreview(); countChars('f-desc','desc-count',50,600)"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+          <span class="field-err" id="err-desc"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Minimum 50 characters required</span>
+          <span class="char-counter" id="desc-count">0 / 600</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Responsibilities + Requirements -->
+    <div class="form-section-card">
+      <div class="form-section-header">
+        <div class="form-section-title">Responsibilities &amp; requirements</div>
+        <div class="form-section-sub">Use clear bullet points. Candidates scan these quickly.</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group col-2">
+          <label class="lbl">Key responsibilities<span class="lbl-req">*</span></label>
+          <div class="list-editor" id="resp-list"></div>
+          <button class="btn-add-item" type="button" onclick="addItem('resp-list')">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M7 4v6M4 7h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Add responsibility
+          </button>
+          <span class="field-err" id="err-resp"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Add at least 2 responsibilities</span>
+        </div>
+        <div class="form-group col-2">
+          <label class="lbl">Requirements<span class="lbl-req">*</span></label>
+          <div class="list-editor" id="req-list"></div>
+          <button class="btn-add-item" type="button" onclick="addItem('req-list')">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M7 4v6M4 7h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Add requirement
+          </button>
+          <span class="field-err" id="err-req"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Add at least 2 requirements</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Closing date -->
+    <div class="form-section-card">
+      <div class="form-section-header">
+        <div class="form-section-title">Application closing date</div>
+        <div class="form-section-sub">The listing expires automatically at this date and time. Candidates can no longer apply after it.</div>
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group">
+          <label class="lbl" for="f-closes">Closing date<span class="lbl-req">*</span></label>
+          <div class="date-time-row">
+            <input class="field" type="date" id="f-closes" oninput="updatePreview()">
+            <select class="field time-select" id="f-closes-time">
+              <option value="08:00">08:00</option><option value="09:00">09:00</option>
+              <option value="10:00">10:00</option><option value="11:00">11:00</option>
+              <option value="12:00">12:00</option><option value="13:00">13:00</option>
+              <option value="14:00">14:00</option><option value="15:00">15:00</option>
+              <option value="16:00">16:00</option><option value="16:30">16:30</option>
+              <option value="17:00" selected>17:00</option><option value="18:00">18:00</option>
+            </select>
+          </div>
+          <div class="field-hint">Minimum 3 days from today. The listing removes itself at this time.</div>
+          <span class="field-err" id="err-closes"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Set a valid closing date (min 3 days from today)</span>
+        </div>
+        <div class="form-group">
+          <label class="lbl" for="f-apply-email">Applications go to<span class="lbl-req">*</span></label>
+          <input class="field" type="email" id="f-apply-email" placeholder="hr@yourcompany.co.za" autocomplete="email">
+          <div class="field-hint">Applications are forwarded directly to this email. Not shown to candidates.</div>
+          <span class="field-err" id="err-apply-email"><svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Valid email required</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:72px"></div><!-- spacer for footer bar -->
+
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="preview-panel">
+    <div class="preview-card">
+      <div class="preview-label">Live preview</div>
+      <div class="preview-inner">
+        <div class="prev-co-name" id="prev-co-name">Boxer Superstore</div>
+        <div class="prev-title" id="prev-title" style="color:var(--text-muted);font-style:italic;font-weight:400">Job title will appear here</div>
+        <div class="prev-tags" id="prev-tags"></div>
+        <div class="prev-desc" id="prev-desc" style="color:var(--text-muted);font-style:italic">Description will appear here as you type…</div>
+        <div class="prev-dates" id="prev-dates"></div>
+      </div>
+      <div class="prev-apply">
+        <span>At <strong id="prev-co-bottom">Boxer Superstore</strong></span>
+        <div class="prev-apply-btn">Apply now</div>
+      </div>
+    </div>
+
+    <div class="checklist-card">
+      <p class="checklist-title">Listing checklist</p>
+      <div class="checklist-item" id="chk-title"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Job title added</div>
+      <div class="checklist-item" id="chk-location"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Location set</div>
+      <div class="checklist-item" id="chk-type"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Employment type selected</div>
+      <div class="checklist-item" id="chk-desc"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Description written</div>
+      <div class="checklist-item" id="chk-resp"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Responsibilities added</div>
+      <div class="checklist-item" id="chk-req"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Requirements added</div>
+      <div class="checklist-item" id="chk-closes"><div class="check-dot"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l3 3 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Closing date set</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FORM FOOTER BAR -->
+<div class="form-footer-bar" id="form-footer">
+  <div class="form-footer-left">
+    <span class="autosave-note">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span id="autosave-text">Draft not saved</span>
+    </span>
+  </div>
+  <div class="form-footer-right">
+    <button class="btn-draft" type="button" onclick="saveDraft()">Save draft</button>
+    <button class="btn-publish" type="button" id="publish-btn" onclick="publishListing()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l6 4.5v5L8 15l-6-4.5v-5L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      Publish listing
+    </button>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div class="success-icon"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M6 16l8 8 12-12" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2>Listing published!</h2>
+    <p>Your job listing is now live on Cronos Jobs and visible to candidates across South Africa. It will expire automatically on the closing date you set.</p>
+    <div class="success-btns">
+      <a href="employer-dashboard.html" class="btn-success-primary">Back to dashboard</a>
+      <button class="btn-success-outline" onclick="resetForm()">Post another job</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── EMPLOYER CONTEXT (from session/API in production) ── */
+const EMPLOYER = {
+  slug: 'boxer',
+  name: 'Boxer Superstore',
+  hasActivePlan: true,  // false = show gate
+};
+
+/* ── SUBSCRIPTION GATE ── */
+if (!EMPLOYER.hasActivePlan) {
+  document.getElementById('sub-gate').classList.add('show');
+  document.getElementById('form-page').style.display = 'none';
+  document.getElementById('form-footer').style.display = 'none';
+}
+
+document.getElementById('prev-co-name').textContent = EMPLOYER.name;
+document.getElementById('prev-co-bottom').textContent = EMPLOYER.name;
+
+/* ── SET DEFAULT CLOSING DATE (14 days from today) ── */
+(function(){
+  const d = new Date(); d.setDate(d.getDate() + 14);
+  document.getElementById('f-closes').value = d.toISOString().split('T')[0];
+  document.getElementById('f-closes').min = new Date(Date.now() + 3*86400000).toISOString().split('T')[0];
+})();
+
+/* ── BULLET LIST EDITOR ── */
+function addItem(containerId, value) {
+  const container = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'list-editor-item';
+  div.innerHTML = `<div class="list-bullet"></div><textarea class="list-item-input" rows="1" placeholder="Add a bullet point…" oninput="autoResize(this);updateChecklist()">${value||''}</textarea><button type="button" class="list-item-remove" onclick="removeItem(this)"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>`;
+  container.appendChild(div);
+  const ta = div.querySelector('textarea');
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addItem(containerId); setTimeout(() => { const items = container.querySelectorAll('textarea'); items[items.length-1].focus(); }, 50); } });
+  ta.focus();
+}
+function removeItem(btn) {
+  const container = btn.closest('.list-editor');
+  if (container.children.length > 1) btn.closest('.list-editor-item').remove();
+  updateChecklist();
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+function getListValues(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .list-item-input`)].map(i => i.value.trim()).filter(Boolean);
+}
+
+/* ── CHAR COUNTER ── */
+function countChars(fieldId, counterId, min, max) {
+  const val = document.getElementById(fieldId).value;
+  const el = document.getElementById(counterId);
+  el.textContent = val.length + ' / ' + max;
+  el.className = 'char-counter' + (val.length > max ? ' over' : val.length > max * 0.85 ? ' warn' : '');
+}
+
+/* ── PREVIEW ── */
+function typeClass(t) {
+  if (t==='full-time') return 'blue';
+  if (t==='part-time') return 'amber';
+  return 'purple';
+}
+function typeLabel(t) {
+  return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract';
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function updatePreview() {
+  const title = document.getElementById('f-title').value.trim();
+  const type  = document.getElementById('f-type').value;
+  const city  = document.getElementById('f-city').value.trim();
+  const prov  = document.getElementById('f-province').value;
+  const dept  = document.getElementById('f-dept').value;
+  const desc  = document.getElementById('f-desc').value.trim();
+  const closes = document.getElementById('f-closes').value;
+  const time   = document.getElementById('f-closes-time').value;
+
+  const titleEl = document.getElementById('prev-title');
+  if (title) { titleEl.textContent = title; titleEl.style.color = ''; titleEl.style.fontStyle = ''; titleEl.style.fontWeight = ''; }
+  else { titleEl.textContent = 'Job title will appear here'; titleEl.style.color = 'var(--text-muted)'; titleEl.style.fontStyle = 'italic'; titleEl.style.fontWeight = '400'; }
+
+  let tags = '';
+  if (city || prov) tags += `<span class="prev-tag"><svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>${[city,prov].filter(Boolean).join(', ')}</span>`;
+  if (type) tags += `<span class="prev-tag ${typeClass(type)}">${typeLabel(type)}</span>`;
+  if (dept) tags += `<span class="prev-tag">${dept}</span>`;
+  document.getElementById('prev-tags').innerHTML = tags;
+
+  const descEl = document.getElementById('prev-desc');
+  if (desc) { descEl.textContent = desc; descEl.style.fontStyle = ''; descEl.style.color = ''; }
+  else { descEl.textContent = 'Description will appear here as you type…'; descEl.style.fontStyle = 'italic'; descEl.style.color = 'var(--text-muted)'; }
+
+  let dates = '';
+  if (closes) dates += `<span>Closes ${fmtDate(closes)} at ${time}</span>`;
+  document.getElementById('prev-dates').innerHTML = dates;
+
+  updateChecklist();
+}
+
+/* ── CHECKLIST ── */
+function setCheck(id, done) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('done', done);
+}
+function updateChecklist() {
+  const title  = document.getElementById('f-title').value.trim();
+  const city   = document.getElementById('f-city').value.trim();
+  const prov   = document.getElementById('f-province').value;
+  const type   = document.getElementById('f-type').value;
+  const desc   = document.getElementById('f-desc').value.trim();
+  const resp   = getListValues('resp-list');
+  const req    = getListValues('req-list');
+  const closes = document.getElementById('f-closes').value;
+  setCheck('chk-title', !!title);
+  setCheck('chk-location', !!(city && prov));
+  setCheck('chk-type', !!type);
+  setCheck('chk-desc', desc.length >= 50);
+  setCheck('chk-resp', resp.length >= 2);
+  setCheck('chk-req', req.length >= 2);
+  setCheck('chk-closes', !!closes);
+}
+
+/* ── VALIDATION ── */
+function validateForm() {
+  let ok = true;
+  function reqField(id, errId) {
+    const v = document.getElementById(id).value.trim();
+    const e = document.getElementById(errId);
+    if (!v) { e.classList.add('show'); document.getElementById(id).classList.add('error'); ok = false; }
+    else { e.classList.remove('show'); document.getElementById(id).classList.remove('error'); }
+  }
+  function reqSelect(id, errId) {
+    const v = document.getElementById(id).value;
+    const e = document.getElementById(errId);
+    if (!v) { e.classList.add('show'); document.getElementById(id).classList.add('error'); ok = false; }
+    else { e.classList.remove('show'); document.getElementById(id).classList.remove('error'); }
+  }
+  reqField('f-title','err-title');
+  reqSelect('f-dept','err-dept');
+  reqSelect('f-type','err-type');
+  reqSelect('f-province','err-province');
+  reqField('f-city','err-city');
+  const desc = document.getElementById('f-desc').value.trim();
+  if (desc.length < 50) { document.getElementById('err-desc').classList.add('show'); document.getElementById('f-desc').classList.add('error'); ok = false; }
+  else { document.getElementById('err-desc').classList.remove('show'); document.getElementById('f-desc').classList.remove('error'); }
+  const resp = getListValues('resp-list');
+  if (resp.length < 2) { document.getElementById('err-resp').classList.add('show'); ok = false; }
+  else { document.getElementById('err-resp').classList.remove('show'); }
+  const req = getListValues('req-list');
+  if (req.length < 2) { document.getElementById('err-req').classList.add('show'); ok = false; }
+  else { document.getElementById('err-req').classList.remove('show'); }
+  const closes = document.getElementById('f-closes').value;
+  const minDate = new Date(Date.now() + 3*86400000).toISOString().split('T')[0];
+  if (!closes || closes < minDate) { document.getElementById('err-closes').classList.add('show'); document.getElementById('f-closes').classList.add('error'); ok = false; }
+  else { document.getElementById('err-closes').classList.remove('show'); document.getElementById('f-closes').classList.remove('error'); }
+  const email = document.getElementById('f-apply-email').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-apply-email').classList.add('show'); document.getElementById('f-apply-email').classList.add('error'); ok = false; }
+  else { document.getElementById('err-apply-email').classList.remove('show'); document.getElementById('f-apply-email').classList.remove('error'); }
+  return ok;
+}
+
+/* ── PUBLISH ── */
+function publishListing() {
+  if (!validateForm()) {
+    document.querySelector('.field.error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+  const btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>Publishing…';
+  /* In production: POST /api/jobs with form data, then show success */
+  setTimeout(() => {
+    document.getElementById('success-overlay').classList.add('show');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l6 4.5v5L8 15l-6-4.5v-5L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>Publish listing';
+  }, 1400);
+}
+
+function saveDraft() {
+  document.getElementById('autosave-text').textContent = 'Draft saved';
+  setTimeout(() => document.getElementById('autosave-text').textContent = 'Draft not saved', 3000);
+}
+
+function resetForm() {
+  document.getElementById('success-overlay').classList.remove('show');
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('resp-list').innerHTML = '';
+  document.getElementById('req-list').innerHTML = '';
+  addItem('resp-list'); addItem('resp-list'); addItem('resp-list');
+  addItem('req-list');  addItem('req-list');  addItem('req-list');
+  updatePreview();
+}
+
+/* ── BOOT ── */
+addItem('resp-list'); addItem('resp-list'); addItem('resp-list');
+addItem('req-list');  addItem('req-list');  addItem('req-list');
+updatePreview();
+document.getElementById('f-apply-email').value = 'hr@' + EMPLOYER.slug + '.co.za';
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+</body>
+</html>

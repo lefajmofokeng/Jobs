@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading… — Cronos Jobs</title>
+<meta name="description" id="meta-desc" content="">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cronos Jobs">
+<meta property="og:title" id="og-title" content="">
+<meta property="og:description" id="og-desc" content="">
+<meta name="twitter:card" content="summary">
+<style>
+@font-face{font-family:'Circular';src:url('fonts/CircularStd-Book.woff2') format('woff2');font-weight:400;font-display:swap;}
+@font-face{font-family:'Circular';src:url('fonts/CircularStd-Medium.woff2') format('woff2');font-weight:500;font-display:swap;}
+@font-face{font-family:'Circular';src:url('fonts/CircularStd-Bold.woff2') format('woff2');font-weight:600;font-display:swap;}
+@font-face{font-family:'Circular';src:url('fonts/CircularStd-Black.woff2') format('woff2');font-weight:700;font-display:swap;}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f9f9f9;--surface:#fff;--surface-2:#F0EEE9;
+  --border:#E8E6E0;--border-strong:#D4D1C8;
+  --text-primary:#18181B;--text-secondary:#6B6B72;--text-muted:#9B9BA4;
+  --accent:#0099fa;--accent-light:#e8f4ff;--accent-hover:#007fd4;
+  --amber:#D97706;--amber-light:#FEF3C7;
+  --red:#DC2626;--red-light:#FEE2E2;
+  --navy:#080d1b;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.10),0 4px 8px rgba(0,0,0,0.05);
+  --nav-height:60px;--max-w:1100px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Circular',-apple-system,sans-serif;background:var(--bg);color:var(--text-primary);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;width:100%;z-index:100;height:var(--nav-height);background:var(--navy);border-bottom:1px solid rgba(255,255,255,0.07);}
+.nav-inner{max-width:var(--max-w);margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.nav-left{display:flex;align-items:center;gap:16px;flex:1;min-width:0;}
+.nav-logo{display:flex;align-items:center;text-decoration:none;flex-shrink:0;}
+.nav-logo img{height:34px;width:auto;display:block;}
+.nav-breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.5);overflow:hidden;}
+.nav-breadcrumb a{color:rgba(255,255,255,0.55);text-decoration:none;transition:color 0.15s;white-space:nowrap;}
+.nav-breadcrumb a:hover{color:#fff;}
+.nav-breadcrumb-sep{color:rgba(255,255,255,0.25);flex-shrink:0;}
+.nav-breadcrumb-current{color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.btn{font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;border:none;outline:none;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:rgba(255,255,255,0.85);padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,0.4);}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.7);}
+.btn-primary{background:var(--accent);color:#fff;padding:6px 18px;border-radius:50px;}
+.btn-primary:hover{background:var(--accent-hover);}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;background:none;border:none;padding:4px;width:36px;height:36px;}
+.nav-hamburger span{display:block;height:2px;width:22px;background:#fff;border-radius:2px;transition:all 0.25s ease;transform-origin:center;}
+.nav-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.nav-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.nav-drawer{display:none;position:fixed;top:var(--nav-height);left:0;width:100%;z-index:99;background:var(--navy);padding:16px 24px 24px;flex-direction:column;gap:4px;}
+.nav-drawer.open{display:flex;}
+.nav-drawer a{display:block;padding:12px 0;font-size:15px;font-weight:500;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);}
+.nav-drawer a:last-child{border-bottom:none;}
+.nav-drawer .drawer-cta{margin-top:12px;background:var(--accent);color:#fff;text-align:center;border-radius:50px;padding:12px;border-bottom:none;font-weight:600;}
+
+/* LAYOUT */
+.page-wrap{max-width:var(--max-w);margin:0 auto;padding:calc(var(--nav-height) + 32px) 24px 80px;display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start;}
+
+/* MAIN CONTENT */
+.job-main{}
+
+/* BACK LINK */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:20px;transition:color 0.15s;}
+.back-link:hover{color:var(--accent);}
+.back-link svg{flex-shrink:0;}
+
+/* JOB HEADER CARD */
+.job-header-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.job-header-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;}
+.co-logo{width:64px;height:64px;border-radius:14px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.co-logo img{width:100%;height:100%;object-fit:contain;padding:8px;}
+.co-logo-fallback{font-size:20px;font-weight:700;color:var(--accent);}
+.job-title-wrap{flex:1;min-width:0;}
+.job-title{font-size:26px;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:4px;}
+.job-company-link{font-size:15px;font-weight:500;color:var(--accent);text-decoration:none;}
+.job-company-link:hover{text-decoration:underline;}
+.job-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.btn-save-job{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-secondary);background:#fff;border:1.5px solid var(--border-strong);padding:8px 14px;border-radius:50px;cursor:pointer;transition:all 0.15s;}
+.btn-save-job:hover{border-color:var(--amber);color:var(--amber);}
+.btn-save-job.saved{border-color:var(--amber);color:var(--amber);background:var(--amber-light);}
+.btn-save-job.saved svg{fill:var(--amber);}
+.btn-share{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-secondary);background:#fff;border:1.5px solid var(--border-strong);padding:8px 14px;border-radius:50px;cursor:pointer;transition:all 0.15s;}
+.btn-share:hover{border-color:var(--accent);color:var(--accent);}
+.btn-share.copied{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+
+/* META ROW — location, type, dept — vertical on detail */
+.job-meta-grid{display:flex;flex-direction:column;gap:10px;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:18px;}
+.job-meta-item{display:flex;align-items:center;gap:10px;font-size:14px;}
+.job-meta-icon{width:32px;height:32px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);}
+.job-meta-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);display:block;margin-bottom:1px;}
+.job-meta-value{font-size:13px;font-weight:600;color:var(--text-primary);display:block;}
+
+/* DATES */
+.job-dates-stack{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:20px;}
+.job-date-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;}
+.job-date-row+.job-date-row{border-top:1px solid var(--border);}
+.job-date-icon{width:26px;height:26px;border-radius:6px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);margin-top:2px;}
+.job-date-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);display:block;}
+.job-date-value{font-size:13px;font-weight:600;color:var(--text-primary);display:block;}
+.closing-soon{color:#c2410c !important;}
+.closing-urgency{display:inline-block;margin-top:3px;font-size:11px;font-weight:600;color:#c2410c;background:#fff4f0;padding:1px 7px;border-radius:50px;border:1px solid #fca9a9;}
+
+/* APPLY BAR (inside card) */
+.apply-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-lg);flex-wrap:wrap;}
+.apply-bar-left{font-size:13px;color:var(--text-secondary);}
+.apply-bar-left strong{color:var(--text-primary);}
+.btn-apply{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;background:var(--accent);border:none;padding:12px 32px;border-radius:50px;cursor:pointer;transition:background 0.15s;text-decoration:none;}
+.btn-apply:hover{background:var(--accent-hover);}
+
+/* JOB BODY */
+.job-body-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;box-shadow:var(--shadow-sm);}
+.job-section{margin-bottom:32px;}
+.job-section:last-child{margin-bottom:0;}
+.job-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.job-description{font-size:15px;color:var(--text-secondary);line-height:1.8;}
+.job-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
+.job-list li{display:flex;gap:10px;font-size:14px;color:var(--text-secondary);line-height:1.6;}
+.job-list li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:8px;}
+
+/* SIDEBAR */
+.job-sidebar{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--nav-height) + 24px);}
+
+.sidebar-apply-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:22px;box-shadow:var(--shadow-sm);}
+.sidebar-apply-logo{width:56px;height:56px;border-radius:12px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:14px;}
+.sidebar-apply-logo img{width:100%;height:100%;object-fit:contain;padding:6px;}
+.sidebar-apply-company{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:2px;}
+.sidebar-apply-verified{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid #bfdbfe;padding:2px 8px;border-radius:50px;margin-bottom:14px;}
+.sidebar-apply-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-family:inherit;font-size:15px;font-weight:700;color:#fff;background:var(--accent);border:none;padding:13px;border-radius:50px;cursor:pointer;transition:background 0.15s;text-decoration:none;margin-bottom:10px;}
+.sidebar-apply-btn:hover{background:var(--accent-hover);}
+.sidebar-save-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-secondary);background:#fff;border:1.5px solid var(--border-strong);padding:10px;border-radius:50px;cursor:pointer;transition:all 0.15s;margin-bottom:14px;}
+.sidebar-save-btn:hover{border-color:var(--amber);color:var(--amber);}
+.sidebar-save-btn.saved{border-color:var(--amber);color:var(--amber);background:var(--amber-light);}
+.sidebar-note{font-size:12px;color:var(--text-muted);text-align:center;line-height:1.55;}
+
+.sidebar-info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:20px;box-shadow:var(--shadow-sm);}
+.sidebar-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:14px;}
+.sidebar-meta-list{display:flex;flex-direction:column;gap:10px;}
+.sidebar-meta-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;}
+.sidebar-meta-icon{width:28px;height:28px;border-radius:7px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);margin-top:1px;}
+.sidebar-meta-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);display:block;margin-bottom:1px;}
+.sidebar-meta-value{font-size:13px;font-weight:500;color:var(--text-primary);}
+
+.sidebar-share-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:20px;box-shadow:var(--shadow-sm);}
+.share-url-wrap{display:flex;gap:8px;}
+.share-url-input{flex:1;font-family:inherit;font-size:12px;color:var(--text-secondary);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:8px 12px;outline:none;}
+.share-copy-btn{font-family:inherit;font-size:12px;font-weight:600;color:#fff;background:var(--accent);border:none;padding:8px 14px;border-radius:var(--radius-md);cursor:pointer;transition:background 0.15s;white-space:nowrap;}
+.share-copy-btn:hover{background:var(--accent-hover);}
+.share-copy-btn.copied{background:var(--navy);}
+
+/* NOT FOUND */
+.not-found{display:none;text-align:center;padding:calc(var(--nav-height) + 80px) 24px 80px;max-width:480px;margin:0 auto;}
+.not-found h2{font-size:22px;font-weight:700;margin-bottom:10px;}
+.not-found p{font-size:15px;color:var(--text-secondary);margin-bottom:24px;line-height:1.6;}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:50px;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);}
+.tag-full{color:var(--accent);background:var(--accent-light);border-color:#bfdbfe;}
+.tag-part{color:var(--amber);background:var(--amber-light);border-color:#fde68a;}
+.tag-contract{color:#6D28D9;background:#F3F0FF;border-color:#ddd6fe;}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);background:var(--surface);padding:28px 24px;}
+.footer-inner{max-width:var(--max-w);margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.footer-text{font-size:12px;color:var(--text-muted);}
+.footer-links{display:flex;gap:16px;}
+.footer-links a{font-size:12px;color:var(--text-muted);text-decoration:none;}
+.footer-links a:hover{color:var(--accent);}
+
+/* RESPONSIVE */
+@media(max-width:860px){
+  .page-wrap{grid-template-columns:1fr;}
+  .job-sidebar{position:static;}
+  .job-header-actions{display:none;}
+}
+@media(max-width:640px){
+  #nav-actions-desktop{display:none;}
+  .nav-hamburger{display:flex;}
+  .page-wrap{padding:calc(var(--nav-height) + 20px) 16px 60px;}
+  .job-title{font-size:20px;}
+  .job-header-card{padding:20px;}
+  .job-body-card{padding:20px;}
+  .apply-bar{flex-direction:column;align-items:stretch;}
+  .btn-apply{justify-content:center;}
+  .nav-breadcrumb{display:none;}
+}
+@media(max-width:400px){.nav-inner{padding:0 16px;}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html" class="nav-logo">
+        <img src="logo.png" alt="Cronos Jobs"/>
+      </a>
+      <div class="nav-breadcrumb">
+        <span class="nav-breadcrumb-sep">/</span>
+        <a href="index.html">Browse jobs</a>
+        <span class="nav-breadcrumb-sep">/</span>
+        <span class="nav-breadcrumb-current" id="bc-title">Loading…</span>
+      </div>
+    </div>
+    <div class="nav-actions" id="nav-actions-desktop">
+      <a href="employer-login.html" class="btn btn-ghost">Employer login</a>
+      <a href="index.html" class="btn btn-primary">All jobs</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="nav-drawer" id="nav-drawer">
+  <a href="index.html">Browse jobs</a>
+  <a href="employer-login.html">Employer login</a>
+  <a href="verify.html" class="drawer-cta">Post a Job</a>
+</div>
+
+<div class="not-found" id="not-found">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:.3;margin:0 auto 16px;display:block"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 014 0v2"/></svg>
+  <h2>Job not found</h2>
+  <p>This listing may have expired or been removed by the employer.</p>
+  <a href="index.html" class="btn btn-primary" style="display:inline-flex;margin:0 auto">Browse all open jobs</a>
+</div>
+
+<div id="page-content" style="display:none">
+<div class="page-wrap">
+
+  <!-- LEFT: main -->
+  <div class="job-main">
+    <a href="index.html" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All jobs
+    </a>
+
+    <!-- Header card -->
+    <div class="job-header-card">
+      <div class="job-header-top">
+        <div class="co-logo" id="co-logo-wrap">
+          <span class="co-logo-fallback" id="co-logo-abbr"></span>
+        </div>
+        <div class="job-title-wrap">
+          <h1 class="job-title" id="jd-title"></h1>
+          <a class="job-company-link" id="jd-company-link" href="#"></a>
+        </div>
+        <div class="job-header-actions">
+          <button class="btn-save-job" id="header-save-btn" onclick="toggleSave()">
+            <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+            Save
+          </button>
+          <button class="btn-share" id="header-share-btn" onclick="copyLink()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share
+          </button>
+        </div>
+      </div>
+
+      <!-- Meta: location, type, dept — vertical -->
+      <div class="job-meta-grid">
+        <div class="job-meta-item">
+          <div class="job-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="7" r="2" stroke="currentColor" stroke-width="1.4"/></svg></div>
+          <div><span class="job-meta-label">Location</span><span class="job-meta-value" id="jd-location"></span></div>
+        </div>
+        <div class="job-meta-item">
+          <div class="job-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1M7 10h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div><span class="job-meta-label">Employment type</span><span class="job-meta-value" id="jd-type"></span></div>
+        </div>
+        <div class="job-meta-item">
+          <div class="job-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 7v11h5v-5h4v5h5V7L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+          <div><span class="job-meta-label">Department</span><span class="job-meta-value" id="jd-dept"></span></div>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="job-dates-stack">
+        <div class="job-date-row">
+          <div class="job-date-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div><span class="job-date-label">Date posted</span><span class="job-date-value" id="jd-posted"></span></div>
+        </div>
+        <div class="job-date-row">
+          <div class="job-date-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div>
+            <span class="job-date-label">Application closes</span>
+            <span class="job-date-value" id="jd-closes"></span>
+            <span class="closing-urgency" id="jd-urgency" style="display:none"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apply bar -->
+      <div class="apply-bar">
+        <div class="apply-bar-left">At <strong id="ab-company"></strong> — <span id="ab-city"></span></div>
+        <a class="btn-apply" id="apply-btn" href="#">
+          Apply for this position
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M7 10h6M10 7l3 3-3 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Body card -->
+    <div class="job-body-card">
+      <div class="job-section">
+        <div class="job-section-title">About this role</div>
+        <p class="job-description" id="jd-desc"></p>
+      </div>
+      <div class="job-section">
+        <div class="job-section-title">Responsibilities</div>
+        <ul class="job-list" id="jd-responsibilities"></ul>
+      </div>
+      <div class="job-section">
+        <div class="job-section-title">Requirements</div>
+        <ul class="job-list" id="jd-requirements"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: sidebar -->
+  <aside class="job-sidebar">
+    <div class="sidebar-apply-card">
+      <div class="sidebar-apply-logo" id="sb-logo-wrap">
+        <span id="sb-logo-abbr" style="font-size:16px;font-weight:700;color:var(--accent)"></span>
+      </div>
+      <div class="sidebar-apply-company" id="sb-company"></div>
+      <div class="sidebar-apply-verified">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1l6 2.5V8c0 4-3 6.5-6 7.5C5 14.5 2 12 2 8V3.5L8 1z" fill="var(--accent)" opacity=".25" stroke="var(--accent)" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Cronos Verified Employer
+      </div>
+      <a class="sidebar-apply-btn" id="sb-apply-btn" href="#">
+        Apply now
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M7 10h6M10 7l3 3-3 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <button class="sidebar-save-btn" id="sb-save-btn" onclick="toggleSave()">
+        <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+        Save for later
+      </button>
+      <p class="sidebar-note">No account needed to apply. Your application goes directly to the employer.</p>
+    </div>
+
+    <div class="sidebar-info-card">
+      <p class="sidebar-section-title">Job details</p>
+      <div class="sidebar-meta-list">
+        <div class="sidebar-meta-item">
+          <div class="sidebar-meta-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.6"/></svg></div>
+          <div><span class="sidebar-meta-label">Location</span><span class="sidebar-meta-value" id="sb-location"></span></div>
+        </div>
+        <div class="sidebar-meta-item">
+          <div class="sidebar-meta-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.4"/></svg></div>
+          <div><span class="sidebar-meta-label">Type</span><span class="sidebar-meta-value" id="sb-type"></span></div>
+        </div>
+        <div class="sidebar-meta-item">
+          <div class="sidebar-meta-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 7v11h5v-5h4v5h5V7L10 2z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+          <div><span class="sidebar-meta-label">Department</span><span class="sidebar-meta-value" id="sb-dept"></span></div>
+        </div>
+        <div class="sidebar-meta-item" id="sb-openings-wrap">
+          <div class="sidebar-meta-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/></svg></div>
+          <div><span class="sidebar-meta-label">Openings</span><span class="sidebar-meta-value" id="sb-openings"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-share-card">
+      <p class="sidebar-section-title">Share this job</p>
+      <div class="share-url-wrap">
+        <input type="text" class="share-url-input" id="share-url-input" readonly>
+        <button class="share-copy-btn" id="share-copy-btn" onclick="copyLink()">Copy</button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+</div><!-- /page-content -->
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-text">Cronos Jobs &copy; 2026 — Powered by Cronos</span>
+    <div class="footer-links">
+      <a href="index.html">Browse jobs</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="verify.html">Post a Job</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── DATA (replace with fetch('/api/jobs/:id') in production) ── */
+const COMPANIES = {
+  boxer:       {name:'Boxer Superstore',   abbr:'BX', color:'#E53935', logo:'assets/logos/boxer.png'},
+  clicks:      {name:'Clicks Group',       abbr:'CL', color:'#1565C0', logo:'https://logo.clearbit.com/clicks.co.za'},
+  shoprite:    {name:'Shoprite Holdings',  abbr:'SR', color:'#E65100', logo:'https://logo.clearbit.com/shoprite.co.za'},
+  medicross:   {name:'Medicross Clinics',  abbr:'MC', color:'#0099fa', logo:'https://logo.clearbit.com/medicross.co.za'},
+  abclogistics:{name:'ABC Logistics',      abbr:'AL', color:'#5E35B1', logo:'https://logo.clearbit.com/abclogistics.co.za'},
+  spur:        {name:'Spur Corporation',   abbr:'SP', color:'#C62828', logo:'https://logo.clearbit.com/spur.co.za'},
+  pnp:         {name:'Pick n Pay',         abbr:'PP', color:'#1B5E20', logo:'https://logo.clearbit.com/picknpay.co.za'},
+  dischem:     {name:'Dis-Chem Pharmacies',abbr:'DC', color:'#1A237E', logo:'https://logo.clearbit.com/dischem.co.za'},
+};
+
+const JOBS = [
+  {id:1, slug:'boxer', title:'Store Manager', dept:'Management', type:'full-time', province:'Gauteng', city:'Johannesburg', posted:'2026-01-12', closes:'2026-04-28', closesTime:'17:00', slots:1,
+   description:'Lead and manage the daily operations of a high-volume Boxer Superstore, ensuring excellent customer service, stock availability, and staff performance. You will be responsible for achieving sales targets and maintaining retail standards across the store.',
+   requirements:['Matric certificate (Grade 12)','Minimum 3 years retail management experience','Strong leadership and communication skills','Ability to work weekends and public holidays','Valid driver\'s licence advantageous'],
+   responsibilities:['Oversee all store operations and staff schedules','Monitor daily sales and take corrective action where needed','Manage stock levels, orders, and loss prevention','Conduct performance reviews and staff coaching','Ensure compliance with health and safety regulations']},
+  {id:2, slug:'medicross', title:'Registered Nurse (x2)', dept:'Clinical', type:'full-time', province:'KwaZulu-Natal', city:'Durban', posted:'2026-01-15', closes:'2026-04-30', closesTime:'16:00', slots:2,
+   description:'Medicross Durban is seeking two Registered Nurses to join our busy primary healthcare team. You will provide quality patient care, conduct clinical assessments, administer medication, and support our doctors.',
+   requirements:['Registered Nurse qualification (SANC registered)','Minimum 2 years clinical experience','Strong patient care and communication skills','Ability to work under pressure','Computer literacy'],
+   responsibilities:['Conduct patient assessments and triage','Administer medication and injections as prescribed','Assist doctors during procedures','Maintain accurate patient records','Educate patients on health management']},
+  {id:3, slug:'pnp', title:'Cashier (x5)', dept:'Retail', type:'full-time', province:'Gauteng', city:'Pretoria', posted:'2026-01-18', closes:'2026-04-25', closesTime:'12:00', slots:5,
+   description:'Pick n Pay Pretoria is hiring five cashiers. You will process customer transactions efficiently, maintain your till, and provide professional service to shoppers.',
+   requirements:['Matric certificate (Grade 12)','Previous cashier or retail experience preferred','Strong numerical ability','Good communication skills','Ability to work shifts and weekends'],
+   responsibilities:['Process customer purchases accurately via POS system','Handle cash, card, and voucher transactions','Maintain clean and organised till area','Assist customers with queries','Balance cash drawer at end of each shift']},
+  {id:4, slug:'abclogistics', title:'Delivery Driver', dept:'Logistics', type:'contract', province:'Western Cape', city:'Cape Town', posted:'2026-01-20', closes:'2026-05-06', closesTime:'09:00', slots:1,
+   description:'ABC Logistics is seeking a reliable Delivery Driver for the Cape Town operation. Safe and timely delivery of goods to clients across the Western Cape.',
+   requirements:['Valid Code 10 driver\'s licence','Minimum 2 years driving experience','Clean driving record','Knowledge of Cape Town road network','Physically fit'],
+   responsibilities:['Deliver goods to clients on assigned routes','Ensure all deliveries are documented and signed for','Maintain vehicle cleanliness and report defects','Communicate delivery updates to dispatch','Handle goods with care']},
+  {id:5, slug:'dischem', title:'Pharmacist Assistant', dept:'Pharmacy', type:'full-time', province:'Gauteng', city:'Sandton', posted:'2026-01-22', closes:'2026-04-30', closesTime:'15:00', slots:1,
+   description:'Dis-Chem Sandton is looking for a qualified Pharmacist Assistant. You will assist the pharmacist in dispensing medication and providing healthcare advice.',
+   requirements:['Pharmacist Assistant qualification (Post-basic preferred)','SAPC registration','Minimum 1 year pharmacy experience','Excellent customer service skills','Strong attention to detail'],
+   responsibilities:['Assist with dispensing of chronic and acute medication','Provide counselling to patients','Manage pharmacy stock and expiry dates','Process medical aid claims accurately','Maintain a clean and compliant pharmacy environment']},
+];
+
+/* ── HELPERS ── */
+function getJobId() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('id')) return parseInt(p.get('id'));
+  const m = window.location.pathname.match(/\/job\/(\d+)/);
+  if (m) return parseInt(m[1]);
+  return 1;
+}
+function fmtDate(iso) {
+  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+function daysUntil(iso, time) {
+  return Math.ceil((new Date(iso+'T'+(time||'17:00')+':00') - new Date()) / 86400000);
+}
+function typeLabel(t) {
+  return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract';
+}
+
+let isSaved = false;
+function toggleSave() {
+  isSaved = !isSaved;
+  ['header-save-btn','sb-save-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.toggle('saved', isSaved);
+    if (id === 'header-save-btn') btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${isSaved?'Saved':'Save'}`;
+    if (id === 'sb-save-btn') btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${isSaved?'Saved':'Save for later'}`;
+  });
+}
+
+function copyLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('header-share-btn');
+    const copyBtn = document.getElementById('share-copy-btn');
+    if (btn) { btn.classList.add('copied'); btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Copied!`; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share`; }, 2000); }
+    if (copyBtn) { copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied'); setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000); }
+  });
+}
+
+/* ── BOOT ── */
+function boot() {
+  const id = getJobId();
+  const j = JOBS.find(j => j.id === id);
+  if (!j) { document.getElementById('not-found').style.display = 'block'; return; }
+  const co = COMPANIES[j.slug] || {name:j.slug, abbr:j.slug.slice(0,2).toUpperCase(), color:'#0099fa', logo:null};
+  const days = daysUntil(j.closes, j.closesTime);
+
+  document.title = `${j.title} at ${co.name} — Cronos Jobs`;
+  document.getElementById('og-title').setAttribute('content', `${j.title} at ${co.name}`);
+  document.getElementById('og-desc').setAttribute('content', j.description.slice(0, 160));
+  document.getElementById('meta-desc').setAttribute('content', j.description.slice(0, 160));
+
+  document.getElementById('bc-title').textContent = j.title;
+
+  // Logo
+  const logoWrap = document.getElementById('co-logo-wrap');
+  if (co.logo) logoWrap.innerHTML = `<img src="${co.logo}" alt="${co.name}" onerror="this.outerHTML='<span class=co-logo-fallback>${co.abbr}</span>'">`;
+  else document.getElementById('co-logo-abbr').textContent = co.abbr;
+
+  document.getElementById('jd-title').textContent = j.title;
+  document.getElementById('jd-company-link').textContent = co.name;
+  document.getElementById('jd-company-link').href = `https://${j.slug}.cronos.co.za`;
+  document.getElementById('jd-location').textContent = `${j.city}, ${j.province}`;
+  document.getElementById('jd-type').textContent = typeLabel(j.type) + (j.slots > 1 ? ` · ${j.slots} openings` : '');
+  document.getElementById('jd-dept').textContent = j.dept;
+  document.getElementById('jd-posted').textContent = fmtDate(j.posted);
+
+  const closesEl = document.getElementById('jd-closes');
+  closesEl.textContent = `${fmtDate(j.closes)} at ${j.closesTime || '17:00'}`;
+  if (days <= 5 && days >= 0) closesEl.classList.add('closing-soon');
+
+  const urgency = document.getElementById('jd-urgency');
+  if (days < 0) { urgency.style.display = 'inline-block'; urgency.textContent = 'Closed'; }
+  else if (days === 0) { urgency.style.display = 'inline-block'; urgency.textContent = 'Closes today'; }
+  else if (days <= 3) { urgency.style.display = 'inline-block'; urgency.textContent = `Closing in ${days} day${days!==1?'s':''}`; }
+
+  document.getElementById('ab-company').textContent = co.name;
+  document.getElementById('ab-city').textContent = j.city;
+  const applyUrl = `apply.html?job=${j.id}`;
+  document.getElementById('apply-btn').href = applyUrl;
+
+  document.getElementById('jd-desc').textContent = j.description;
+  document.getElementById('jd-responsibilities').innerHTML = j.responsibilities.map(r => `<li>${r}</li>`).join('');
+  document.getElementById('jd-requirements').innerHTML = j.requirements.map(r => `<li>${r}</li>`).join('');
+
+  // Sidebar
+  const sbLogo = document.getElementById('sb-logo-wrap');
+  if (co.logo) sbLogo.innerHTML = `<img src="${co.logo}" alt="${co.name}" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.outerHTML='<span style=font-size:16px;font-weight:700;color:var(--accent)>${co.abbr}</span>'">`;
+  else document.getElementById('sb-logo-abbr').textContent = co.abbr;
+
+  document.getElementById('sb-company').textContent = co.name;
+  document.getElementById('sb-apply-btn').href = applyUrl;
+  document.getElementById('sb-location').textContent = `${j.city}, ${j.province}`;
+  document.getElementById('sb-type').textContent = typeLabel(j.type);
+  document.getElementById('sb-dept').textContent = j.dept;
+  if (j.slots > 1) { document.getElementById('sb-openings').textContent = j.slots + ' positions'; }
+  else { document.getElementById('sb-openings-wrap').style.display = 'none'; }
+
+  const shareUrl = window.location.origin + window.location.pathname + '?id=' + j.id;
+  document.getElementById('share-url-input').value = shareUrl;
+
+  document.getElementById('page-content').style.display = 'block';
+}
+
+boot();
+
+const hamburger = document.getElementById('nav-hamburger');
+const drawer = document.getElementById('nav-drawer');
+hamburger.addEventListener('click', () => { const o = drawer.classList.toggle('open'); hamburger.classList.toggle('open', o); });
+document.addEventListener('click', e => { if (!e.target.closest('.nav') && !e.target.closest('.nav-drawer')) { drawer.classList.remove('open'); hamburger.classList.remove('open'); } });
+</script>
+</body>
+</html>

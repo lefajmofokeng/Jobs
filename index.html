@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronos Jobs — Find Your Next Role</title>
+<style>
+@font-face { font-family:'Circular'; src:url('fonts/CircularStd-Book.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Circular'; src:url('fonts/CircularStd-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Circular'; src:url('fonts/CircularStd-Bold.woff2') format('woff2'); font-weight:600; font-display:swap; }
+@font-face { font-family:'Circular'; src:url('fonts/CircularStd-Black.woff2') format('woff2'); font-weight:700; font-display:swap; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #f9f9f9;
+  --surface:      #FFFFFF;
+  --surface-2:    #F0EEE9;
+  --border:       #E8E6E0;
+  --border-strong:#D4D1C8;
+  --text-primary: #18181B;
+  --text-secondary:#6B6B72;
+  --text-muted:   #9B9BA4;
+  --accent:       #0099fa;
+  --accent-light: #e8f4ff;
+  --accent-hover: #007fd4;
+  --amber:        #D97706;
+  --amber-light:  #FEF3C7;
+  --red:          #DC2626;
+  --navy:         #080d1b;
+  --radius-sm:    6px;
+  --radius-md:    10px;
+  --radius-lg:    14px;
+  --radius-xl:    20px;
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:    0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:    0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
+  --nav-height:   60px;
+  --max-w:        1200px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Circular', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text-primary);
+  font-size: 15px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+
+/* ── NAVBAR — always dark blue, no scroll effect ─ */
+.nav {
+  position: fixed; top: 0; left: 0;
+  width: 100%; z-index: 100; height: var(--nav-height);
+  background: var(--navy);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.nav-inner {
+  max-width: var(--max-w); margin: 0 auto; padding: 0 24px;
+  height: 100%; display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+.nav-left { display: flex; align-items: center; flex: 1; min-width: 0; }
+.nav-logo { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+.nav-logo-mark { height: 36px; display: flex; align-items: center; justify-content: center; }
+.nav-logo-mark img { height: 36px; width: auto; display: block; }
+
+.nav-links { display: flex; align-items: center; gap: 2px; margin-left: 24px; }
+.nav-link {
+  font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.75);
+  text-decoration: none; padding: 6px 12px; border-radius: 50px;
+  transition: background 0.15s, color 0.15s; white-space: nowrap;
+}
+.nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.btn {
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none; outline: none; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-ghost {
+  background: transparent; color: rgba(255,255,255,0.85);
+  padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.4);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.7); }
+.btn-primary { background: var(--accent); color: #fff; padding: 6px 18px; border-radius: 50px; }
+.btn-primary:hover { background: var(--accent-hover); }
+
+.nav-hamburger {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; cursor: pointer; background: none; border: none;
+  padding: 4px; width: 36px; height: 36px;
+}
+.nav-hamburger span {
+  display: block; height: 2px; width: 22px; background: #fff;
+  border-radius: 2px; transition: all 0.25s ease; transform-origin: center;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-drawer {
+  display: none; position: fixed; top: var(--nav-height); left: 0;
+  width: 100%; z-index: 99; background: var(--navy);
+  padding: 16px 24px 24px; flex-direction: column; gap: 4px;
+}
+.nav-drawer.open { display: flex; }
+.nav-drawer a {
+  display: block; padding: 12px 0; font-size: 15px; font-weight: 500;
+  color: #fff; text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.06); transition: color 0.15s;
+}
+.nav-drawer a:last-child { border-bottom: none; }
+.nav-drawer a:hover { color: rgba(255,255,255,0.7); }
+.nav-drawer .drawer-cta {
+  margin-top: 12px; background: var(--accent); color: #fff;
+  text-align: center; border-radius: 50px; padding: 12px;
+  border-bottom: none; font-weight: 600;
+}
+
+/* ── HERO ─────────────────────────────────────────── */
+.hero-section {
+  position: relative; background-color: #050810;
+  background-image: linear-gradient(rgba(6,39,62,0.65), rgba(6,39,62,0.30)),
+    url('https://images.unsplash.com/photo-1686848429284-d108e021a74c?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+  background-size: cover; background-position: center 30%; overflow: hidden;
+}
+.hero {
+  position: relative; z-index: 1; max-width: var(--max-w); margin: 0 auto;
+  padding: calc(var(--nav-height) + 56px) 24px 72px; text-align: center;
+  animation: fadeUp 0.5s ease both;
+}
+.hero h1 {
+  font-size: clamp(34px,5vw,56px); font-weight: 500;
+  letter-spacing: -0.03em; line-height: 1.12; color: #fff; margin-bottom: 18px;
+}
+.hero h1 em { font-style: normal; color: #1a9afd; }
+.hero p { font-size: 17px; color: #E8E6E0; max-width: 500px; margin: 0 auto 40px; line-height: 1.6; }
+
+.search-bar {
+  background: #fff; border-radius: 50px; padding: 6px 6px 6px 20px;
+  display: flex; align-items: center; gap: 8px; max-width: 700px; margin: 0 auto;
+}
+.search-bar-field { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.search-bar-field input {
+  flex: 1; border: none; outline: none; font-family: inherit;
+  font-size: 15px; color: var(--text-primary); background: transparent; min-width: 0;
+}
+.search-bar-field input::placeholder { color: var(--text-muted); }
+.search-bar-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+.search-bar .btn-primary { font-size: 15px; padding: 10px 22px; border-radius: 50px; flex-shrink: 0; }
+
+/* ── JOBS SECTION ──────────────────────────────────── */
+.jobs-section-wrap { max-width: var(--max-w); margin: 0 auto; padding: 36px 24px 80px; }
+.jobs-section-heading { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
+.jobs-section-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+
+/* ── FILTERS ─────────────────────────────────────── */
+.filter-dropdowns { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; align-items: flex-end; }
+.filter-field { position: relative; min-width: 160px; }
+.filter-field-label {
+  position: absolute; top: -9px; left: 14px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  background: var(--bg); padding: 0 5px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  pointer-events: none; z-index: 2; white-space: nowrap;
+}
+.filter-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; height: 46px; padding: 0 14px;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  color: var(--text-primary); background: var(--bg);
+  border: 2px solid var(--border-strong); border-radius: 15px;
+  outline: none; cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  text-align: left; user-select: none; z-index: 1;
+}
+.filter-btn:hover, .filter-btn.open {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,153,250,0.1);
+}
+.filter-btn-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filter-chevron { flex-shrink: 0; width: 16px; height: 16px; color: var(--text-muted); transition: transform 0.2s; }
+.filter-btn.open .filter-chevron { transform: rotate(180deg); }
+.filter-dropdown-list {
+  position: absolute; top: calc(100% + 6px); left: 0; min-width: 100%;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 15px;
+  box-shadow: var(--shadow-lg); z-index: 200; display: none; padding: 6px;
+}
+.filter-dropdown-list.open { display: block; }
+.filter-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; font-size: 14px; font-weight: 500;
+  color: var(--text-primary); border-radius: 10px;
+  cursor: pointer; transition: background 0.1s; white-space: nowrap;
+}
+.filter-option:hover { background: var(--accent-light); color: var(--accent); }
+.filter-option.selected { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+.filter-option-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: currentColor; opacity: 0; }
+.filter-option.selected .filter-option-dot { opacity: 1; }
+
+/* ── TWO-PANEL LAYOUT ─────────────────────────────── */
+.jobs-panels { display: grid; grid-template-columns: 360px 1fr; gap: 16px; align-items: start; }
+
+/* ── LEFT PANEL ───────────────────────────────────── */
+.jobs-list-outer {
+  position: sticky; top: calc(var(--nav-height) + 16px);
+  max-height: calc(100vh - var(--nav-height) - 32px);
+  display: flex; flex-direction: column;
+}
+.jobs-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+.jobs-list-count { font-size: 13px; color: var(--text-muted); }
+/* Scrollable inner, scrollbar hidden */
+.jobs-list-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.jobs-list-scroll::-webkit-scrollbar { display: none; }
+.jobs-list-inner { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── JOB LIST CARD ────────────────────────────────── */
+.job-list-card {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--radius-lg); padding: 14px 16px;
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.12s;
+  position: relative; user-select: none;
+}
+.job-list-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.job-list-card.active { border-color: var(--accent); background: #f0f8ff; box-shadow: var(--shadow-sm); }
+.job-list-card.active::after {
+  content: ''; position: absolute; right: -9px; top: 50%; transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 9px solid var(--accent);
+}
+.jlc-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.jlc-logo {
+  width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
+  overflow: hidden; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: #fff;
+}
+.jlc-info { flex: 1; min-width: 0; }
+.jlc-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jlc-company { font-size: 13px; color: var(--accent); font-weight: 500; }
+.jlc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.jlc-dates { display: flex; flex-direction: column; gap: 3px; font-size: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
+.jlc-date-line { display: flex; align-items: center; gap: 5px; }
+.jlc-date-line svg { color: var(--text-muted); flex-shrink: 0; }
+.jlc-date-label { color: var(--text-muted); }
+.jlc-date-value { color: var(--text-secondary); font-weight: 500; }
+.jlc-closing-soon { color: #c2410c !important; font-weight: 600; }
+.jlc-actions { display: flex; align-items: center; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.jlc-save-btn {
+  background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 6px;
+  color: var(--text-muted); display: flex; align-items: center; gap: 4px;
+  font-size: 12px; font-family: inherit; font-weight: 500; transition: color 0.15s, background 0.15s;
+}
+.jlc-save-btn:hover { color: var(--accent); background: var(--accent-light); }
+.jlc-save-btn.saved { color: var(--amber); }
+.jlc-save-btn.saved svg { fill: var(--amber); stroke: var(--amber); }
+
+.saved-badge {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  background: var(--amber-light); color: var(--amber); padding: 2px 7px; border-radius: 50px;
+  border: 1px solid #fde68a; position: absolute; top: 10px; right: 10px;
+}
+
+/* Tags — no green */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500;
+  padding: 2px 8px; border-radius: 50px; background: var(--surface-2);
+  color: var(--text-secondary); border: 1px solid var(--border);
+}
+.tag-location { color: var(--text-secondary); }
+.tag-type-full  { color: var(--accent); background: var(--accent-light); border-color: #bfdbfe; }
+.tag-type-part  { color: var(--amber); background: var(--amber-light); border-color: #fde68a; }
+.tag-type-contract { color: #6D28D9; background: #F3F0FF; border-color: #ddd6fe; }
+.tag-dept { color: var(--text-secondary); }
+
+/* ── LOAD MORE ───────────────────────────────────── */
+.load-more-wrap { margin-top: 10px; text-align: center; }
+.btn-load-more {
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); background: var(--surface);
+  border: 1px solid var(--border); padding: 9px 24px; border-radius: 50px;
+  cursor: pointer; transition: all 0.15s; width: 100%;
+  display: none; /* shown by JS only when more results exist */
+}
+.btn-load-more:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── RIGHT PANEL ──────────────────────────────────── */
+.job-detail-panel {
+  background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; position: sticky; top: calc(var(--nav-height) + 16px);
+  max-height: calc(100vh - var(--nav-height) - 32px);
+  overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;
+}
+.job-detail-panel::-webkit-scrollbar { display: none; }
+
+.job-detail-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 420px; color: var(--text-muted); text-align: center; padding: 40px;
+}
+.job-detail-empty svg { margin-bottom: 16px; opacity: 0.3; }
+.job-detail-empty p { font-size: 14px; }
+
+.jd-header { padding: 28px 28px 20px; border-bottom: 1px solid var(--border); }
+.jd-header-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.jd-logo {
+  width: 60px; height: 60px; border-radius: 14px; border: 1px solid var(--border);
+  overflow: hidden; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: #fff;
+}
+.jd-title-wrap { flex: 1; min-width: 0; }
+.jd-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; line-height: 1.25; }
+.jd-company { font-size: 15px; color: var(--accent); font-weight: 500; }
+
+/* Vertical meta */
+.jd-meta-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.jd-meta-item { display: flex; align-items: flex-start; gap: 10px; }
+.jd-meta-icon {
+  width: 30px; height: 30px; border-radius: 8px; background: var(--surface-2);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--text-muted); margin-top: 1px;
+}
+.jd-meta-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 1px; }
+.jd-meta-value { font-size: 13px; font-weight: 500; color: var(--text-primary); display: block; }
+
+/* Date stack — vertical, no columns */
+.jd-dates-stack {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;
+}
+.jd-date-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; }
+.jd-date-row + .jd-date-row { border-top: 1px solid var(--border); }
+.jd-date-icon {
+  width: 26px; height: 26px; border-radius: 6px; background: var(--surface-2);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--text-muted); margin-top: 2px;
+}
+.jd-date-info { flex: 1; }
+.jd-date-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: block; }
+.jd-date-value { font-size: 13px; font-weight: 500; color: var(--text-primary); display: block; }
+.jd-date-value.closing-soon { color: #c2410c; }
+.jd-date-urgency {
+  display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 600;
+  color: #c2410c; background: #fff4f0; padding: 1px 7px; border-radius: 50px; border: 1px solid #fca9a9;
+}
+
+.jd-apply-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 14px 28px; background: var(--surface-2);
+  border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.jd-apply-bar-left { font-size: 13px; color: var(--text-secondary); }
+.jd-apply-bar-left strong { color: var(--text-primary); }
+.jd-apply-bar-actions { display: flex; align-items: center; gap: 10px; }
+.jd-save-detail-btn {
+  display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary); background: #fff;
+  border: 1.5px solid var(--border-strong); padding: 9px 16px; border-radius: 50px;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.jd-save-detail-btn:hover { border-color: var(--amber); color: var(--amber); }
+.jd-save-detail-btn.saved { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+.jd-save-detail-btn.saved svg { fill: var(--amber); stroke: var(--amber); }
+.jd-apply-btn {
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  color: #fff; background: var(--accent); border: none;
+  padding: 10px 28px; border-radius: 50px; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 7px;
+}
+.jd-apply-btn:hover { background: var(--accent-hover); }
+
+.jd-body { padding: 24px 28px; }
+.jd-section { margin-bottom: 28px; }
+.jd-section:last-child { margin-bottom: 0; }
+.jd-section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; }
+.jd-description { font-size: 14px; color: var(--text-secondary); line-height: 1.75; }
+.jd-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.jd-list li { font-size: 14px; color: var(--text-secondary); display: flex; gap: 10px; line-height: 1.5; }
+.jd-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 7px; }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.footer { border-top: 1px solid var(--border); background: var(--surface); padding: 44px 24px 32px; }
+.footer-inner { max-width: var(--max-w); margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+.footer-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.footer-brand { flex-shrink: 0; }
+.footer-brand-name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+.footer-brand-sub { font-size: 13px; color: var(--text-muted); }
+.footer-links-cols { display: flex; gap: 40px; flex-wrap: wrap; }
+.footer-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 12px; }
+.footer-col a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; margin-bottom: 7px; transition: color 0.15s; }
+.footer-col a:hover { color: var(--accent); }
+
+.footer-notes {
+  background: #f7f7f8; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 22px;
+}
+.footer-note-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 12px; }
+.footer-note-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 8px;
+}
+.footer-note-item:last-child { margin-bottom: 0; }
+.footer-note-dash { color: var(--border-strong); flex-shrink: 0; font-weight: 600; margin-top: 1px; }
+.footer-bottom {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding-top: 20px; border-top: 1px solid var(--border);
+}
+.footer-copy { font-size: 12px; color: var(--text-muted); }
+.footer-bottom-links { display: flex; gap: 16px; }
+.footer-bottom-links a { font-size: 12px; color: var(--text-muted); text-decoration: none; }
+.footer-bottom-links a:hover { color: var(--accent); }
+
+/* ── POST JOB MODAL ──────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(8,13,27,0.72); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 24px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: #fff; border-radius: 20px; max-width: 560px; width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.22); overflow: hidden;
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  background: var(--navy); padding: 26px 28px 22px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.modal-header-icon {
+  width: 44px; height: 44px; background: rgba(0,153,250,0.2); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.modal-header-text { flex: 1; }
+.modal-header-text h2 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3; }
+.modal-header-text p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+.modal-close-btn {
+  background: rgba(255,255,255,0.1); border: none; cursor: pointer; color: rgba(255,255,255,0.7);
+  width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s; flex-shrink: 0;
+}
+.modal-close-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.modal-body { padding: 22px 28px 8px; display: flex; flex-direction: column; gap: 12px; }
+.modal-verify-badge {
+  display: flex; align-items: flex-start; gap: 12px; background: var(--accent-light);
+  border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 14px 16px;
+}
+.modal-verify-badge svg { color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.modal-verify-badge-text { font-size: 13px; color: var(--text-primary); line-height: 1.55; }
+.modal-verify-badge-text strong { color: var(--accent); }
+.modal-points { display: flex; flex-direction: column; gap: 10px; }
+.modal-point { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.modal-point-icon {
+  width: 28px; height: 28px; border-radius: 8px; background: var(--surface-2);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--text-muted);
+}
+.modal-point strong { color: var(--text-primary); }
+.modal-footer { padding: 14px 28px 24px; display: flex; flex-direction: column; gap: 10px; }
+.modal-cta-btn {
+  width: 100%; font-family: inherit; font-size: 15px; font-weight: 600;
+  color: #fff; background: var(--accent); border: none; padding: 13px; border-radius: 50px;
+  cursor: pointer; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.modal-cta-btn:hover { background: var(--accent-hover); }
+.modal-cta-note { font-size: 12px; color: var(--text-muted); text-align: center; line-height: 1.5; }
+.modal-cta-note a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+/* ── SAVED JOBS SIDEBAR ──────────────────────────── */
+.saved-sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(8,13,27,0.5);
+  backdrop-filter: blur(2px);
+}
+.saved-sidebar-overlay.open { display: block; }
+
+.saved-sidebar {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 420px; max-width: 100vw;
+  background: #fff; z-index: 301;
+  display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.14);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.saved-sidebar.open { transform: translateX(0); }
+
+.saved-sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--navy); flex-shrink: 0;
+}
+.saved-sidebar-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 16px; font-weight: 700; color: #fff;
+}
+.saved-sidebar-title svg { color: var(--amber); }
+.saved-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  background: var(--amber); color: #fff;
+  font-size: 11px; font-weight: 700; border-radius: 50px;
+}
+.saved-sidebar-close {
+  background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+  color: rgba(255,255,255,0.8); width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.saved-sidebar-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+.saved-sidebar-body {
+  flex: 1; overflow-y: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+  padding: 16px 16px 24px;
+}
+.saved-sidebar-body::-webkit-scrollbar { display: none; }
+
+.saved-sidebar-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; text-align: center; padding: 40px 20px;
+  color: var(--text-muted);
+}
+.saved-sidebar-empty svg { margin-bottom: 14px; opacity: 0.25; }
+.saved-sidebar-empty p { font-size: 14px; line-height: 1.6; }
+.saved-sidebar-empty strong { display: block; font-size: 15px; color: var(--text-secondary); margin-bottom: 6px; }
+
+.saved-job-card {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 14px 14px 12px;
+  margin-bottom: 10px; cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.12s;
+  position: relative;
+}
+.saved-job-card:last-child { margin-bottom: 0; }
+.saved-job-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.saved-job-card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.saved-job-logo {
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  overflow: hidden; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: #fff;
+}
+.saved-job-info { flex: 1; min-width: 0; }
+.saved-job-title { font-size: 14px; font-weight: 600; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.saved-job-company { font-size: 12px; color: var(--accent); font-weight: 500; }
+.saved-job-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.saved-job-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 8px; border-top: 1px solid var(--border);
+  gap: 8px;
+}
+.saved-job-dates { font-size: 11px; color: var(--text-muted); }
+.saved-job-dates span { display: block; }
+.saved-unsave-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: #c2410c; background: #fff4f0; border: 1px solid #fca9a9;
+  padding: 4px 10px; border-radius: 50px; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.saved-unsave-btn:hover { background: #fee2e2; border-color: #f87171; }
+
+/* Nav saved button */
+.btn-saved {
+  position: relative; background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85); padding: 6px 14px;
+  border-radius: 50px; border: 1px solid rgba(255,255,255,0.25);
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-saved:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.5); }
+.btn-saved-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  background: var(--amber); color: #fff;
+  font-size: 10px; font-weight: 700; border-radius: 50px;
+  display: none; /* shown when count > 0 */
+}
+
+/* ── ANIMATIONS ──────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 1024px) { .jobs-panels { grid-template-columns: 300px 1fr; } }
+@media (max-width: 860px) {
+  .jobs-panels { grid-template-columns: 1fr; }
+  .jobs-list-outer { position: static; max-height: none; }
+  .jobs-list-scroll { overflow-y: visible; max-height: none; }
+  .job-detail-panel { position: static; max-height: none; overflow-y: visible; }
+  .job-list-card.active::after { display: none; }
+  .jobs-section-wrap { padding: 24px 16px 60px; }
+  .filter-dropdowns { gap: 10px; }
+  .filter-field { min-width: 140px; }
+  .saved-sidebar { width: 100%; }
+}
+@media (max-width: 768px) { .nav-links { display: none; } }
+
+/* Mobile filter layout: 2 cols, 2 cols, 1 col (5 items) */
+@media (max-width: 640px) {
+  #nav-actions-desktop { display: none; }
+  .nav-hamburger { display: flex; }
+  .hero { padding: calc(var(--nav-height) + 36px) 20px 52px; }
+  .hero h1 { font-size: 28px; }
+  .hero p { font-size: 15px; }
+  .search-bar { flex-direction: column; padding: 14px; border-radius: var(--radius-lg); gap: 12px; align-items: stretch; }
+  .search-bar-field { width: 100%; }
+  .search-bar-divider { width: 100%; height: 1px; }
+  .search-bar .btn-primary { width: 100%; justify-content: center; padding: 12px; }
+
+  /* Filter grid: 2 | 2 | 1 */
+  .filter-dropdowns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  /* 5th item (Sort By) spans full width */
+  .filter-field:nth-child(5) { grid-column: 1 / -1; }
+  .filter-field { min-width: 0; }
+
+  .jobs-section-heading { font-size: 22px; }
+  .jobs-section-wrap { padding: 20px 16px 60px; }
+  .jd-apply-bar { flex-direction: column; align-items: stretch; }
+  .jd-apply-bar-actions { flex-direction: column; }
+  .jd-apply-btn { justify-content: center; }
+  .jd-save-detail-btn { justify-content: center; }
+  .jd-header { padding: 20px; }
+  .jd-apply-bar { padding: 14px 20px; }
+  .jd-body { padding: 20px; }
+  .footer { padding: 28px 16px; }
+  .footer-top { flex-direction: column; gap: 20px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .modal-header { padding: 20px; }
+  .modal-body { padding: 16px 20px 4px; }
+  .modal-footer { padding: 12px 20px 20px; }
+}
+@media (max-width: 480px) { .footer-links-cols { gap: 24px; } }
+@media (max-width: 380px) { .hero h1 { font-size: 24px; } .nav-inner { padding: 0 16px; } }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-mark">
+          <img src="logo.png" alt="Cronos Jobs"/>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="#" class="nav-link">Browse Jobs</a>
+        <a href="#" class="nav-link">For Employers</a>
+        <a href="#" class="nav-link">How It Works</a>
+        <a href="#" class="nav-link">About</a>
+      </nav>
+    </div>
+    <div class="nav-actions" id="nav-actions-desktop">
+      <button class="btn-saved" onclick="openSavedSidebar()" id="nav-saved-btn" title="Saved Jobs">
+        <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+        Saved
+        <span class="btn-saved-count" id="nav-saved-count">0</span>
+      </button>
+      <a href="#" class="btn btn-ghost">Sign In</a>
+      <button class="btn btn-primary" onclick="openPostJobModal()">Post a Job</button>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Drawer -->
+<div class="nav-drawer" id="nav-drawer">
+  <a href="#">Browse Jobs</a>
+  <a href="#">For Employers</a>
+  <a href="#">How It Works</a>
+  <a href="#">About</a>
+  <a href="#" onclick="openSavedSidebar();return false;">Saved Jobs <span id="drawer-saved-count" style="display:none;background:var(--amber);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:50px;margin-left:4px;"></span></a>
+  <a href="#">Sign In</a>
+  <a href="#" class="drawer-cta" onclick="openPostJobModal();return false;">Post a Job</a>
+</div>
+
+<!-- HERO -->
+<div class="hero-section">
+  <section class="hero">
+    <h1>Find work that<br><em>fits your life</em></h1>
+    <p>Thousands of verified vacancies from local businesses — apply in minutes, no account required.</p>
+    <div class="search-bar">
+      <div class="search-bar-field">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" style="color:var(--text-muted);flex-shrink:0"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Job title, keyword or company" id="hero-search" autocomplete="off">
+      </div>
+      <div class="search-bar-divider"></div>
+      <div class="search-bar-field" style="max-width:180px">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:var(--text-muted);flex-shrink:0"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        <input type="text" placeholder="City or province" id="hero-location" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" onclick="doSearch()">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="#fff" stroke-width="2"/><path d="M14 14l3 3" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        Search Jobs
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- JOBS SECTION -->
+<div class="jobs-section-wrap">
+  <h2 class="jobs-section-heading">Browse Vacancies</h2>
+  <p class="jobs-section-sub" id="results-count">Showing all available positions</p>
+
+  <!-- Filters -->
+  <div class="filter-dropdowns">
+
+    <div class="filter-field" id="ff-type">
+      <span class="filter-field-label">Job Type</span>
+      <button class="filter-btn" id="fb-type" onclick="toggleDropdown('type')">
+        <span class="filter-btn-value" id="fv-type">All Types</span>
+        <svg class="filter-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="filter-dropdown-list" id="fdl-type">
+        <div class="filter-option selected" data-filter="type" data-value="all" onclick="selectFilter('type','all','All Types')"><span class="filter-option-dot"></span>All Types</div>
+        <div class="filter-option" data-filter="type" data-value="full-time" onclick="selectFilter('type','full-time','Full-time')"><span class="filter-option-dot"></span>Full-time</div>
+        <div class="filter-option" data-filter="type" data-value="part-time" onclick="selectFilter('type','part-time','Part-time')"><span class="filter-option-dot"></span>Part-time</div>
+        <div class="filter-option" data-filter="type" data-value="contract" onclick="selectFilter('type','contract','Contract')"><span class="filter-option-dot"></span>Contract</div>
+      </div>
+    </div>
+
+    <div class="filter-field" id="ff-industry">
+      <span class="filter-field-label">Industry</span>
+      <button class="filter-btn" id="fb-industry" onclick="toggleDropdown('industry')">
+        <span class="filter-btn-value" id="fv-industry">All Industries</span>
+        <svg class="filter-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="filter-dropdown-list" id="fdl-industry">
+        <div class="filter-option selected" data-filter="industry" data-value="all" onclick="selectFilter('industry','all','All Industries')"><span class="filter-option-dot"></span>All Industries</div>
+        <div class="filter-option" data-filter="industry" data-value="retail" onclick="selectFilter('industry','retail','Retail')"><span class="filter-option-dot"></span>Retail</div>
+        <div class="filter-option" data-filter="industry" data-value="healthcare" onclick="selectFilter('industry','healthcare','Healthcare')"><span class="filter-option-dot"></span>Healthcare</div>
+        <div class="filter-option" data-filter="industry" data-value="logistics" onclick="selectFilter('industry','logistics','Logistics')"><span class="filter-option-dot"></span>Logistics</div>
+        <div class="filter-option" data-filter="industry" data-value="hospitality" onclick="selectFilter('industry','hospitality','Hospitality')"><span class="filter-option-dot"></span>Hospitality</div>
+        <div class="filter-option" data-filter="industry" data-value="finance" onclick="selectFilter('industry','finance','Finance')"><span class="filter-option-dot"></span>Finance</div>
+        <div class="filter-option" data-filter="industry" data-value="it" onclick="selectFilter('industry','it','IT & Tech')"><span class="filter-option-dot"></span>IT & Tech</div>
+        <div class="filter-option" data-filter="industry" data-value="management" onclick="selectFilter('industry','management','Management')"><span class="filter-option-dot"></span>Management</div>
+      </div>
+    </div>
+
+    <div class="filter-field" id="ff-province">
+      <span class="filter-field-label">Province</span>
+      <button class="filter-btn" id="fb-province" onclick="toggleDropdown('province')">
+        <span class="filter-btn-value" id="fv-province">All Provinces</span>
+        <svg class="filter-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="filter-dropdown-list" id="fdl-province">
+        <div class="filter-option selected" data-filter="province" data-value="all" onclick="selectFilter('province','all','All Provinces')"><span class="filter-option-dot"></span>All Provinces</div>
+        <div class="filter-option" data-filter="province" data-value="gauteng" onclick="selectFilter('province','gauteng','Gauteng')"><span class="filter-option-dot"></span>Gauteng</div>
+        <div class="filter-option" data-filter="province" data-value="kwazulu-natal" onclick="selectFilter('province','kwazulu-natal','KwaZulu-Natal')"><span class="filter-option-dot"></span>KwaZulu-Natal</div>
+        <div class="filter-option" data-filter="province" data-value="western-cape" onclick="selectFilter('province','western-cape','Western Cape')"><span class="filter-option-dot"></span>Western Cape</div>
+        <div class="filter-option" data-filter="province" data-value="eastern-cape" onclick="selectFilter('province','eastern-cape','Eastern Cape')"><span class="filter-option-dot"></span>Eastern Cape</div>
+        <div class="filter-option" data-filter="province" data-value="limpopo" onclick="selectFilter('province','limpopo','Limpopo')"><span class="filter-option-dot"></span>Limpopo</div>
+      </div>
+    </div>
+
+    <div class="filter-field" id="ff-company">
+      <span class="filter-field-label">Company</span>
+      <button class="filter-btn" id="fb-company" onclick="toggleDropdown('company')">
+        <span class="filter-btn-value" id="fv-company">All Companies</span>
+        <svg class="filter-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="filter-dropdown-list" id="fdl-company">
+        <div class="filter-option selected" data-filter="company" data-value="all" onclick="selectFilter('company','all','All Companies')"><span class="filter-option-dot"></span>All Companies</div>
+        <div class="filter-option" data-filter="company" data-value="boxer" onclick="selectFilter('company','boxer','Boxer Superstore')"><span class="filter-option-dot"></span>Boxer Superstore</div>
+        <div class="filter-option" data-filter="company" data-value="clicks" onclick="selectFilter('company','clicks','Clicks Group')"><span class="filter-option-dot"></span>Clicks Group</div>
+        <div class="filter-option" data-filter="company" data-value="shoprite" onclick="selectFilter('company','shoprite','Shoprite Holdings')"><span class="filter-option-dot"></span>Shoprite Holdings</div>
+        <div class="filter-option" data-filter="company" data-value="medicross" onclick="selectFilter('company','medicross','Medicross Clinics')"><span class="filter-option-dot"></span>Medicross Clinics</div>
+        <div class="filter-option" data-filter="company" data-value="abclogistics" onclick="selectFilter('company','abclogistics','ABC Logistics')"><span class="filter-option-dot"></span>ABC Logistics</div>
+        <div class="filter-option" data-filter="company" data-value="spur" onclick="selectFilter('company','spur','Spur Corporation')"><span class="filter-option-dot"></span>Spur Corporation</div>
+        <div class="filter-option" data-filter="company" data-value="pnp" onclick="selectFilter('company','pnp','Pick n Pay')"><span class="filter-option-dot"></span>Pick n Pay</div>
+        <div class="filter-option" data-filter="company" data-value="dischem" onclick="selectFilter('company','dischem','Dis-Chem Pharmacies')"><span class="filter-option-dot"></span>Dis-Chem Pharmacies</div>
+      </div>
+    </div>
+
+    <div class="filter-field" id="ff-sort">
+      <span class="filter-field-label">Sort By</span>
+      <button class="filter-btn" id="fb-sort" onclick="toggleDropdown('sort')">
+        <span class="filter-btn-value" id="fv-sort">Newest First</span>
+        <svg class="filter-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="filter-dropdown-list" id="fdl-sort">
+        <div class="filter-option selected" data-filter="sort" data-value="newest" onclick="selectFilter('sort','newest','Newest First')"><span class="filter-option-dot"></span>Newest First</div>
+        <div class="filter-option" data-filter="sort" data-value="closing" onclick="selectFilter('sort','closing','Closing Soon')"><span class="filter-option-dot"></span>Closing Soon</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panels -->
+  <div class="jobs-panels">
+    <div>
+      <div class="jobs-list-header">
+        <span class="jobs-list-count" id="list-count"></span>
+      </div>
+      <div class="jobs-list-outer">
+        <div class="jobs-list-scroll">
+          <div class="jobs-list-inner" id="jobs-list-panel"></div>
+        </div>
+      </div>
+      <div class="load-more-wrap">
+        <button class="btn-load-more" id="load-more-btn" onclick="loadMore()">Load more jobs</button>
+      </div>
+    </div>
+    <div class="job-detail-panel" id="job-detail-panel">
+      <div class="job-detail-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 014 0v2"/><path d="M8 12h8M8 16h5"/></svg>
+        <p>Select a job from the list<br>to view full details</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-brand-name">Cronos Jobs</div>
+        <div class="footer-brand-sub">Powered by Cronos &copy; 2025</div>
+      </div>
+      <div class="footer-links-cols">
+        <div class="footer-col">
+          <h4>Job Seekers</h4>
+          <a href="#">Browse Jobs</a>
+          <a href="#">How It Works</a>
+          <a href="#">Saved Jobs</a>
+          <a href="#">Job Alerts</a>
+        </div>
+        <div class="footer-col">
+          <h4>Employers</h4>
+          <a href="#">Post a Job</a>
+          <a href="#">Get Verified</a>
+          <a href="#">Pricing</a>
+          <a href="#">Employer FAQ</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">About Cronos</a>
+          <a href="#">Contact Us</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-notes">
+      <div class="footer-note-title">Important Notices for Job Seekers</div>
+      <div class="footer-note-item"><span class="footer-note-dash">—</span><span>Cronos is a <strong>job advertising platform only</strong>. We are not a recruitment agency and we do not act on behalf of any employer or candidate in the hiring process.</span></div>
+      <div class="footer-note-item"><span class="footer-note-dash">—</span><span>All applications submitted through this platform are sent <strong>directly to the hiring company</strong>. Cronos does not receive, review, filter, manage or track any applications. Please direct all follow-up queries to the employer.</span></div>
+      <div class="footer-note-item"><span class="footer-note-dash">—</span><span><strong>No AI is used in the application process.</strong> Cronos does not use artificial intelligence to screen, rank, shortlist or assess any candidate. Your application goes to the employer exactly as submitted.</span></div>
+      <div class="footer-note-item"><span class="footer-note-dash">—</span><span>Cronos is <strong>not responsible for the accuracy</strong> of job listings. While all employers are verified before posting, we do not guarantee the completeness or currency of any advertised vacancy.</span></div>
+      <div class="footer-note-item"><span class="footer-note-dash">—</span><span>Cronos will <strong>never ask you for payment</strong> to apply for a job, access a vacancy, or obtain a reference. If any listing or person requests payment, please report it to us immediately.</span></div>
+      <div class="footer-note-item"><span class="footer-note-dash">—</span><span>We strongly advise all candidates to <strong>verify the legitimacy</strong> of any employer before sharing personal information or attending interviews at unfamiliar premises.</span></div>
+    </div>
+
+    <div class="footer-bottom">
+      <span class="footer-copy">&copy; 2025 Cronos Jobs. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Contact</a>
+        <a href="#">Report a Listing</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- POST A JOB MODAL -->
+<div class="modal-overlay" id="post-job-modal" onclick="closePostJobModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0099fa" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="modal-header-text">
+        <h2>Post a Job on Cronos</h2>
+        <p>Employer verification is required before any vacancy can be advertised.</p>
+      </div>
+      <button class="modal-close-btn" onclick="closePostJobModal(null,true)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-verify-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="modal-verify-badge-text">
+          <strong>Cronos Verification Required</strong><br>
+          To protect job seekers from scams and fraudulent listings, all employers must complete our verification process before any vacancy can go live on the platform.
+        </div>
+      </div>
+      <div class="modal-points">
+        <div class="modal-point">
+          <div class="modal-point-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2a5 5 0 100 10A5 5 0 0010 2zM4 18a6 6 0 0112 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div><strong>Identity verification</strong> — We verify the identity of the hiring contact and their authority to recruit on behalf of the company.</div>
+        </div>
+        <div class="modal-point">
+          <div class="modal-point-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><strong>Business registration check</strong> — Your company must be a registered legal entity (CIPC or equivalent). We verify this independently before approving your account.</div>
+        </div>
+        <div class="modal-point">
+          <div class="modal-point-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M10 2l-7 4v5c0 4.5 3 8 7 9 4-1 7-4.5 7-9V6l-7-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+          <div><strong>Zero tolerance for fraud</strong> — Any fraudulent listing will be removed immediately and the employer account permanently banned. Legal action may be pursued where applicable.</div>
+        </div>
+        <div class="modal-point">
+          <div class="modal-point-icon"><svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><strong>Fast turnaround</strong> — Applications are reviewed within 1–2 business days. You'll receive a confirmation email with next steps once submitted.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cta-btn" onclick="alert('Redirecting to employer verification portal…')">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 2a5 5 0 100 10A5 5 0 0010 2zM4 18a6 6 0 0112 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        Apply for Employer Verification
+      </button>
+      <p class="modal-cta-note">Already verified? <a href="#">Sign in to your employer account →</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- SAVED JOBS SIDEBAR -->
+<div class="saved-sidebar-overlay" id="saved-sidebar-overlay" onclick="closeSavedSidebar()"></div>
+<aside class="saved-sidebar" id="saved-sidebar">
+  <div class="saved-sidebar-header">
+    <div class="saved-sidebar-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+      Saved Jobs
+      <span class="saved-count-badge" id="sidebar-count-badge">0</span>
+    </div>
+    <button class="saved-sidebar-close" onclick="closeSavedSidebar()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="saved-sidebar-body" id="saved-sidebar-body">
+    <div class="saved-sidebar-empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+      <strong>No saved jobs yet</strong>
+      <p>Tap the bookmark icon on any job listing to save it here for later.</p>
+    </div>
+  </div>
+</aside>
+
+<!-- ORIGINAL DISCLAIMER POPUP -->
+<div id="cronos-disclaimer-bar" class="cronos-popup">
+  <div class="cronos-popup-content">
+    <div class="cronos-popup-text">
+      <strong>Welcome to Cronos!</strong> Please note that we are exclusively a job advertising platform, not a recruitment agency.
+      When you submit an application through our site, it is sent directly to the hiring company.
+      We do not review, track, or manage applications in any way. Please direct all follow-ups and
+      job-specific inquiries straight to the employer. We are proud to connect you with top employers — best of luck with your job search!
+    </div>
+    <button id="cronos-close-btn" class="cronos-btn">Got it</button>
+  </div>
+</div>
+
+<style>
+.cronos-popup {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  background: linear-gradient(135deg, #0099fa 0%, #080d1b 100%);
+  color: #ffffff; padding: 15px 20px; box-sizing: border-box;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.2); z-index: 9999;
+  font-family: Arial, sans-serif; transition: transform 0.3s ease-in-out;
+}
+.cronos-popup-content {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center; gap: 20px;
+}
+.cronos-popup-text { font-size: 14px; line-height: 1.5; }
+.cronos-btn {
+  background-color: transparent; color: #ffffff;
+  border: 1px solid #ffffff; padding: 8px 16px; border-radius: 4px;
+  cursor: pointer; font-weight: bold; white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+.cronos-btn:hover { background-color: #ffffff; color: #080d1b; }
+.cronos-hidden { transform: translateY(100%); }
+@media (max-width: 768px) {
+  .cronos-popup-content { flex-direction: column; text-align: center; }
+  .cronos-btn { width: 100%; }
+}
+</style>
+
+<script>
+const COMPANIES = [
+  { slug:'boxer',       name:'Boxer Superstore',   abbr:'BX', color:'#E53935', logo:'boxer.png' },
+  { slug:'clicks',      name:'Clicks Group',        abbr:'CL', color:'#1565C0', logo:'clicks.png' },
+  { slug:'shoprite',    name:'Shoprite Holdings',   abbr:'SR', color:'#E65100', logo:'shoprite.png' },
+  { slug:'medicross',   name:'Medicross Clinics',   abbr:'MC', color:'#2E7D32', logo:'medicross.png' },
+  { slug:'abclogistics',name:'ABC Logistics',       abbr:'AL', color:'#5E35B1', logo:'abc.png' },
+  { slug:'spur',        name:'Spur Corporation',    abbr:'SP', color:'#C62828', logo:'spur.png' },
+  { slug:'pnp',         name:'Pick n Pay',          abbr:'PP', color:'#1B5E20', logo:'https://logo.clearbit.com/picknpay.co.za' },
+  { slug:'dischem',     name:'Dis-Chem Pharmacies', abbr:'DC', color:'#1A237E', logo:'dischem.png' },
+];
+
+const JOBS = [
+  { id:1,  title:'Store Manager',            company:'Boxer Superstore',   slug:'boxer',        dept:'Management', type:'full-time', province:'Gauteng',       city:'Johannesburg', posted:'2026-01-12', closes:'2026-04-28', closesTime:'17:00', slots:1,
+    description:'Lead and manage the daily operations of a high-volume Boxer Superstore, ensuring excellent customer service, stock availability, and staff performance.',
+    requirements:['Matric certificate (Grade 12)','Minimum 3 years retail management experience','Strong leadership and communication skills','Ability to work weekends and public holidays','Valid driver\'s licence advantageous'],
+    responsibilities:['Oversee all store operations and staff schedules','Monitor daily sales and take corrective action where needed','Manage stock levels, orders, and loss prevention','Conduct performance reviews and staff coaching','Ensure compliance with health and safety regulations'] },
+  { id:2,  title:'Registered Nurse (x2)',    company:'Medicross Clinics',  slug:'medicross',    dept:'Healthcare',  type:'full-time', province:'KwaZulu-Natal', city:'Durban',        posted:'2026-01-15', closes:'2026-04-30', closesTime:'16:00', slots:2,
+    description:'Medicross Durban is seeking two Registered Nurses to join our busy primary healthcare team.',
+    requirements:['Registered Nurse qualification (SANC registered)','Minimum 2 years clinical experience','Strong patient care and communication skills','Ability to work under pressure','Computer literacy'],
+    responsibilities:['Conduct patient assessments and triage','Administer medication and injections as prescribed','Assist doctors during procedures','Maintain accurate patient records','Educate patients on health management'] },
+  { id:3,  title:'Cashier (x5)',             company:'Pick n Pay',         slug:'pnp',          dept:'Retail',      type:'full-time', province:'Gauteng',       city:'Pretoria',      posted:'2026-01-18', closes:'2026-04-25', closesTime:'12:00', slots:5,
+    description:'Pick n Pay Pretoria is hiring five cashiers for our busy store.',
+    requirements:['Matric certificate (Grade 12)','Previous cashier or retail experience preferred','Strong numerical ability','Good communication skills','Ability to work shifts and weekends'],
+    responsibilities:['Process customer purchases accurately via POS system','Handle cash, card, and voucher transactions','Maintain clean and organised till area','Assist customers with queries at the checkout','Balance cash drawer at end of each shift'] },
+  { id:4,  title:'Delivery Driver',          company:'ABC Logistics',      slug:'abclogistics', dept:'Logistics',   type:'contract',  province:'Western Cape',  city:'Cape Town',     posted:'2026-01-20', closes:'2026-05-06', closesTime:'09:00', slots:1,
+    description:'ABC Logistics is seeking a reliable Delivery Driver for our Cape Town operation.',
+    requirements:['Valid Code 10 driver\'s licence','Minimum 2 years driving experience','Clean driving record','Knowledge of Cape Town road network','Physically fit — ability to load and unload goods'],
+    responsibilities:['Deliver goods to clients on assigned routes','Ensure all deliveries are documented and signed for','Maintain vehicle cleanliness and report defects','Communicate delivery updates to dispatch','Handle goods with care to prevent damage'] },
+  { id:5,  title:'Pharmacist Assistant',     company:'Dis-Chem Pharmacies',slug:'dischem',      dept:'Healthcare',  type:'full-time', province:'Gauteng',       city:'Sandton',       posted:'2026-01-22', closes:'2026-04-30', closesTime:'15:00', slots:1,
+    description:'Dis-Chem Sandton is looking for a qualified Pharmacist Assistant to join our retail pharmacy team.',
+    requirements:['Pharmacist Assistant qualification (Post-basic preferred)','SAPC registration','Minimum 1 year pharmacy experience','Excellent customer service skills','Strong attention to detail'],
+    responsibilities:['Assist with dispensing of chronic and acute medication','Provide counselling to patients on medication usage','Manage pharmacy stock and expiry dates','Process medical aid claims accurately','Maintain a clean and compliant pharmacy environment'] },
+  { id:6,  title:'Waitron / Floor Staff',    company:'Spur Corporation',   slug:'spur',         dept:'Hospitality', type:'part-time', province:'Western Cape',  city:'Cape Town',     posted:'2026-01-25', closes:'2026-04-22', closesTime:'17:00', slots:3,
+    description:'Spur Cape Town is hiring part-time waitrons and floor staff for our family restaurant.',
+    requirements:['Previous waitering experience preferred','Friendly and energetic personality','Ability to work evenings and weekends','Strong teamwork skills','Food handler\'s certificate advantageous'],
+    responsibilities:['Take food and beverage orders accurately','Deliver orders promptly and check satisfaction','Upsell menu items and promotions','Maintain cleanliness of tables and dining area','Process payments and close bills'] },
+  { id:7,  title:'Shelf Packer (Night Shift)',company:'Shoprite Holdings', slug:'shoprite',     dept:'Retail',      type:'part-time', province:'Eastern Cape',  city:'Port Elizabeth',posted:'2026-01-28', closes:'2026-05-10', closesTime:'08:00', slots:4,
+    description:'Shoprite Port Elizabeth requires shelf packers for the overnight shift.',
+    requirements:['Matric or Grade 10 minimum','Ability to work night shifts (10pm–6am)','Physically able to stand and walk for extended periods','Team player','Retail or packing experience advantageous'],
+    responsibilities:['Replenish shelves from backroom stock','Rotate stock and check sell-by dates','Organise stockroom and maintain order','Report stock shortages to supervisor','Ensure floor is clean and tidy'] },
+  { id:8,  title:'Beauty Advisor',           company:'Clicks Group',       slug:'clicks',       dept:'Retail',      type:'full-time', province:'KwaZulu-Natal', city:'Umhlanga',      posted:'2026-02-01', closes:'2026-04-16', closesTime:'16:30', slots:1,
+    description:'Clicks Umhlanga is seeking a passionate Beauty Advisor to join our cosmetics team.',
+    requirements:['Matric certificate','Passion for beauty and skincare','Sales-oriented mindset','Previous retail or beauty experience preferred','Ability to stand for long periods'],
+    responsibilities:['Assist customers with product selection and advice','Achieve individual and store sales targets','Demonstrate and apply products to customers','Maintain attractive product displays','Process transactions and handle returns'] },
+  { id:9,  title:'HR Administrator',         company:'Shoprite Holdings',  slug:'shoprite',     dept:'HR & Admin',  type:'full-time', province:'Gauteng',       city:'Johannesburg',  posted:'2026-02-05', closes:'2026-05-04', closesTime:'12:00', slots:1,
+    description:'Shoprite\'s Johannesburg head office is seeking an HR Administrator.',
+    requirements:['Diploma or degree in HR Management or related field','Minimum 2 years HR administrative experience','Proficiency in MS Office and HR systems','Strong organisational skills','Confidentiality and discretion'],
+    responsibilities:['Coordinate recruitment processes and schedule interviews','Maintain accurate employee records and HR databases','Assist with onboarding and induction of new staff','Prepare HR correspondence and reports','Support payroll with attendance and leave records'] },
+  { id:10, title:'Forklift Operator',        company:'ABC Logistics',      slug:'abclogistics', dept:'Logistics',   type:'full-time', province:'Gauteng',       city:'Boksburg',      posted:'2026-02-08', closes:'2026-05-01', closesTime:'10:00', slots:2,
+    description:'ABC Logistics Boksburg warehouse requires experienced Forklift Operators.',
+    requirements:['Valid forklift licence (counterbalance)','Minimum 2 years forklift experience','Knowledge of warehouse safety procedures','Ability to work shifts','Physically fit'],
+    responsibilities:['Operate counterbalance forklift safely','Load and unload delivery vehicles','Organise and stack stock in warehouse','Conduct pre-use forklift inspections','Maintain accurate stock movement records'] },
+  { id:11, title:'Customer Service Agent',   company:'Boxer Superstore',   slug:'boxer',        dept:'Retail',      type:'full-time', province:'KwaZulu-Natal', city:'Pinetown',      posted:'2026-02-10', closes:'2026-04-27', closesTime:'17:00', slots:1,
+    description:'Boxer Pinetown is looking for a Customer Service Agent to handle customer queries and complaints.',
+    requirements:['Matric certificate','Previous customer service experience','Excellent communication and interpersonal skills','Calm under pressure','Fluent in English and isiZulu advantageous'],
+    responsibilities:['Handle customer complaints and resolve issues efficiently','Process refunds and exchanges according to policy','Answer customer queries in person and by phone','Maintain records of customer interactions','Escalate unresolved issues to management'] },
+  { id:12, title:'IT Support Technician',    company:'Medicross Clinics',  slug:'medicross',    dept:'IT & Tech',   type:'full-time', province:'Gauteng',       city:'Midrand',       posted:'2026-02-14', closes:'2026-05-14', closesTime:'16:00', slots:1,
+    description:'Medicross Midrand is seeking an IT Support Technician to maintain clinical IT systems.',
+    requirements:['IT diploma or A+/N+ certification','Minimum 2 years helpdesk or desktop support experience','Knowledge of Windows, networking basics, and printers','Good troubleshooting skills','Healthcare IT experience advantageous'],
+    responsibilities:['Provide first and second line IT support to clinic staff','Install, configure, and maintain hardware and software','Troubleshoot network and connectivity issues','Maintain IT asset register','Escalate complex issues to senior IT staff'] },
+];
+
+// State
+let visibleCount=8, activeType='all', activeIndustry='all', activeProvince='all',
+    activeCompany='all', activeSort='newest', activeJobId=null,
+    searchQuery='', locationQuery='', savedJobs=new Set();
+
+// Helpers
+function getCompany(slug){ return COMPANIES.find(c=>c.slug===slug)||{abbr:'?',color:'#6B6B72',logo:null,name:slug}; }
+function logoImg(c,size=40){
+  const r=Math.round(size*0.22),p=Math.round(size*0.1);
+  if(c.logo) return `<img src="${c.logo}" alt="${c.name}" style="width:${size}px;height:${size}px;object-fit:contain;padding:${p}px;border-radius:${r}px;background:#fff;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><span style="display:none;width:${size}px;height:${size}px;align-items:center;justify-content:center;font-size:${Math.round(size*0.28)}px;font-weight:700;color:${c.color};background:${c.color}15;border-radius:${r}px;">${c.abbr}</span>`;
+  return `<span style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.28)}px;font-weight:700;color:${c.color};background:${c.color}15;border-radius:${r}px;">${c.abbr}</span>`;
+}
+function typeClass(t){ return t==='full-time'?'tag-type-full':t==='part-time'?'tag-type-part':'tag-type-contract'; }
+function typeLabel(t){ return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract'; }
+function fmtDate(iso){ return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+function isExpired(iso,time){
+  return new Date(iso+'T'+(time||'17:00')+':00') < new Date();
+}
+function daysUntil(iso,time){
+  return Math.ceil((new Date(iso+'T'+(time||'17:00')+':00') - new Date()) / 86400000);
+}
+
+// Custom dropdown
+let openDropdown=null;
+function toggleDropdown(key){
+  if(openDropdown&&openDropdown!==key) closeDropdown(openDropdown);
+  const btn=document.getElementById('fb-'+key), list=document.getElementById('fdl-'+key);
+  if(list.classList.contains('open')){ closeDropdown(key); }
+  else{ btn.classList.add('open'); list.classList.add('open'); openDropdown=key; }
+}
+function closeDropdown(key){
+  const btn=document.getElementById('fb-'+key), list=document.getElementById('fdl-'+key);
+  if(btn) btn.classList.remove('open');
+  if(list) list.classList.remove('open');
+  if(openDropdown===key) openDropdown=null;
+}
+document.addEventListener('click',e=>{ if(!e.target.closest('.filter-field')&&openDropdown) closeDropdown(openDropdown); });
+function selectFilter(key,value,label){
+  if(key==='type') activeType=value;
+  if(key==='industry') activeIndustry=value;
+  if(key==='province') activeProvince=value;
+  if(key==='company') activeCompany=value;
+  if(key==='sort') activeSort=value;
+  document.getElementById('fv-'+key).textContent=label;
+  document.querySelectorAll(`[data-filter="${key}"]`).forEach(o=>o.classList.toggle('selected',o.dataset.value===value));
+  closeDropdown(key); visibleCount=8; renderJobList();
+}
+
+// Filter
+function getFiltered(){
+  const iMap={retail:['Retail'],healthcare:['Healthcare'],logistics:['Logistics'],hospitality:['Hospitality'],finance:['Finance'],it:['IT & Tech'],management:['Management','HR & Admin']};
+  let list=JOBS.filter(j=>{
+    if(isExpired(j.closes,j.closesTime)) return false;
+    if(activeType!=='all'&&j.type!==activeType) return false;
+    if(activeIndustry!=='all'){ const t=iMap[activeIndustry]||[]; if(!t.some(x=>j.dept.toLowerCase().includes(x.toLowerCase()))) return false; }
+    if(activeProvince!=='all'&&j.province.toLowerCase().replace(/\s/g,'-')!==activeProvince) return false;
+    if(activeCompany!=='all'&&j.slug!==activeCompany) return false;
+    if(searchQuery){ const q=searchQuery.toLowerCase(); if(!(j.title.toLowerCase().includes(q)||j.company.toLowerCase().includes(q)||j.dept.toLowerCase().includes(q)||j.description.toLowerCase().includes(q))) return false; }
+    if(locationQuery){ const lq=locationQuery.toLowerCase(); if(!(j.city.toLowerCase().includes(lq)||j.province.toLowerCase().includes(lq))) return false; }
+    return true;
+  });
+  if(activeSort==='closing') list.sort((a,b)=>new Date(a.closes)-new Date(b.closes));
+  else list.sort((a,b)=>new Date(b.posted)-new Date(a.posted));
+  return list;
+}
+
+function renderJobList(){
+  const filtered=getFiltered(), total=filtered.length, showing=Math.min(visibleCount,total);
+  document.getElementById('results-count').textContent=`Showing ${showing} of ${total} position${total!==1?'s':''}`;
+  document.getElementById('list-count').textContent=`${total} result${total!==1?'s':''}`;
+  const panel=document.getElementById('jobs-list-panel');
+  panel.innerHTML=filtered.slice(0,visibleCount).map(j=>{
+    const co=getCompany(j.slug), days=daysUntil(j.closes,j.closesTime);
+    const isSaved=savedJobs.has(j.id), isActive=j.id===activeJobId;
+    const urgClass=days<=5?'jlc-closing-soon':'';
+    const urgText=days===0?'Closes today':days===1?'1 day left':days<=5?`${days} days left`:null;
+    return `<div class="job-list-card ${isActive?'active':''}" onclick="selectJob(${j.id})">
+      ${isSaved?'<span class="saved-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg> Saved</span>':''}
+      <div class="jlc-top">
+        <div class="jlc-logo">${logoImg(co,40)}</div>
+        <div class="jlc-info"><div class="jlc-title">${j.title}</div><div class="jlc-company">${j.company}</div></div>
+      </div>
+      <div class="jlc-tags">
+        <span class="tag tag-location"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>${j.city}</span>
+        <span class="tag ${typeClass(j.type)}">${typeLabel(j.type)}</span>
+        <span class="tag tag-dept">${j.dept}</span>
+      </div>
+      <div class="jlc-dates">
+        <div class="jlc-date-line">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span class="jlc-date-label">Date posted:</span><span class="jlc-date-value">${fmtDate(j.posted)}</span>
+        </div>
+        <div class="jlc-date-line">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span class="jlc-date-label ${urgClass}">Closes:</span>
+          <span class="jlc-date-value ${urgClass}">${fmtDate(j.closes)}${urgText?' · '+urgText:''}</span>
+        </div>
+      </div>
+      <div class="jlc-actions">
+        <button class="jlc-save-btn ${isSaved?'saved':''}" onclick="toggleSave(event,${j.id})">
+          <svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+          ${isSaved?'Saved':'Save'}
+        </button>
+      </div>
+    </div>`;
+  }).join('')||'<p style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px;">No jobs match your search.</p>';
+
+  // Load more — only visible when there are more results
+  const lb=document.getElementById('load-more-btn');
+  lb.style.display=showing<total?'block':'none';
+}
+
+function selectJob(id){
+  activeJobId=id;
+  const j=JOBS.find(j=>j.id===id); if(!j) return;
+  const co=getCompany(j.slug), days=daysUntil(j.closes,j.closesTime), isSaved=savedJobs.has(id);
+  const closingClass=days<=5&&days>0?'closing-soon':'';
+  let urgency='';
+  if(days<=0) urgency='<span class="jd-date-urgency">Closed</span>';
+  else if(days<=3) urgency=`<span class="jd-date-urgency">Closing in ${days} day${days!==1?'s':''}</span>`;
+
+  document.getElementById('job-detail-panel').innerHTML=`
+    <div class="jd-header">
+      <div class="jd-header-top">
+        <div class="jd-logo">${logoImg(co,60)}</div>
+        <div class="jd-title-wrap"><div class="jd-title">${j.title}</div><div class="jd-company">${j.company}</div></div>
+      </div>
+      <div class="jd-meta-list">
+        <div class="jd-meta-item">
+          <div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="7" r="2" stroke="currentColor" stroke-width="1.4"/></svg></div>
+          <div><span class="jd-meta-label">Location</span><span class="jd-meta-value">${j.city}, ${j.province}</span></div>
+        </div>
+        <div class="jd-meta-item">
+          <div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1M7 10h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div><span class="jd-meta-label">Employment Type</span><span class="jd-meta-value">${typeLabel(j.type)}${j.slots>1?' · '+j.slots+' openings':''}</span></div>
+        </div>
+        <div class="jd-meta-item">
+          <div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 7v11h5v-5h4v5h5V7L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+          <div><span class="jd-meta-label">Department</span><span class="jd-meta-value">${j.dept}</span></div>
+        </div>
+      </div>
+      <div class="jd-dates-stack">
+        <div class="jd-date-row">
+          <div class="jd-date-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div class="jd-date-info"><span class="jd-date-label">Date Posted</span><span class="jd-date-value">${fmtDate(j.posted)}</span></div>
+        </div>
+        <div class="jd-date-row">
+          <div class="jd-date-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div class="jd-date-info">
+            <span class="jd-date-label">Application Closes</span>
+            <span class="jd-date-value ${closingClass}">${fmtDate(j.closes)} at ${j.closesTime||'17:00'}</span>
+            ${urgency}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="jd-apply-bar">
+      <div class="jd-apply-bar-left">At <strong>${j.company}</strong> — ${j.city}</div>
+      <div class="jd-apply-bar-actions">
+        <button id="jd-save-btn" class="jd-save-detail-btn ${isSaved?'saved':''}" onclick="toggleSaveDetail(${j.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+          ${isSaved?'Saved':'Save Job'}
+        </button>
+        <a href="https://${j.slug}.cronos.co.za/job/${j.id}" class="jd-apply-btn">
+          Apply Now <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M7 10h6M10 7l3 3-3 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="jd-body">
+      <div class="jd-section"><div class="jd-section-title">About this role</div><p class="jd-description">${j.description}</p></div>
+      <div class="jd-section"><div class="jd-section-title">Responsibilities</div><ul class="jd-list">${j.responsibilities.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+      <div class="jd-section"><div class="jd-section-title">Requirements</div><ul class="jd-list">${j.requirements.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+    </div>`;
+
+  renderJobList();
+  if(window.innerWidth<=860) document.getElementById('job-detail-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function toggleSave(e,id){
+  e.stopPropagation();
+  savedJobs.has(id)?savedJobs.delete(id):savedJobs.add(id);
+  renderJobList();
+  updateSavedBadge();
+  if(activeJobId===id){
+    const btn=document.getElementById('jd-save-btn'); if(!btn) return;
+    const s=savedJobs.has(id);
+    btn.className='jd-save-detail-btn'+(s?' saved':'');
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${s?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${s?'Saved':'Save Job'}`;
+  }
+  // Re-render sidebar if open
+  if(document.getElementById('saved-sidebar').classList.contains('open')) renderSavedSidebar();
+}
+function toggleSaveDetail(id){
+  savedJobs.has(id)?savedJobs.delete(id):savedJobs.add(id);
+  const btn=document.getElementById('jd-save-btn'); if(!btn) return;
+  const s=savedJobs.has(id);
+  btn.className='jd-save-detail-btn'+(s?' saved':'');
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${s?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${s?'Saved':'Save Job'}`;
+  renderJobList();
+  updateSavedBadge();
+  if(document.getElementById('saved-sidebar').classList.contains('open')) renderSavedSidebar();
+}
+
+function updateSavedBadge(){
+  const count=savedJobs.size;
+  // Desktop nav badge
+  const nb=document.getElementById('nav-saved-count');
+  if(nb){ nb.textContent=count; nb.style.display=count>0?'inline-flex':'none'; }
+  // Sidebar header badge
+  const sb=document.getElementById('sidebar-count-badge');
+  if(sb) sb.textContent=count;
+  // Mobile drawer badge
+  const db=document.getElementById('drawer-saved-count');
+  if(db){ db.textContent=count; db.style.display=count>0?'inline-flex':'none'; }
+}
+
+function renderSavedSidebar(){
+  const body=document.getElementById('saved-sidebar-body');
+  if(!body) return;
+  if(savedJobs.size===0){
+    body.innerHTML=`<div class="saved-sidebar-empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
+      <strong>No saved jobs yet</strong>
+      <p>Tap the bookmark icon on any job listing to save it here for later.</p>
+    </div>`;
+    return;
+  }
+  const savedList=[...savedJobs].map(id=>JOBS.find(j=>j.id===id)).filter(Boolean);
+  body.innerHTML=savedList.map(j=>{
+    const co=getCompany(j.slug);
+    const days=daysUntil(j.closes,j.closesTime);
+    const urgClass=days<=5?'jlc-closing-soon':'';
+    return `<div class="saved-job-card" onclick="viewSavedJob(${j.id})">
+      <div class="saved-job-card-top">
+        <div class="saved-job-logo">${logoImg(co,36)}</div>
+        <div class="saved-job-info">
+          <div class="saved-job-title">${j.title}</div>
+          <div class="saved-job-company">${j.company}</div>
+        </div>
+      </div>
+      <div class="saved-job-meta">
+        <span class="tag tag-location" style="font-size:11px;padding:1px 7px;">
+          <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>
+          ${j.city}
+        </span>
+        <span class="tag ${typeClass(j.type)}" style="font-size:11px;padding:1px 7px;">${typeLabel(j.type)}</span>
+        <span class="tag tag-dept" style="font-size:11px;padding:1px 7px;">${j.dept}</span>
+      </div>
+      <div class="saved-job-footer">
+        <div class="saved-job-dates">
+          <span>Posted: <strong>${fmtDate(j.posted)}</strong></span>
+          <span class="${urgClass}">Closes: <strong>${fmtDate(j.closes)}</strong>${days<=5&&days>0?' · '+days+'d left':''}</span>
+        </div>
+        <button class="saved-unsave-btn" onclick="unsaveFromSidebar(event,${j.id})">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Remove
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewSavedJob(id){
+  closeSavedSidebar();
+  selectJob(id);
+  setTimeout(()=>{ document.querySelector('.jobs-section-wrap').scrollIntoView({behavior:'smooth',block:'start'}); }, 350);
+}
+
+function unsaveFromSidebar(e,id){
+  e.stopPropagation();
+  savedJobs.delete(id);
+  renderJobList();
+  updateSavedBadge();
+  renderSavedSidebar();
+  if(activeJobId===id){
+    const btn=document.getElementById('jd-save-btn'); if(!btn) return;
+    btn.className='jd-save-detail-btn';
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>Save Job`;
+  }
+}
+
+function openSavedSidebar(){
+  renderSavedSidebar();
+  document.getElementById('saved-sidebar').classList.add('open');
+  document.getElementById('saved-sidebar-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSavedSidebar(){
+  document.getElementById('saved-sidebar').classList.remove('open');
+  document.getElementById('saved-sidebar-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function loadMore(){ visibleCount+=8; renderJobList(); }
+
+function doSearch(){
+  searchQuery=document.getElementById('hero-search').value.trim();
+  locationQuery=document.getElementById('hero-location').value.trim();
+  visibleCount=8; renderJobList();
+  document.querySelector('.jobs-section-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('hero-search').addEventListener('input',()=>{ searchQuery=document.getElementById('hero-search').value.trim(); locationQuery=document.getElementById('hero-location').value.trim(); visibleCount=8; renderJobList(); });
+document.getElementById('hero-location').addEventListener('input',()=>{ locationQuery=document.getElementById('hero-location').value.trim(); searchQuery=document.getElementById('hero-search').value.trim(); visibleCount=8; renderJobList(); });
+['hero-search','hero-location'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter') doSearch();}));
+
+// Init
+renderJobList();
+const first=getFiltered()[0]; if(first) selectJob(first.id);
+
+// Modal
+function openPostJobModal(){ document.getElementById('post-job-modal').classList.add('open'); document.body.style.overflow='hidden'; }
+function closePostJobModal(e,force){ if(force||(e&&e.target===document.getElementById('post-job-modal'))){ document.getElementById('post-job-modal').classList.remove('open'); document.body.style.overflow=''; } }
+document.addEventListener('keydown',e=>{ 
+  if(e.key==='Escape'){
+    if(document.getElementById('saved-sidebar').classList.contains('open')) closeSavedSidebar();
+    else closePostJobModal(null,true);
+  }
+});
+
+// Hamburger
+const hamburger=document.getElementById('nav-hamburger'), drawer=document.getElementById('nav-drawer');
+hamburger.addEventListener('click',()=>{ const o=drawer.classList.toggle('open'); hamburger.classList.toggle('open',o); });
+drawer.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ drawer.classList.remove('open'); hamburger.classList.remove('open'); }));
+document.addEventListener('click',e=>{ if(!document.getElementById('main-nav').contains(e.target)&&!drawer.contains(e.target)){ drawer.classList.remove('open'); hamburger.classList.remove('open'); } });
+
+// Disclaimer
+document.getElementById('cronos-close-btn').addEventListener('click',()=>{ const b=document.getElementById('cronos-disclaimer-bar'); b.classList.add('cronos-hidden'); setTimeout(()=>b.style.display='none',300); });
+</script>
+</body>
+</html>

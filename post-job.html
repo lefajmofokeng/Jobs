@@ -459,9 +459,9 @@ if (!hasActivePlan) {
 }
 
 // ── Populate company name in preview ──────────────────────────────────────
-const coName = EMPLOYER.companyName || 'Your Company';
-document.getElementById('prev-co-name').textContent   = coName;
-document.getElementById('prev-co-bottom').textContent = coName;
+// coName removed — use EMPLOYER.companyName directly
+  document.getElementById('prev-co-name').textContent   = EMPLOYER.companyName || 'Your Company';
+  document.getElementById('prev-co-bottom').textContent = EMPLOYER.companyName || 'Your Company';
 
 // ── Default closing date (14 days from today) ──────────────────────────────
 const defDate = new Date(); defDate.setDate(defDate.getDate() + 14);
@@ -642,7 +642,7 @@ function validateForm() {
 function getFormData() {
   return {
     employerId:      user.uid,
-    employerName:    EMPLOYER.companyName || coName,
+    employerName:    EMPLOYER.companyName || 'Your Company',
     title:           document.getElementById('f-title').value.trim(),
     department:      document.getElementById('f-dept').value,
     type:            document.getElementById('f-type').value,

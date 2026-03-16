@@ -356,13 +356,12 @@ select.inp{cursor:pointer;}
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke-linecap="round"/><path d="M22 4L12 14.01l-3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <h2 class="success-title">Account created!</h2>
-        <p class="success-sub">Welcome to Cronos. Your employer account is ready. Before you can post jobs, you'll need to complete our quick business verification — it only takes a few minutes.</p>
+        <p class="success-sub">Welcome to Cronos! Taking you to business verification now — this is required before you can post jobs. It only takes a few minutes.</p>
         <div class="success-next">
-          <a href="verify.html" class="btn-success">
-            Complete verification
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 10h10M11 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-          <a href="employer-dashboard.html" style="font-size:13px;color:var(--text-muted);text-align:center;display:block;margin-top:4px;text-decoration:none;">Skip for now — go to dashboard →</a>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;color:var(--text-muted);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(0,153,250,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>
+            Redirecting to verification…
+          </div>
         </div>
       </div>
     </div>
@@ -546,12 +545,14 @@ async function submitRegister() {
       updatedAt:    serverTimestamp(),
     });
 
-    // 5. Show success screen
+    // 5. Show success screen then auto-redirect to verify.html
     document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
     document.getElementById('section-success').classList.add('active');
     document.getElementById('steps-bar').style.display = 'none';
     clearAlert();
     window.scrollTo({top: 0, behavior: 'smooth'});
+    // Redirect to verification after 2 seconds
+    setTimeout(() => { window.location.href = 'verify.html'; }, 2000);
 
   } catch (err) {
     btn.disabled = false;

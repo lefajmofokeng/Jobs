@@ -4,7 +4,16 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      ".*",
+      "node_modules/**",
+      "**/node_modules/**",
+      "public/**",
+      ".firebase/**",
+      ".qodo/**",
+      "*.log",
+      "package.json",
+      "package-lock.json",
+      "README.md"
     ]
   }
 }

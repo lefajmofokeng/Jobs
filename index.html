@@ -289,7 +289,7 @@ body {
 .btn-load-more:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ── RIGHT PANEL ──────────────────────────────────── */
-.job-detail-panel {
+.job-detail-panel { display: none !important; /* panel replaced by job-detail.html */
   background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-lg);
   overflow: hidden; position: sticky; top: calc(var(--nav-height) + 16px);
   max-height: calc(100vh - var(--nav-height) - 32px);
@@ -599,7 +599,7 @@ body {
   .jobs-panels { grid-template-columns: 1fr; }
   .jobs-list-outer { position: static; max-height: none; }
   .jobs-list-scroll { overflow-y: visible; max-height: none; }
-  .job-detail-panel { position: static; max-height: none; overflow-y: visible; }
+  .job-detail-panel { display: none !important; /* panel replaced by job-detail.html */ position: static; max-height: none; overflow-y: visible; }
   .job-list-card.active::after { display: none; }
   .jobs-section-wrap { padding: 24px 16px 60px; }
   .filter-dropdowns { gap: 10px; }
@@ -999,396 +999,422 @@ body {
 }
 </style>
 
+
+<!-- All UI functions in a plain script — runs synchronously, no async issues -->
 <script>
-const COMPANIES = [
-  { slug:'boxer',       name:'Boxer Superstore',   abbr:'BX', color:'#E53935', logo:'thumbnails/boxer.png' },
-  { slug:'clicks',      name:'Clicks Group',        abbr:'CL', color:'#1565C0', logo:'thumbnails/clicks.png' },
-  { slug:'shoprite',    name:'Shoprite Holdings',   abbr:'SR', color:'#E65100', logo:'thumbnails/shoprite.png' },
-  { slug:'medicross',   name:'Medicross Clinics',   abbr:'MC', color:'#2E7D32', logo:'thumbnails/medicross.png' },
-  { slug:'abclogistics',name:'ABC Logistics',       abbr:'AL', color:'#5E35B1', logo:'thumbnails/abc.png' },
-  { slug:'spur',        name:'Spur Corporation',    abbr:'SP', color:'#C62828', logo:'thumbnails/spur.png' },
-  { slug:'pnp',         name:'Pick n Pay',          abbr:'PP', color:'#1B5E20', logo:'thumbnais/picknpay.png' },
-  { slug:'dischem',     name:'Dis-Chem Pharmacies', abbr:'DC', color:'#1A237E', logo:'thumbnails/dischem.png' },
-];
-
-const JOBS = [
-  { id:1,  title:'Store Manager',            company:'Boxer Superstore',   slug:'boxer',        dept:'Management', type:'full-time', province:'Gauteng',       city:'Johannesburg', posted:'2026-01-12', closes:'2026-04-28', closesTime:'17:00', slots:1,
-    description:'Lead and manage the daily operations of a high-volume Boxer Superstore, ensuring excellent customer service, stock availability, and staff performance.',
-    requirements:['Matric certificate (Grade 12)','Minimum 3 years retail management experience','Strong leadership and communication skills','Ability to work weekends and public holidays','Valid driver\'s licence advantageous'],
-    responsibilities:['Oversee all store operations and staff schedules','Monitor daily sales and take corrective action where needed','Manage stock levels, orders, and loss prevention','Conduct performance reviews and staff coaching','Ensure compliance with health and safety regulations'] },
-  { id:2,  title:'Registered Nurse (x2)',    company:'Medicross Clinics',  slug:'medicross',    dept:'Healthcare',  type:'full-time', province:'KwaZulu-Natal', city:'Durban',        posted:'2026-01-15', closes:'2026-04-30', closesTime:'16:00', slots:2,
-    description:'Medicross Durban is seeking two Registered Nurses to join our busy primary healthcare team.',
-    requirements:['Registered Nurse qualification (SANC registered)','Minimum 2 years clinical experience','Strong patient care and communication skills','Ability to work under pressure','Computer literacy'],
-    responsibilities:['Conduct patient assessments and triage','Administer medication and injections as prescribed','Assist doctors during procedures','Maintain accurate patient records','Educate patients on health management'] },
-  { id:3,  title:'Cashier (x5)',             company:'Pick n Pay',         slug:'pnp',          dept:'Retail',      type:'full-time', province:'Gauteng',       city:'Pretoria',      posted:'2026-01-18', closes:'2026-04-25', closesTime:'12:00', slots:5,
-    description:'Pick n Pay Pretoria is hiring five cashiers for our busy store.',
-    requirements:['Matric certificate (Grade 12)','Previous cashier or retail experience preferred','Strong numerical ability','Good communication skills','Ability to work shifts and weekends'],
-    responsibilities:['Process customer purchases accurately via POS system','Handle cash, card, and voucher transactions','Maintain clean and organised till area','Assist customers with queries at the checkout','Balance cash drawer at end of each shift'] },
-  { id:4,  title:'Delivery Driver',          company:'ABC Logistics',      slug:'abclogistics', dept:'Logistics',   type:'contract',  province:'Western Cape',  city:'Cape Town',     posted:'2026-01-20', closes:'2026-05-06', closesTime:'09:00', slots:1,
-    description:'ABC Logistics is seeking a reliable Delivery Driver for our Cape Town operation.',
-    requirements:['Valid Code 10 driver\'s licence','Minimum 2 years driving experience','Clean driving record','Knowledge of Cape Town road network','Physically fit — ability to load and unload goods'],
-    responsibilities:['Deliver goods to clients on assigned routes','Ensure all deliveries are documented and signed for','Maintain vehicle cleanliness and report defects','Communicate delivery updates to dispatch','Handle goods with care to prevent damage'] },
-  { id:5,  title:'Pharmacist Assistant',     company:'Dis-Chem Pharmacies',slug:'dischem',      dept:'Healthcare',  type:'full-time', province:'Gauteng',       city:'Sandton',       posted:'2026-01-22', closes:'2026-04-30', closesTime:'15:00', slots:1,
-    description:'Dis-Chem Sandton is looking for a qualified Pharmacist Assistant to join our retail pharmacy team.',
-    requirements:['Pharmacist Assistant qualification (Post-basic preferred)','SAPC registration','Minimum 1 year pharmacy experience','Excellent customer service skills','Strong attention to detail'],
-    responsibilities:['Assist with dispensing of chronic and acute medication','Provide counselling to patients on medication usage','Manage pharmacy stock and expiry dates','Process medical aid claims accurately','Maintain a clean and compliant pharmacy environment'] },
-  { id:6,  title:'Waitron / Floor Staff',    company:'Spur Corporation',   slug:'spur',         dept:'Hospitality', type:'part-time', province:'Western Cape',  city:'Cape Town',     posted:'2026-01-25', closes:'2026-04-22', closesTime:'17:00', slots:3,
-    description:'Spur Cape Town is hiring part-time waitrons and floor staff for our family restaurant.',
-    requirements:['Previous waitering experience preferred','Friendly and energetic personality','Ability to work evenings and weekends','Strong teamwork skills','Food handler\'s certificate advantageous'],
-    responsibilities:['Take food and beverage orders accurately','Deliver orders promptly and check satisfaction','Upsell menu items and promotions','Maintain cleanliness of tables and dining area','Process payments and close bills'] },
-  { id:7,  title:'Shelf Packer (Night Shift)',company:'Shoprite Holdings', slug:'shoprite',     dept:'Retail',      type:'part-time', province:'Eastern Cape',  city:'Port Elizabeth',posted:'2026-01-28', closes:'2026-05-10', closesTime:'08:00', slots:4,
-    description:'Shoprite Port Elizabeth requires shelf packers for the overnight shift.',
-    requirements:['Matric or Grade 10 minimum','Ability to work night shifts (10pm–6am)','Physically able to stand and walk for extended periods','Team player','Retail or packing experience advantageous'],
-    responsibilities:['Replenish shelves from backroom stock','Rotate stock and check sell-by dates','Organise stockroom and maintain order','Report stock shortages to supervisor','Ensure floor is clean and tidy'] },
-  { id:8,  title:'Beauty Advisor',           company:'Clicks Group',       slug:'clicks',       dept:'Retail',      type:'full-time', province:'KwaZulu-Natal', city:'Umhlanga',      posted:'2026-02-01', closes:'2026-04-16', closesTime:'16:30', slots:1,
-    description:'Clicks Umhlanga is seeking a passionate Beauty Advisor to join our cosmetics team.',
-    requirements:['Matric certificate','Passion for beauty and skincare','Sales-oriented mindset','Previous retail or beauty experience preferred','Ability to stand for long periods'],
-    responsibilities:['Assist customers with product selection and advice','Achieve individual and store sales targets','Demonstrate and apply products to customers','Maintain attractive product displays','Process transactions and handle returns'] },
-  { id:9,  title:'HR Administrator',         company:'Shoprite Holdings',  slug:'shoprite',     dept:'HR & Admin',  type:'full-time', province:'Gauteng',       city:'Johannesburg',  posted:'2026-02-05', closes:'2026-05-04', closesTime:'12:00', slots:1,
-    description:'Shoprite\'s Johannesburg head office is seeking an HR Administrator.',
-    requirements:['Diploma or degree in HR Management or related field','Minimum 2 years HR administrative experience','Proficiency in MS Office and HR systems','Strong organisational skills','Confidentiality and discretion'],
-    responsibilities:['Coordinate recruitment processes and schedule interviews','Maintain accurate employee records and HR databases','Assist with onboarding and induction of new staff','Prepare HR correspondence and reports','Support payroll with attendance and leave records'] },
-  { id:10, title:'Forklift Operator',        company:'ABC Logistics',      slug:'abclogistics', dept:'Logistics',   type:'full-time', province:'Gauteng',       city:'Boksburg',      posted:'2026-02-08', closes:'2026-05-01', closesTime:'10:00', slots:2,
-    description:'ABC Logistics Boksburg warehouse requires experienced Forklift Operators.',
-    requirements:['Valid forklift licence (counterbalance)','Minimum 2 years forklift experience','Knowledge of warehouse safety procedures','Ability to work shifts','Physically fit'],
-    responsibilities:['Operate counterbalance forklift safely','Load and unload delivery vehicles','Organise and stack stock in warehouse','Conduct pre-use forklift inspections','Maintain accurate stock movement records'] },
-  { id:11, title:'Customer Service Agent',   company:'Boxer Superstore',   slug:'boxer',        dept:'Retail',      type:'full-time', province:'KwaZulu-Natal', city:'Pinetown',      posted:'2026-02-10', closes:'2026-04-27', closesTime:'17:00', slots:1,
-    description:'Boxer Pinetown is looking for a Customer Service Agent to handle customer queries and complaints.',
-    requirements:['Matric certificate','Previous customer service experience','Excellent communication and interpersonal skills','Calm under pressure','Fluent in English and isiZulu advantageous'],
-    responsibilities:['Handle customer complaints and resolve issues efficiently','Process refunds and exchanges according to policy','Answer customer queries in person and by phone','Maintain records of customer interactions','Escalate unresolved issues to management'] },
-  { id:12, title:'IT Support Technician',    company:'Medicross Clinics',  slug:'medicross',    dept:'IT & Tech',   type:'full-time', province:'Gauteng',       city:'Midrand',       posted:'2026-02-14', closes:'2026-05-14', closesTime:'16:00', slots:1,
-    description:'Medicross Midrand is seeking an IT Support Technician to maintain clinical IT systems.',
-    requirements:['IT diploma or A+/N+ certification','Minimum 2 years helpdesk or desktop support experience','Knowledge of Windows, networking basics, and printers','Good troubleshooting skills','Healthcare IT experience advantageous'],
-    responsibilities:['Provide first and second line IT support to clinic staff','Install, configure, and maintain hardware and software','Troubleshoot network and connectivity issues','Maintain IT asset register','Escalate complex issues to senior IT staff'] },
-];
-
-// State
-let visibleCount=8, activeType='all', activeIndustry='all', activeProvince='all',
-    activeCompany='all', activeSort='newest', activeJobId=null,
-    searchQuery='', locationQuery='', savedJobs=new Set();
-
-// Helpers
-function getCompany(slug){ return COMPANIES.find(c=>c.slug===slug)||{abbr:'?',color:'#6B6B72',logo:null,name:slug}; }
-function logoImg(c,size=40){
-  const r=Math.round(size*0.22),p=Math.round(size*0.1);
-  if(c.logo) return `<img src="${c.logo}" alt="${c.name}" style="width:${size}px;height:${size}px;object-fit:contain;padding:${p}px;border-radius:${r}px;background:#fff;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><span style="display:none;width:${size}px;height:${size}px;align-items:center;justify-content:center;font-size:${Math.round(size*0.28)}px;font-weight:700;color:${c.color};background:${c.color}15;border-radius:${r}px;">${c.abbr}</span>`;
-  return `<span style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.28)}px;font-weight:700;color:${c.color};background:${c.color}15;border-radius:${r}px;">${c.abbr}</span>`;
+// ── Modal (plain script — works immediately on click) ──────────
+function openPostJobModal() {
+  document.getElementById('post-job-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
-function typeClass(t){ return t==='full-time'?'tag-type-full':t==='part-time'?'tag-type-part':'tag-type-contract'; }
-function typeLabel(t){ return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract'; }
-function fmtDate(iso){ return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
-function isExpired(iso,time){
-  return new Date(iso+'T'+(time||'17:00')+':00') < new Date();
-}
-function daysUntil(iso,time){
-  return Math.ceil((new Date(iso+'T'+(time||'17:00')+':00') - new Date()) / 86400000);
-}
-
-// Custom dropdown
-let openDropdown=null;
-function toggleDropdown(key){
-  if(openDropdown&&openDropdown!==key) closeDropdown(openDropdown);
-  const btn=document.getElementById('fb-'+key), list=document.getElementById('fdl-'+key);
-  if(list.classList.contains('open')){ closeDropdown(key); }
-  else{ btn.classList.add('open'); list.classList.add('open'); openDropdown=key; }
-}
-function closeDropdown(key){
-  const btn=document.getElementById('fb-'+key), list=document.getElementById('fdl-'+key);
-  if(btn) btn.classList.remove('open');
-  if(list) list.classList.remove('open');
-  if(openDropdown===key) openDropdown=null;
-}
-document.addEventListener('click',e=>{ if(!e.target.closest('.filter-field')&&openDropdown) closeDropdown(openDropdown); });
-function selectFilter(key,value,label){
-  if(key==='type') activeType=value;
-  if(key==='industry') activeIndustry=value;
-  if(key==='province') activeProvince=value;
-  if(key==='company') activeCompany=value;
-  if(key==='sort') activeSort=value;
-  document.getElementById('fv-'+key).textContent=label;
-  document.querySelectorAll(`[data-filter="${key}"]`).forEach(o=>o.classList.toggle('selected',o.dataset.value===value));
-  closeDropdown(key); visibleCount=8; renderJobList();
-}
-
-// Filter
-function getFiltered(){
-  const iMap={retail:['Retail'],healthcare:['Healthcare'],logistics:['Logistics'],hospitality:['Hospitality'],finance:['Finance'],it:['IT & Tech'],management:['Management','HR & Admin']};
-  let list=JOBS.filter(j=>{
-    if(isExpired(j.closes,j.closesTime)) return false;
-    if(activeType!=='all'&&j.type!==activeType) return false;
-    if(activeIndustry!=='all'){ const t=iMap[activeIndustry]||[]; if(!t.some(x=>j.dept.toLowerCase().includes(x.toLowerCase()))) return false; }
-    if(activeProvince!=='all'&&j.province.toLowerCase().replace(/\s/g,'-')!==activeProvince) return false;
-    if(activeCompany!=='all'&&j.slug!==activeCompany) return false;
-    if(searchQuery){ const q=searchQuery.toLowerCase(); if(!(j.title.toLowerCase().includes(q)||j.company.toLowerCase().includes(q)||j.dept.toLowerCase().includes(q)||j.description.toLowerCase().includes(q))) return false; }
-    if(locationQuery){ const lq=locationQuery.toLowerCase(); if(!(j.city.toLowerCase().includes(lq)||j.province.toLowerCase().includes(lq))) return false; }
-    return true;
-  });
-  if(activeSort==='closing') list.sort((a,b)=>new Date(a.closes)-new Date(b.closes));
-  else list.sort((a,b)=>new Date(b.posted)-new Date(a.posted));
-  return list;
-}
-
-function renderJobList(){
-  const filtered=getFiltered(), total=filtered.length, showing=Math.min(visibleCount,total);
-  document.getElementById('results-count').textContent=`Showing ${showing} of ${total} position${total!==1?'s':''}`;
-  document.getElementById('list-count').textContent=`${total} result${total!==1?'s':''}`;
-  const panel=document.getElementById('jobs-list-panel');
-  panel.innerHTML=filtered.slice(0,visibleCount).map(j=>{
-    const co=getCompany(j.slug), days=daysUntil(j.closes,j.closesTime);
-    const isSaved=savedJobs.has(j.id), isActive=j.id===activeJobId;
-    const urgClass=days<=5?'jlc-closing-soon':'';
-    const urgText=days===0?'Closes today':days===1?'1 day left':days<=5?`${days} days left`:null;
-    return `<div class="job-list-card ${isActive?'active':''}" onclick="selectJob(${j.id})">
-      ${isSaved?'<span class="saved-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg> Saved</span>':''}
-      <div class="jlc-top">
-        <div class="jlc-logo">${logoImg(co,40)}</div>
-        <div class="jlc-info"><div class="jlc-title">${j.title}</div><div class="jlc-company">${j.company}</div></div>
-      </div>
-      <div class="jlc-tags">
-        <span class="tag tag-location"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>${j.city}</span>
-        <span class="tag ${typeClass(j.type)}">${typeLabel(j.type)}</span>
-        <span class="tag tag-dept">${j.dept}</span>
-      </div>
-      <div class="jlc-dates">
-        <div class="jlc-date-line">
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <span class="jlc-date-label">Date posted:</span><span class="jlc-date-value">${fmtDate(j.posted)}</span>
-        </div>
-        <div class="jlc-date-line">
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <span class="jlc-date-label ${urgClass}">Closes:</span>
-          <span class="jlc-date-value ${urgClass}">${fmtDate(j.closes)}${urgText?' · '+urgText:''}</span>
-        </div>
-      </div>
-      <div class="jlc-actions">
-        <button class="jlc-save-btn ${isSaved?'saved':''}" onclick="toggleSave(event,${j.id})">
-          <svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
-          ${isSaved?'Saved':'Save'}
-        </button>
-      </div>
-    </div>`;
-  }).join('')||'<p style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:14px;">No jobs match your search.</p>';
-
-  // Load more — only visible when there are more results
-  const lb=document.getElementById('load-more-btn');
-  lb.style.display=showing<total?'block':'none';
-}
-
-function selectJob(id){
-  activeJobId=id;
-  const j=JOBS.find(j=>j.id===id); if(!j) return;
-  const co=getCompany(j.slug), days=daysUntil(j.closes,j.closesTime), isSaved=savedJobs.has(id);
-  const closingClass=days<=5&&days>0?'closing-soon':'';
-  let urgency='';
-  if(days<=0) urgency='<span class="jd-date-urgency">Closed</span>';
-  else if(days<=3) urgency=`<span class="jd-date-urgency">Closing in ${days} day${days!==1?'s':''}</span>`;
-
-  document.getElementById('job-detail-panel').innerHTML=`
-    <div class="jd-header">
-      <div class="jd-header-top">
-        <div class="jd-logo">${logoImg(co,60)}</div>
-        <div class="jd-title-wrap"><div class="jd-title">${j.title}</div><div class="jd-company">${j.company}</div></div>
-      </div>
-      <div class="jd-meta-list">
-        <div class="jd-meta-item">
-          <div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="7" r="2" stroke="currentColor" stroke-width="1.4"/></svg></div>
-          <div><span class="jd-meta-label">Location</span><span class="jd-meta-value">${j.city}, ${j.province}</span></div>
-        </div>
-        <div class="jd-meta-item">
-          <div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1M7 10h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-          <div><span class="jd-meta-label">Employment Type</span><span class="jd-meta-value">${typeLabel(j.type)}${j.slots>1?' · '+j.slots+' openings':''}</span></div>
-        </div>
-        <div class="jd-meta-item">
-          <div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 7v11h5v-5h4v5h5V7L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
-          <div><span class="jd-meta-label">Department</span><span class="jd-meta-value">${j.dept}</span></div>
-        </div>
-      </div>
-      <div class="jd-dates-stack">
-        <div class="jd-date-row">
-          <div class="jd-date-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-          <div class="jd-date-info"><span class="jd-date-label">Date Posted</span><span class="jd-date-value">${fmtDate(j.posted)}</span></div>
-        </div>
-        <div class="jd-date-row">
-          <div class="jd-date-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-          <div class="jd-date-info">
-            <span class="jd-date-label">Application Closes</span>
-            <span class="jd-date-value ${closingClass}">${fmtDate(j.closes)} at ${j.closesTime||'17:00'}</span>
-            ${urgency}
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="jd-apply-bar">
-      <div class="jd-apply-bar-left">At <strong>${j.company}</strong> — ${j.city}</div>
-      <div class="jd-apply-bar-actions">
-        <button id="jd-save-btn" class="jd-save-detail-btn ${isSaved?'saved':''}" onclick="toggleSaveDetail(${j.id})">
-          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
-          ${isSaved?'Saved':'Save Job'}
-        </button>
-        <a href="https://${j.slug}.cronos.co.za/job/${j.id}" class="jd-apply-btn">
-          Apply Now <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M7 10h6M10 7l3 3-3 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-      </div>
-    </div>
-    <div class="jd-body">
-      <div class="jd-section"><div class="jd-section-title">About this role</div><p class="jd-description">${j.description}</p></div>
-      <div class="jd-section"><div class="jd-section-title">Responsibilities</div><ul class="jd-list">${j.responsibilities.map(r=>`<li>${r}</li>`).join('')}</ul></div>
-      <div class="jd-section"><div class="jd-section-title">Requirements</div><ul class="jd-list">${j.requirements.map(r=>`<li>${r}</li>`).join('')}</ul></div>
-    </div>`;
-
-  renderJobList();
-  if(window.innerWidth<=860) document.getElementById('job-detail-panel').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function toggleSave(e,id){
-  e.stopPropagation();
-  savedJobs.has(id)?savedJobs.delete(id):savedJobs.add(id);
-  renderJobList();
-  updateSavedBadge();
-  if(activeJobId===id){
-    const btn=document.getElementById('jd-save-btn'); if(!btn) return;
-    const s=savedJobs.has(id);
-    btn.className='jd-save-detail-btn'+(s?' saved':'');
-    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${s?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${s?'Saved':'Save Job'}`;
-  }
-  // Re-render sidebar if open
-  if(document.getElementById('saved-sidebar').classList.contains('open')) renderSavedSidebar();
-}
-function toggleSaveDetail(id){
-  savedJobs.has(id)?savedJobs.delete(id):savedJobs.add(id);
-  const btn=document.getElementById('jd-save-btn'); if(!btn) return;
-  const s=savedJobs.has(id);
-  btn.className='jd-save-detail-btn'+(s?' saved':'');
-  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${s?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${s?'Saved':'Save Job'}`;
-  renderJobList();
-  updateSavedBadge();
-  if(document.getElementById('saved-sidebar').classList.contains('open')) renderSavedSidebar();
-}
-
-function updateSavedBadge(){
-  const count=savedJobs.size;
-  // Desktop nav badge
-  const nb=document.getElementById('nav-saved-count');
-  if(nb){ nb.textContent=count; nb.style.display=count>0?'inline-flex':'none'; }
-  // Sidebar header badge
-  const sb=document.getElementById('sidebar-count-badge');
-  if(sb) sb.textContent=count;
-  // Mobile drawer badge
-  const db=document.getElementById('drawer-saved-count');
-  if(db){ db.textContent=count; db.style.display=count>0?'inline-flex':'none'; }
-}
-
-function renderSavedSidebar(){
-  const body=document.getElementById('saved-sidebar-body');
-  if(!body) return;
-  if(savedJobs.size===0){
-    body.innerHTML=`<div class="saved-sidebar-empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>
-      <strong>No saved jobs yet</strong>
-      <p>Tap the bookmark icon on any job listing to save it here for later.</p>
-    </div>`;
-    return;
-  }
-  const savedList=[...savedJobs].map(id=>JOBS.find(j=>j.id===id)).filter(Boolean);
-  body.innerHTML=savedList.map(j=>{
-    const co=getCompany(j.slug);
-    const days=daysUntil(j.closes,j.closesTime);
-    const urgClass=days<=5?'jlc-closing-soon':'';
-    return `<div class="saved-job-card" onclick="viewSavedJob(${j.id})">
-      <div class="saved-job-card-top">
-        <div class="saved-job-logo">${logoImg(co,36)}</div>
-        <div class="saved-job-info">
-          <div class="saved-job-title">${j.title}</div>
-          <div class="saved-job-company">${j.company}</div>
-        </div>
-      </div>
-      <div class="saved-job-meta">
-        <span class="tag tag-location" style="font-size:11px;padding:1px 7px;">
-          <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>
-          ${j.city}
-        </span>
-        <span class="tag ${typeClass(j.type)}" style="font-size:11px;padding:1px 7px;">${typeLabel(j.type)}</span>
-        <span class="tag tag-dept" style="font-size:11px;padding:1px 7px;">${j.dept}</span>
-      </div>
-      <div class="saved-job-footer">
-        <div class="saved-job-dates">
-          <span>Posted: <strong>${fmtDate(j.posted)}</strong></span>
-          <span class="${urgClass}">Closes: <strong>${fmtDate(j.closes)}</strong>${days<=5&&days>0?' · '+days+'d left':''}</span>
-        </div>
-        <button class="saved-unsave-btn" onclick="unsaveFromSidebar(event,${j.id})">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          Remove
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function viewSavedJob(id){
-  closeSavedSidebar();
-  selectJob(id);
-  setTimeout(()=>{ document.querySelector('.jobs-section-wrap').scrollIntoView({behavior:'smooth',block:'start'}); }, 350);
-}
-
-function unsaveFromSidebar(e,id){
-  e.stopPropagation();
-  savedJobs.delete(id);
-  renderJobList();
-  updateSavedBadge();
-  renderSavedSidebar();
-  if(activeJobId===id){
-    const btn=document.getElementById('jd-save-btn'); if(!btn) return;
-    btn.className='jd-save-detail-btn';
-    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>Save Job`;
+function closePostJobModal(e, force) {
+  if (force || (e && e.target === document.getElementById('post-job-modal'))) {
+    document.getElementById('post-job-modal').classList.remove('open');
+    document.body.style.overflow = '';
   }
 }
 
-function openSavedSidebar(){
+// ── Saved sidebar ──────────────────────────────────────────────
+function openSavedSidebar() {
   renderSavedSidebar();
   document.getElementById('saved-sidebar').classList.add('open');
   document.getElementById('saved-sidebar-overlay').classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 }
-function closeSavedSidebar(){
+function closeSavedSidebar() {
   document.getElementById('saved-sidebar').classList.remove('open');
   document.getElementById('saved-sidebar-overlay').classList.remove('open');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
 }
 
-function loadMore(){ visibleCount+=8; renderJobList(); }
+// ── Hamburger (plain script — works immediately) ───────────────
+document.addEventListener('DOMContentLoaded', function() {
+  var hamburger = document.getElementById('nav-hamburger');
+  var drawer    = document.getElementById('nav-drawer');
+  hamburger.addEventListener('click', function() {
+    var o = drawer.classList.toggle('open');
+    hamburger.classList.toggle('open', o);
+  });
+  drawer.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      drawer.classList.remove('open');
+      hamburger.classList.remove('open');
+    });
+  });
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('main-nav').contains(e.target) && !drawer.contains(e.target)) {
+      drawer.classList.remove('open');
+      hamburger.classList.remove('open');
+    }
+  });
 
-function doSearch(){
-  searchQuery=document.getElementById('hero-search').value.trim();
-  locationQuery=document.getElementById('hero-location').value.trim();
-  visibleCount=8; renderJobList();
-  document.querySelector('.jobs-section-wrap').scrollIntoView({behavior:'smooth',block:'start'});
-}
-document.getElementById('hero-search').addEventListener('input',()=>{ searchQuery=document.getElementById('hero-search').value.trim(); locationQuery=document.getElementById('hero-location').value.trim(); visibleCount=8; renderJobList(); });
-document.getElementById('hero-location').addEventListener('input',()=>{ locationQuery=document.getElementById('hero-location').value.trim(); searchQuery=document.getElementById('hero-search').value.trim(); visibleCount=8; renderJobList(); });
-['hero-search','hero-location'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter') doSearch();}));
+  // Disclaimer close
+  document.getElementById('cronos-close-btn').addEventListener('click', function() {
+    var b = document.getElementById('cronos-disclaimer-bar');
+    b.classList.add('cronos-hidden');
+    setTimeout(function() { b.style.display = 'none'; }, 300);
+  });
 
-// Init
-renderJobList();
-const first=getFiltered()[0]; if(first) selectJob(first.id);
-
-// Modal
-function openPostJobModal(){ document.getElementById('post-job-modal').classList.add('open'); document.body.style.overflow='hidden'; }
-function closePostJobModal(e,force){ if(force||(e&&e.target===document.getElementById('post-job-modal'))){ document.getElementById('post-job-modal').classList.remove('open'); document.body.style.overflow=''; } }
-document.addEventListener('keydown',e=>{ 
-  if(e.key==='Escape'){
-    if(document.getElementById('saved-sidebar').classList.contains('open')) closeSavedSidebar();
-    else closePostJobModal(null,true);
-  }
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (document.getElementById('saved-sidebar').classList.contains('open')) closeSavedSidebar();
+      else closePostJobModal(null, true);
+    }
+  });
 });
+</script>
 
-// Hamburger
-const hamburger=document.getElementById('nav-hamburger'), drawer=document.getElementById('nav-drawer');
-hamburger.addEventListener('click',()=>{ const o=drawer.classList.toggle('open'); hamburger.classList.toggle('open',o); });
-drawer.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ drawer.classList.remove('open'); hamburger.classList.remove('open'); }));
-document.addEventListener('click',e=>{ if(!document.getElementById('main-nav').contains(e.target)&&!drawer.contains(e.target)){ drawer.classList.remove('open'); hamburger.classList.remove('open'); } });
+<!-- Firebase data loading in module script -->
+<script type="module">
+import { db }                              from './firebase.js'
+import { collection, query, where,
+         orderBy, getDocs }                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-// Disclaimer
-document.getElementById('cronos-close-btn').addEventListener('click',()=>{ const b=document.getElementById('cronos-disclaimer-bar'); b.classList.add('cronos-hidden'); setTimeout(()=>b.style.display='none',300); });
+// ── State ──────────────────────────────────────────────────────
+let JOBS        = []
+let visibleCount   = 8
+let activeType     = 'all'
+let activeIndustry = 'all'
+let activeProvince = 'all'
+let activeCompany  = 'all'
+let activeSort     = 'newest'
+let activeJobId    = null
+let searchQuery    = ''
+let locationQuery  = ''
+let savedJobs      = new Set(JSON.parse(localStorage.getItem('cronos_saved') || '[]'))
+
+// ── Expose functions needed by inline handlers ─────────────────
+window.toggleDropdown    = toggleDropdown
+window.closeDropdown     = closeDropdown
+window.selectFilter      = selectFilter
+window.selectJob         = selectJob
+window.toggleSave        = toggleSave
+window.loadMore          = loadMore
+window.doSearch          = doSearch
+window.viewSavedJob      = viewSavedJob
+window.unsaveFromSidebar = unsaveFromSidebar
+window.renderSavedSidebar= renderSavedSidebar
+
+// ── Load jobs from Firestore ───────────────────────────────────
+async function loadJobs() {
+  try {
+    const snap = await getDocs(
+      query(collection(db, 'jobs'),
+        where('status', '==', 'live'),
+        orderBy('createdAt', 'desc'))
+    )
+    JOBS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } catch (err) {
+    console.error('Failed to load jobs:', err)
+    JOBS = []
+  }
+  renderJobList()
+  updateSavedBadge()
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function logoHtml(job, size) {
+  size = size || 40
+  var r    = Math.round(size * 0.22)
+  var p    = Math.round(size * 0.1)
+  var abbr = (job.employerName || 'CO').split(/\s+/).map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase()
+  var color= job.brandColour || '#0099fa'
+  if (job.logoUrl) {
+    return '<img src="' + job.logoUrl + '" alt="' + (job.employerName||'') + '" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;padding:' + p + 'px;border-radius:' + r + 'px;background:#fff;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+           '<span style="display:none;width:' + size + 'px;height:' + size + 'px;align-items:center;justify-content:center;font-size:' + Math.round(size*0.28) + 'px;font-weight:700;color:' + color + ';background:' + color + '15;border-radius:' + r + 'px;">' + abbr + '</span>'
+  }
+  return '<span style="width:' + size + 'px;height:' + size + 'px;display:flex;align-items:center;justify-content:center;font-size:' + Math.round(size*0.28) + 'px;font-weight:700;color:' + color + ';background:' + color + '15;border-radius:' + r + 'px;">' + abbr + '</span>'
+}
+function typeClass(t)  { return t==='full-time'?'tag-type-full':t==='part-time'?'tag-type-part':'tag-type-contract' }
+function typeLabel(t)  { return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract' }
+function fmtDate(iso)  {
+  if (!iso) return '—'
+  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+}
+function fmtTimestamp(val) {
+  if (!val) return '—'
+  var d = val && val.toDate ? val.toDate() : new Date(val)
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+}
+function isExpired(iso, time) {
+  if (!iso) return false
+  return new Date(iso+'T'+(time||'17:00')+':00') < new Date()
+}
+function daysUntil(iso, time) {
+  if (!iso) return 999
+  return Math.ceil((new Date(iso+'T'+(time||'17:00')+':00') - new Date()) / 86400000)
+}
+
+// ── Custom dropdowns ───────────────────────────────────────────
+var openDropdown = null
+function toggleDropdown(key) {
+  if (openDropdown && openDropdown !== key) closeDropdown(openDropdown)
+  var btn = document.getElementById('fb-'+key), list = document.getElementById('fdl-'+key)
+  if (list.classList.contains('open')) { closeDropdown(key) }
+  else { btn.classList.add('open'); list.classList.add('open'); openDropdown = key }
+}
+function closeDropdown(key) {
+  var btn = document.getElementById('fb-'+key), list = document.getElementById('fdl-'+key)
+  if (btn)  btn.classList.remove('open')
+  if (list) list.classList.remove('open')
+  if (openDropdown === key) openDropdown = null
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.filter-field') && openDropdown) closeDropdown(openDropdown)
+})
+
+function selectFilter(key, value, label) {
+  if (key==='type')     activeType     = value
+  if (key==='industry') activeIndustry = value
+  if (key==='province') activeProvince = value
+  if (key==='company')  activeCompany  = value
+  if (key==='sort')     activeSort     = value
+  document.getElementById('fv-'+key).textContent = label
+  document.querySelectorAll('[data-filter="'+key+'"]').forEach(function(o){ o.classList.toggle('selected', o.dataset.value===value) })
+  closeDropdown(key); visibleCount=8; renderJobList()
+}
+
+// ── Filter ─────────────────────────────────────────────────────
+function getFiltered() {
+  var list = JOBS.filter(function(j) {
+    if (isExpired(j.closes, j.closesTime)) return false
+    if (activeType !== 'all' && j.type !== activeType) return false
+    if (activeProvince !== 'all' && (j.province||'').toLowerCase().replace(/\s/g,'-') !== activeProvince) return false
+    if (activeCompany  !== 'all' && j.employerId !== activeCompany) return false
+    if (activeIndustry !== 'all') {
+      var iMap = {retail:['retail'],healthcare:['health'],logistics:['logistic','transport'],hospitality:['hospitality'],finance:['finance'],it:['it','tech'],management:['management','admin','hr']}
+      var terms = iMap[activeIndustry] || []
+      var dept  = (j.department||'').toLowerCase()
+      if (!terms.some(function(t){ return dept.includes(t) })) return false
+    }
+    if (searchQuery) {
+      var q = searchQuery.toLowerCase()
+      if (!((j.title||'').toLowerCase().includes(q)||(j.employerName||'').toLowerCase().includes(q)||(j.department||'').toLowerCase().includes(q)||(j.description||'').toLowerCase().includes(q))) return false
+    }
+    if (locationQuery) {
+      var lq = locationQuery.toLowerCase()
+      if (!((j.city||'').toLowerCase().includes(lq)||(j.province||'').toLowerCase().includes(lq))) return false
+    }
+    return true
+  })
+  if (activeSort === 'closing') list.sort(function(a,b){ return new Date(a.closes)-new Date(b.closes) })
+  else list.sort(function(a,b){
+    var da = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0)
+    var db_ = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0)
+    return db_-da
+  })
+  return list
+}
+
+// ── Render job list ────────────────────────────────────────────
+function renderJobList() {
+  var filtered = getFiltered(), total = filtered.length, showing = Math.min(visibleCount, total)
+  document.getElementById('results-count').textContent = 'Showing '+showing+' of '+total+' position'+(total!==1?'s':'')
+  document.getElementById('list-count').textContent    = total+' result'+(total!==1?'s':'')
+  var panel = document.getElementById('jobs-list-panel')
+
+  // Right panel: show empty state or first job detail
+  var detailPanel = document.getElementById('job-detail-panel')
+
+  if (!filtered.length) {
+    panel.innerHTML = '<div style="text-align:center;padding:60px 0 40px;color:var(--text-muted);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin-bottom:14px;opacity:0.3"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 014 0v2"/><path d="M8 12h8M8 16h5"/></svg><p style="font-size:15px;font-weight:600;margin-bottom:6px;">No jobs available right now</p><p style="font-size:13px;">Check back soon or try adjusting your filters.</p></div>'
+    detailPanel.innerHTML = '<div class="job-detail-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 014 0v2"/><path d="M8 12h8M8 16h5"/></svg><p>No jobs available right now</p></div>'
+    document.getElementById('load-more-btn').style.display = 'none'
+    return
+  }
+
+  panel.innerHTML = filtered.slice(0, visibleCount).map(function(j) {
+    var days    = daysUntil(j.closes, j.closesTime)
+    var isSaved = savedJobs.has(j.id)
+    var isActive= j.id === activeJobId
+    var urgClass= days<=5 ? 'jlc-closing-soon' : ''
+    var urgText = days===0?'Closes today':days===1?'1 day left':days<=5?(days+' days left'):null
+    var postedDate = j.createdAt ? fmtTimestamp(j.createdAt) : '—'
+    return '<div class="job-list-card'+(isActive?' active':'')+'" onclick="selectJob(\''+j.id+'\')" style="cursor:pointer;">'+
+      (isSaved?'<span class="saved-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg> Saved</span>':'')+
+      '<div class="jlc-top">'+
+        '<div class="jlc-logo">'+logoHtml(j,40)+'</div>'+
+        '<div class="jlc-info"><div class="jlc-title">'+j.title+'</div><div class="jlc-company">'+(j.employerName||'—')+'</div></div>'+
+      '</div>'+
+      '<div class="jlc-tags">'+
+        '<span class="tag tag-location"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>'+(j.city||'')+'</span>'+
+        '<span class="tag '+typeClass(j.type)+'">'+typeLabel(j.type)+'</span>'+
+        '<span class="tag tag-dept">'+(j.department||'')+'</span>'+
+      '</div>'+
+      '<div class="jlc-dates">'+
+        '<div class="jlc-date-line"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="jlc-date-label">Date posted:</span><span class="jlc-date-value">'+postedDate+'</span></div>'+
+        '<div class="jlc-date-line"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="jlc-date-label '+urgClass+'">Closes:</span><span class="jlc-date-value '+urgClass+'">'+fmtDate(j.closes)+(urgText?' · '+urgText:'')+'</span></div>'+
+      '</div>'+
+      '<div class="jlc-actions">'+
+        '<button class="jlc-save-btn'+(isSaved?' saved':'')+'" onclick="toggleSave(event,\''+j.id+'\')">'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="'+(isSaved?'currentColor':'none')+'"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>'+
+          (isSaved?'Saved':'Save')+
+        '</button>'+
+      '</div>'+
+    '</div>'
+  }).join('')
+
+  document.getElementById('load-more-btn').style.display = showing<total ? 'block' : 'none'
+
+  // Auto-select first job on desktop for the right panel
+  if (!activeJobId && window.innerWidth > 860 && filtered.length) selectJob(filtered[0].id)
+}
+
+// ── Select job — populate right panel ─────────────────────────
+function selectJob(id) {
+  activeJobId = id
+  var j = JOBS.find(function(j){ return j.id===id }); if (!j) return
+  var days    = daysUntil(j.closes, j.closesTime)
+  var isSaved = savedJobs.has(id)
+  var urgency = ''
+  if (days<=0)      urgency = '<span class="jd-date-urgency">Closed</span>'
+  else if (days<=3) urgency = '<span class="jd-date-urgency">Closing in '+days+' day'+(days!==1?'s':'')+'</span>'
+
+  var reqList  = (j.requirements    ||[]).map(function(r){ return '<li>'+r+'</li>' }).join('')
+  var respList = (j.responsibilities||[]).map(function(r){ return '<li>'+r+'</li>' }).join('')
+  var detailUrl= 'job-detail.html?id='+j.id
+
+  document.getElementById('job-detail-panel').innerHTML =
+    '<div class="jd-header">'+
+      '<div class="jd-header-top">'+
+        '<div class="jd-logo">'+logoHtml(j,60)+'</div>'+
+        '<div class="jd-title-wrap"><div class="jd-title">'+j.title+'</div><div class="jd-company">'+(j.employerName||'—')+'</div></div>'+
+      '</div>'+
+      '<div class="jd-meta-list">'+
+        '<div class="jd-meta-item"><div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="7" r="2" stroke="currentColor" stroke-width="1.4"/></svg></div><div><span class="jd-meta-label">Location</span><span class="jd-meta-value">'+(j.city||'')+(j.province?', '+j.province:'')+'</span></div></div>'+
+        '<div class="jd-meta-item"><div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1M7 10h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div><div><span class="jd-meta-label">Employment Type</span><span class="jd-meta-value">'+typeLabel(j.type)+'</span></div></div>'+
+        '<div class="jd-meta-item"><div class="jd-meta-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 9h16M7 5V3M13 5V3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><div><span class="jd-meta-label">Department</span><span class="jd-meta-value">'+(j.department||'—')+'</span></div></div>'+
+      '</div>'+
+      '<div class="jd-dates-stack">'+
+        '<div class="jd-date-row"><div class="jd-date-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5 1v2M11 1v2M2 7h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><div class="jd-date-info"><span class="jd-date-label">Posted</span><span class="jd-date-value">'+fmtTimestamp(j.createdAt)+'</span></div></div>'+
+        '<div class="jd-date-row"><div class="jd-date-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><div class="jd-date-info"><span class="jd-date-label">Closes</span><span class="jd-date-value'+(days<=5?' closing-soon':'')+'">'+fmtDate(j.closes)+' at '+(j.closesTime||'17:00')+urgency+'</span></div></div>'+
+      '</div>'+
+      '<div class="jd-apply-bar">'+
+        '<div class="jd-apply-bar-left">Ready to apply? <strong>Submit your application to '+(j.employerName||'the employer')+'.</strong></div>'+
+        '<div class="jd-apply-bar-actions">'+
+          '<button id="jd-save-btn" class="jd-save-detail-btn'+(isSaved?' saved':'')+'" onclick="toggleSave(event,\''+id+'\')">'+
+            '<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="'+(isSaved?'currentColor':'none')+'"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>'+(isSaved?'Saved':'Save Job')+
+          '</button>'+
+          '<a href="'+detailUrl+'" class="jd-apply-btn">View &amp; Apply →</a>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="jd-body">'+
+      (j.description?'<div class="jd-section"><div class="jd-section-title">About the role</div><p class="jd-desc">'+j.description+'</p></div>':'')+
+      (respList?'<div class="jd-section"><div class="jd-section-title">Responsibilities</div><ul class="jd-list">'+respList+'</ul></div>':'')+
+      (reqList ?'<div class="jd-section"><div class="jd-section-title">Requirements</div><ul class="jd-list">'+reqList+'</ul></div>':'')+
+    '</div>'
+
+  renderJobList()
+  if (window.innerWidth <= 860) document.getElementById('job-detail-panel').scrollIntoView({behavior:'smooth',block:'start'})
+}
+
+// ── Save / unsave ──────────────────────────────────────────────
+function toggleSave(e, id) {
+  e.stopPropagation()
+  savedJobs.has(id) ? savedJobs.delete(id) : savedJobs.add(id)
+  localStorage.setItem('cronos_saved', JSON.stringify([...savedJobs]))
+  renderJobList()
+  updateSavedBadge()
+}
+
+function updateSavedBadge() {
+  var n = savedJobs.size
+  var navBadge    = document.getElementById('nav-saved-count')
+  var drawerBadge = document.getElementById('drawer-saved-count')
+  if (navBadge)    navBadge.textContent    = n
+  if (drawerBadge) { drawerBadge.textContent = n; drawerBadge.style.display = n>0?'inline':'none' }
+}
+
+// ── Saved sidebar ──────────────────────────────────────────────
+function renderSavedSidebar() {
+  var container = document.getElementById('saved-jobs-list'); if (!container) return
+  var saved = JOBS.filter(function(j){ return savedJobs.has(j.id) })
+  if (!saved.length) { container.innerHTML = '<div class="saved-sidebar-empty"><p>No saved jobs yet.</p></div>'; return }
+  container.innerHTML = saved.map(function(j) {
+    return '<div class="saved-job-item" onclick="viewSavedJob(\''+j.id+'\')">'+
+      '<div class="saved-job-logo">'+logoHtml(j,36)+'</div>'+
+      '<div class="saved-job-info"><div class="saved-job-title">'+j.title+'</div><div class="saved-job-company">'+(j.employerName||'—')+' · '+(j.city||'')+'</div></div>'+
+      '<button class="saved-job-remove" onclick="unsaveFromSidebar(event,\''+j.id+'\')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Remove</button>'+
+    '</div>'
+  }).join('')
+}
+
+function viewSavedJob(id) {
+  closeSavedSidebar()
+  selectJob(id)
+  setTimeout(function(){ document.querySelector('.jobs-section-wrap').scrollIntoView({behavior:'smooth',block:'start'}) }, 350)
+}
+function unsaveFromSidebar(e, id) {
+  e.stopPropagation()
+  savedJobs.delete(id)
+  localStorage.setItem('cronos_saved', JSON.stringify([...savedJobs]))
+  renderJobList(); updateSavedBadge(); renderSavedSidebar()
+}
+
+// ── Load more ──────────────────────────────────────────────────
+function loadMore() { visibleCount += 8; renderJobList() }
+
+// ── Search ─────────────────────────────────────────────────────
+function doSearch() {
+  searchQuery   = document.getElementById('hero-search').value.trim()
+  locationQuery = document.getElementById('hero-location').value.trim()
+  visibleCount  = 8; renderJobList()
+  document.querySelector('.jobs-section-wrap').scrollIntoView({behavior:'smooth',block:'start'})
+}
+document.getElementById('hero-search').addEventListener('input', function(){
+  searchQuery=document.getElementById('hero-search').value.trim()
+  locationQuery=document.getElementById('hero-location').value.trim()
+  visibleCount=8; renderJobList()
+})
+document.getElementById('hero-location').addEventListener('input', function(){
+  locationQuery=document.getElementById('hero-location').value.trim()
+  searchQuery=document.getElementById('hero-search').value.trim()
+  visibleCount=8; renderJobList()
+})
+;['hero-search','hero-location'].forEach(function(id){
+  document.getElementById(id).addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch() })
+})
+
+// ── Fix nav links ──────────────────────────────────────────────
+// Sign In + modal links
+document.querySelectorAll('a[href="#"]').forEach(function(a) {
+  if (a.textContent.trim() === 'Sign In' || a.textContent.trim() === 'Employer Sign In') {
+    a.href = 'employer-login.html'
+  }
+})
+
+// ── Fix modal CTA button ───────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  var modalCta = document.querySelector('.modal-cta-btn')
+  if (modalCta) {
+    modalCta.onclick = function() { window.location.href = 'employer-register.html' }
+  }
+  var modalSignIn = document.querySelector('.modal-cta-note a')
+  if (modalSignIn) {
+    modalSignIn.href = 'employer-login.html'
+  }
+})
+
+// ── Nav links ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  // Desktop nav
+  var navLinks = document.querySelectorAll('.nav-links .nav-link')
+  var labels = ['Browse Jobs','For Employers','How It Works','About']
+  var hrefs  = ['index.html','employer-register.html','#','#']
+  navLinks.forEach(function(a, i) { if(hrefs[i]) a.href = hrefs[i] })
+
+  // Mobile drawer
+  var drawer = document.getElementById('nav-drawer')
+  var drawerLinks = drawer.querySelectorAll('a:not(.drawer-cta)')
+  var dLabels = ['Browse Jobs','For Employers','How It Works','About','Saved Jobs','Sign In']
+  var dHrefs  = ['index.html','employer-register.html','#','#',null,'employer-login.html']
+  drawerLinks.forEach(function(a, i) { if(dHrefs[i]) a.href = dHrefs[i] })
+})
+
+// ── Init ───────────────────────────────────────────────────────
+loadJobs()
 </script>
 </body>
 </html>

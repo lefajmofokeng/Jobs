@@ -396,41 +396,121 @@ td{padding:14px 22px;font-size:13px;color:var(--text-secondary);vertical-align:m
   </div>
 </div>
 
-<script>
-/* ── EMPLOYER STATE (in production: from /api/employer/dashboard) ── */
-const EMPLOYER = {
-  slug: 'boxer',
-  name: 'Boxer Superstore',
-  plan: 'Growth',
-  planStatus: 'active',   // 'active' | 'expiring' | 'expired'
-  planRenews: '1 Jun 2026',
-  listingsLimit: null,     // null = unlimited (Growth+), number = Free tier cap
-  listings: [
-    {id:1, title:'Store Manager',             dept:'Management',  city:'Johannesburg', closes:'2026-04-28', closesTime:'17:00', status:'live'},
-    {id:2, title:'Assistant Store Manager',   dept:'Management',  city:'Pinetown',     closes:'2026-04-27', closesTime:'17:00', status:'live'},
-    {id:3, title:'Cashier (x5)',              dept:'Store Ops',   city:'Pretoria',     closes:'2026-04-25', closesTime:'12:00', status:'live'},
-    {id:4, title:'Shelf Packer (Night Shift)',dept:'Store Ops',   city:'Johannesburg', closes:'2026-04-18', closesTime:'08:00', status:'closing'},
-    {id:5, title:'Customer Service Agent',    dept:'Store Ops',   city:'Pinetown',     closes:'2026-03-01', closesTime:'17:00', status:'expired'},
-    {id:6, title:'HR Administrator',          dept:'Admin & HR',  city:'Durban',       closes:'2026-04-30', closesTime:'12:00', status:'live'},
-  ],
-};
+<script type="module">
+import { auth, db, requireAuth, signOutEmployer } from './firebase.js';
+import { doc, collection, query, where,
+         getDocs, updateDoc, deleteDoc,
+         orderBy, serverTimestamp }                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-function fmtDate(iso) {
-  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-}
-function daysUntil(iso,time) {
-  return Math.ceil((new Date(iso+'T'+(time||'17:00')+':00') - new Date()) / 86400000);
-}
+// ── Expose UI functions to inline onclick handlers ─────────────────────────
+window.filterListings = filterListings;
+window.closeJob       = closeJob;
+window.deleteJob      = deleteJob;
+window.copySubdomain  = copySubdomain;
+window.showSection    = showSection;
+window.toggleSidebar  = toggleSidebar;
+window.signOut        = signOutEmployer;
 
+// ── State ──────────────────────────────────────────────────────────────────
+let EMPLOYER  = {};
+let listings  = [];
 let activeFilter = 'all';
+let currentUid   = null;
 
+// ── Boot: require auth then load data ─────────────────────────────────────
+const user = await requireAuth();
+currentUid = user.uid;
+await loadDashboard();
+
+// ── Load employer profile + listings from Firestore ───────────────────────
+async function loadDashboard() {
+  // 1. Employer profile
+  const profileSnap = await getDocs(
+    query(collection(db, 'employers'), where('uid', '==', currentUid))
+  );
+  // Also try direct doc lookup (faster)
+  const directSnap = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js")
+    .then(({ getDoc, doc: fdoc }) => getDoc(fdoc(db, 'employers', currentUid)));
+
+  if (directSnap.exists()) {
+    EMPLOYER = { id: directSnap.id, ...directSnap.data() };
+  } else if (!profileSnap.empty) {
+    EMPLOYER = { id: profileSnap.docs[0].id, ...profileSnap.docs[0].data() };
+  } else {
+    EMPLOYER = { companyName: user.displayName || 'Your Company', plan: 'none', planStatus: 'inactive' };
+  }
+
+  // 2. Job listings for this employer
+  const jobsSnap = await getDocs(
+    query(collection(db, 'jobs'),
+      where('employerId', '==', currentUid),
+      orderBy('createdAt', 'desc'))
+  );
+  listings = jobsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // 3. Render everything
+  renderProfile();
+  renderBanner();
+  updateStats();
+  renderListings();
+}
+
+// ── Render sidebar profile info ────────────────────────────────────────────
+function renderProfile() {
+  const name = EMPLOYER.companyName || EMPLOYER.displayName || 'Your Company';
+  const plan = EMPLOYER.plan || 'none';
+  const slug = EMPLOYER.slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+  document.getElementById('sb-co-name').textContent    = name;
+  document.getElementById('sb-plan-name').textContent  = plan === 'none' ? 'No active plan' : plan;
+  document.getElementById('sb-plan-renews').textContent = EMPLOYER.planRenews ? 'Renews ' + EMPLOYER.planRenews : 'No active subscription';
+
+  const subdomain = `${slug}.cronos.co.za`;
+  document.getElementById('widget-subdomain').textContent = subdomain;
+  document.getElementById('visit-subdomain').href         = 'https://' + subdomain;
+  document.getElementById('qa-subdomain').textContent     = subdomain;
+}
+
+// ── Subscription banner ────────────────────────────────────────────────────
+function renderBanner() {
+  const banner = document.getElementById('sub-banner');
+  const bt = document.getElementById('banner-title');
+  const bs = document.getElementById('banner-sub');
+  const bb = document.getElementById('banner-btn');
+  const status = EMPLOYER.planStatus || 'inactive';
+
+  if (status === 'expiring') {
+    banner.className = 'sub-banner expiring';
+    bt.textContent   = 'Subscription expiring soon';
+    bs.textContent   = `Renews ${EMPLOYER.planRenews} — renew now to keep your listings live`;
+    bb.textContent   = 'Renew now';
+  } else if (status === 'expired' || status === 'inactive') {
+    banner.className = 'sub-banner expired';
+    bt.textContent   = status === 'expired' ? 'Subscription expired' : 'No active subscription';
+    bs.textContent   = 'Your listings are paused. Choose a plan to make them visible to candidates.';
+    bb.textContent   = 'View plans';
+  }
+  // 'active' = default green banner, no changes needed
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function daysUntil(iso, time) {
+  if (!iso) return 0;
+  return Math.ceil((new Date(iso + 'T' + (time || '17:00') + ':00') - new Date()) / 86400000);
+}
+
+// ── Render listings table ──────────────────────────────────────────────────
 function getFiltered() {
-  if (activeFilter === 'all') return EMPLOYER.listings;
-  return EMPLOYER.listings.filter(l => l.status === activeFilter);
+  if (activeFilter === 'all') return listings;
+  return listings.filter(l => l.status === activeFilter);
 }
 
 function renderListings() {
-  const list = getFiltered();
+  const list  = getFiltered();
   const tbody = document.getElementById('listings-tbody');
   const empty = document.getElementById('empty-listings');
   if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -443,14 +523,14 @@ function renderListings() {
     if (l.status === 'expired') badge = `<span class="status-badge status-expired">Expired</span>`;
     if (l.status === 'paused')  badge = `<span class="status-badge status-paused">Paused</span>`;
     return `<tr>
-      <td><div class="td-title"><a href="job-detail.html?id=${l.id}">${l.title}</a></div><div class="td-dept">${l.dept}</div></td>
+      <td><div class="td-title"><a href="job-detail.html?id=${l.id}">${l.title}</a></div><div class="td-dept">${l.department || l.dept || ''}</div></td>
       <td>${badge}</td>
-      <td>${l.city}</td>
+      <td>${l.city || l.location || '—'}</td>
       <td>${fmtDate(l.closes)}</td>
       <td><div class="td-actions">
         <a href="post-job.html?edit=${l.id}" class="action-btn">Edit</a>
-        ${l.status !== 'expired' ? `<button class="action-btn" onclick="closeJob(${l.id})">Close</button>` : ''}
-        <button class="action-btn danger" onclick="deleteJob(${l.id})">Delete</button>
+        ${l.status !== 'expired' ? `<button class="action-btn" onclick="closeJob('${l.id}')">Close</button>` : ''}
+        <button class="action-btn danger" onclick="deleteJob('${l.id}')">Delete</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -463,25 +543,49 @@ function filterListings(status, el) {
   renderListings();
 }
 
-function closeJob(id) { if (confirm('Close this listing? It will no longer appear to candidates.')) { const j = EMPLOYER.listings.find(l => l.id === id); if (j) { j.status = 'expired'; renderListings(); updateStats(); } } }
-function deleteJob(id) { if (confirm('Permanently delete this listing?')) { EMPLOYER.listings = EMPLOYER.listings.filter(l => l.id !== id); renderListings(); updateStats(); } }
-
-function updateStats() {
-  const live    = EMPLOYER.listings.filter(l => l.status === 'live').length;
-  const closing = EMPLOYER.listings.filter(l => l.status === 'closing').length;
-  const locs    = [...new Set(EMPLOYER.listings.filter(l => l.status === 'live' || l.status === 'closing').map(l => l.city))].length;
-  document.getElementById('stat-active').textContent = live;
-  document.getElementById('stat-closing').textContent = closing;
-  document.getElementById('stat-locations').textContent = locs;
-  document.getElementById('badge-active').textContent = live + closing;
-  document.getElementById('stat-applicants').textContent = '—';
-  renderUsage(live + closing);
+// ── Close job (set status to expired in Firestore) ─────────────────────────
+async function closeJob(id) {
+  if (!confirm('Close this listing? It will no longer appear to candidates.')) return;
+  try {
+    await updateDoc(doc(db, 'jobs', id), { status: 'expired', updatedAt: serverTimestamp() });
+    const j = listings.find(l => l.id === id);
+    if (j) j.status = 'expired';
+    renderListings();
+    updateStats();
+  } catch (err) {
+    alert('Could not close listing. Please try again.');
+  }
 }
 
-function renderUsage(activeCount) {
-  const limit = EMPLOYER.listingsLimit;
-  const used = activeCount;
-  const pct = limit ? Math.min(100, Math.round(used / limit * 100)) : 0;
+// ── Delete job (remove from Firestore) ────────────────────────────────────
+async function deleteJob(id) {
+  if (!confirm('Permanently delete this listing? This cannot be undone.')) return;
+  try {
+    await deleteDoc(doc(db, 'jobs', id));
+    listings = listings.filter(l => l.id !== id);
+    renderListings();
+    updateStats();
+  } catch (err) {
+    alert('Could not delete listing. Please try again.');
+  }
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────────
+function updateStats() {
+  const live    = listings.filter(l => l.status === 'live').length;
+  const closing = listings.filter(l => l.status === 'closing').length;
+  const locs    = [...new Set(listings.filter(l => ['live','closing'].includes(l.status)).map(l => l.city || l.location))].filter(Boolean).length;
+  const limit   = EMPLOYER.plan === 'Starter' ? 2 : null;
+
+  document.getElementById('stat-active').textContent     = live;
+  document.getElementById('stat-closing').textContent    = closing;
+  document.getElementById('stat-locations').textContent  = locs;
+  document.getElementById('badge-active').textContent    = live + closing;
+  document.getElementById('stat-applicants').textContent = '—';
+
+  // Usage widget
+  const used = live + closing;
+  const pct  = limit ? Math.min(100, Math.round(used / limit * 100)) : 0;
   const fillClass = pct > 80 ? 'danger' : pct > 60 ? 'warn' : '';
   document.getElementById('usage-list').innerHTML = `
     <div class="usage-item">
@@ -489,16 +593,19 @@ function renderUsage(activeCount) {
       ${limit ? `<div class="usage-bar"><div class="usage-fill ${fillClass}" style="width:${pct}%"></div></div>` : '<div style="font-size:11px;color:var(--text-muted)">Unlimited on your plan</div>'}
     </div>
     <div class="usage-item">
-      <div class="usage-item-top"><span class="usage-label">Plan</span><span class="usage-val">${EMPLOYER.plan}</span></div>
-      <div style="font-size:11px;color:var(--text-muted)">Renews ${EMPLOYER.planRenews}</div>
+      <div class="usage-item-top"><span class="usage-label">Plan</span><span class="usage-val">${EMPLOYER.plan || 'None'}</span></div>
+      <div style="font-size:11px;color:var(--text-muted)">${EMPLOYER.planRenews ? 'Renews ' + EMPLOYER.planRenews : 'No active subscription'}</div>
     </div>`;
 }
 
+// ── Subdomain copy ─────────────────────────────────────────────────────────
 function copySubdomain() {
-  const url = `https://${EMPLOYER.slug}.cronos.co.za`;
+  const slug = EMPLOYER.slug || (EMPLOYER.companyName || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const url  = `https://${slug}.cronos.co.za`;
   navigator.clipboard.writeText(url).then(() => alert('Link copied: ' + url));
 }
 
+// ── UI helpers ─────────────────────────────────────────────────────────────
 function showSection(name) {
   document.getElementById('topbar-title').textContent = name.charAt(0).toUpperCase() + name.slice(1);
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -514,35 +621,6 @@ document.addEventListener('click', e => {
     document.getElementById('sidebar').classList.remove('open');
   }
 });
-
-/* ── BOOT ── */
-(function(){
-  document.getElementById('sb-co-name').textContent = EMPLOYER.name;
-  document.getElementById('sb-plan-name').textContent = EMPLOYER.plan;
-  document.getElementById('sb-plan-renews').textContent = 'Renews ' + EMPLOYER.planRenews;
-  const subdomain = `${EMPLOYER.slug}.cronos.co.za`;
-  document.getElementById('widget-subdomain').textContent = subdomain;
-  document.getElementById('visit-subdomain').href = 'https://' + subdomain;
-  document.getElementById('qa-subdomain').textContent = subdomain;
-  // Subscription banner
-  const banner = document.getElementById('sub-banner');
-  const bt = document.getElementById('banner-title');
-  const bs = document.getElementById('banner-sub');
-  const bb = document.getElementById('banner-btn');
-  if (EMPLOYER.planStatus === 'expiring') {
-    banner.className = 'sub-banner expiring';
-    bt.textContent = 'Subscription expiring soon';
-    bs.textContent = `Renews ${EMPLOYER.planRenews} — renew now to keep your listings live`;
-    bb.textContent = 'Renew now';
-  } else if (EMPLOYER.planStatus === 'expired') {
-    banner.className = 'sub-banner expired';
-    bt.textContent = 'Subscription expired';
-    bs.textContent = 'Your listings are paused. Renew your plan to make them visible again.';
-    bb.textContent = 'Renew plan';
-  }
-  updateStats();
-  renderListings();
-})();
 </script>
 </body>
 </html>

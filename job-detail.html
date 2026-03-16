@@ -390,153 +390,197 @@ body{font-family:'Circular',-apple-system,sans-serif;background:var(--bg);color:
   </div>
 </footer>
 
-<script>
-/* ── DATA (replace with fetch('/api/jobs/:id') in production) ── */
-const COMPANIES = {
-  boxer:       {name:'Boxer Superstore',   abbr:'BX', color:'#E53935', logo:'assets/logos/boxer.png'},
-  clicks:      {name:'Clicks Group',       abbr:'CL', color:'#1565C0', logo:'https://logo.clearbit.com/clicks.co.za'},
-  shoprite:    {name:'Shoprite Holdings',  abbr:'SR', color:'#E65100', logo:'https://logo.clearbit.com/shoprite.co.za'},
-  medicross:   {name:'Medicross Clinics',  abbr:'MC', color:'#0099fa', logo:'https://logo.clearbit.com/medicross.co.za'},
-  abclogistics:{name:'ABC Logistics',      abbr:'AL', color:'#5E35B1', logo:'https://logo.clearbit.com/abclogistics.co.za'},
-  spur:        {name:'Spur Corporation',   abbr:'SP', color:'#C62828', logo:'https://logo.clearbit.com/spur.co.za'},
-  pnp:         {name:'Pick n Pay',         abbr:'PP', color:'#1B5E20', logo:'https://logo.clearbit.com/picknpay.co.za'},
-  dischem:     {name:'Dis-Chem Pharmacies',abbr:'DC', color:'#1A237E', logo:'https://logo.clearbit.com/dischem.co.za'},
-};
+<script type="module">
+import { db }                    from './firebase.js'
+import { doc, getDoc }           from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-const JOBS = [
-  {id:1, slug:'boxer', title:'Store Manager', dept:'Management', type:'full-time', province:'Gauteng', city:'Johannesburg', posted:'2026-01-12', closes:'2026-04-28', closesTime:'17:00', slots:1,
-   description:'Lead and manage the daily operations of a high-volume Boxer Superstore, ensuring excellent customer service, stock availability, and staff performance. You will be responsible for achieving sales targets and maintaining retail standards across the store.',
-   requirements:['Matric certificate (Grade 12)','Minimum 3 years retail management experience','Strong leadership and communication skills','Ability to work weekends and public holidays','Valid driver\'s licence advantageous'],
-   responsibilities:['Oversee all store operations and staff schedules','Monitor daily sales and take corrective action where needed','Manage stock levels, orders, and loss prevention','Conduct performance reviews and staff coaching','Ensure compliance with health and safety regulations']},
-  {id:2, slug:'medicross', title:'Registered Nurse (x2)', dept:'Clinical', type:'full-time', province:'KwaZulu-Natal', city:'Durban', posted:'2026-01-15', closes:'2026-04-30', closesTime:'16:00', slots:2,
-   description:'Medicross Durban is seeking two Registered Nurses to join our busy primary healthcare team. You will provide quality patient care, conduct clinical assessments, administer medication, and support our doctors.',
-   requirements:['Registered Nurse qualification (SANC registered)','Minimum 2 years clinical experience','Strong patient care and communication skills','Ability to work under pressure','Computer literacy'],
-   responsibilities:['Conduct patient assessments and triage','Administer medication and injections as prescribed','Assist doctors during procedures','Maintain accurate patient records','Educate patients on health management']},
-  {id:3, slug:'pnp', title:'Cashier (x5)', dept:'Retail', type:'full-time', province:'Gauteng', city:'Pretoria', posted:'2026-01-18', closes:'2026-04-25', closesTime:'12:00', slots:5,
-   description:'Pick n Pay Pretoria is hiring five cashiers. You will process customer transactions efficiently, maintain your till, and provide professional service to shoppers.',
-   requirements:['Matric certificate (Grade 12)','Previous cashier or retail experience preferred','Strong numerical ability','Good communication skills','Ability to work shifts and weekends'],
-   responsibilities:['Process customer purchases accurately via POS system','Handle cash, card, and voucher transactions','Maintain clean and organised till area','Assist customers with queries','Balance cash drawer at end of each shift']},
-  {id:4, slug:'abclogistics', title:'Delivery Driver', dept:'Logistics', type:'contract', province:'Western Cape', city:'Cape Town', posted:'2026-01-20', closes:'2026-05-06', closesTime:'09:00', slots:1,
-   description:'ABC Logistics is seeking a reliable Delivery Driver for the Cape Town operation. Safe and timely delivery of goods to clients across the Western Cape.',
-   requirements:['Valid Code 10 driver\'s licence','Minimum 2 years driving experience','Clean driving record','Knowledge of Cape Town road network','Physically fit'],
-   responsibilities:['Deliver goods to clients on assigned routes','Ensure all deliveries are documented and signed for','Maintain vehicle cleanliness and report defects','Communicate delivery updates to dispatch','Handle goods with care']},
-  {id:5, slug:'dischem', title:'Pharmacist Assistant', dept:'Pharmacy', type:'full-time', province:'Gauteng', city:'Sandton', posted:'2026-01-22', closes:'2026-04-30', closesTime:'15:00', slots:1,
-   description:'Dis-Chem Sandton is looking for a qualified Pharmacist Assistant. You will assist the pharmacist in dispensing medication and providing healthcare advice.',
-   requirements:['Pharmacist Assistant qualification (Post-basic preferred)','SAPC registration','Minimum 1 year pharmacy experience','Excellent customer service skills','Strong attention to detail'],
-   responsibilities:['Assist with dispensing of chronic and acute medication','Provide counselling to patients','Manage pharmacy stock and expiry dates','Process medical aid claims accurately','Maintain a clean and compliant pharmacy environment']},
-];
+// ── Expose to inline handlers ──────────────────────
+window.toggleSave = toggleSave
+window.copyLink   = copyLink
 
-/* ── HELPERS ── */
+// ── Helpers ────────────────────────────────────────
 function getJobId() {
-  const p = new URLSearchParams(window.location.search);
-  if (p.get('id')) return parseInt(p.get('id'));
-  const m = window.location.pathname.match(/\/job\/(\d+)/);
-  if (m) return parseInt(m[1]);
-  return 1;
+  const p = new URLSearchParams(window.location.search)
+  return p.get('id') || p.get('job') || null
 }
 function fmtDate(iso) {
-  return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  if (!iso) return '—'
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+}
+function fmtTimestamp(val) {
+  if (!val) return '—'
+  const d = val?.toDate ? val.toDate() : new Date(val)
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
 }
 function daysUntil(iso, time) {
-  return Math.ceil((new Date(iso+'T'+(time||'17:00')+':00') - new Date()) / 86400000);
+  if (!iso) return 999
+  return Math.ceil((new Date(iso + 'T' + (time || '17:00') + ':00') - new Date()) / 86400000)
 }
 function typeLabel(t) {
-  return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract';
+  return t === 'full-time' ? 'Full-time' : t === 'part-time' ? 'Part-time' : 'Contract'
 }
 
-let isSaved = false;
+// ── Saved state (localStorage) ─────────────────────
+let currentJobId = null
+function isSaved(id) {
+  const saved = JSON.parse(localStorage.getItem('cronos_saved') || '[]')
+  return saved.includes(id)
+}
 function toggleSave() {
-  isSaved = !isSaved;
-  ['header-save-btn','sb-save-btn'].forEach(id => {
-    const btn = document.getElementById(id);
-    if (!btn) return;
-    btn.classList.toggle('saved', isSaved);
-    if (id === 'header-save-btn') btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${isSaved?'Saved':'Save'}`;
-    if (id === 'sb-save-btn') btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${isSaved?'currentColor':'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${isSaved?'Saved':'Save for later'}`;
-  });
+  const saved = new Set(JSON.parse(localStorage.getItem('cronos_saved') || '[]'))
+  saved.has(currentJobId) ? saved.delete(currentJobId) : saved.add(currentJobId)
+  localStorage.setItem('cronos_saved', JSON.stringify([...saved]))
+  updateSaveButtons()
+}
+function updateSaveButtons() {
+  const saved = isSaved(currentJobId)
+  const headerBtn = document.getElementById('header-save-btn')
+  const sbBtn     = document.getElementById('sb-save-btn')
+  if (headerBtn) {
+    headerBtn.classList.toggle('saved', saved)
+    headerBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${saved ? 'currentColor' : 'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${saved ? 'Saved' : 'Save'}`
+  }
+  if (sbBtn) {
+    sbBtn.classList.toggle('saved', saved)
+    sbBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="${saved ? 'currentColor' : 'none'}"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg>${saved ? 'Saved' : 'Save for later'}`
+  }
 }
 
+// ── Copy link ──────────────────────────────────────
 function copyLink() {
-  const url = window.location.href;
-  navigator.clipboard.writeText(url).then(() => {
-    const btn = document.getElementById('header-share-btn');
-    const copyBtn = document.getElementById('share-copy-btn');
-    if (btn) { btn.classList.add('copied'); btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Copied!`; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share`; }, 2000); }
-    if (copyBtn) { copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied'); setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000); }
-  });
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn     = document.getElementById('header-share-btn')
+    const copyBtn = document.getElementById('share-copy-btn')
+    if (btn) {
+      btn.classList.add('copied')
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Copied!`
+      setTimeout(() => {
+        btn.classList.remove('copied')
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share`
+      }, 2000)
+    }
+    if (copyBtn) {
+      copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied')
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied') }, 2000)
+    }
+  })
 }
 
-/* ── BOOT ── */
-function boot() {
-  const id = getJobId();
-  const j = JOBS.find(j => j.id === id);
-  if (!j) { document.getElementById('not-found').style.display = 'block'; return; }
-  const co = COMPANIES[j.slug] || {name:j.slug, abbr:j.slug.slice(0,2).toUpperCase(), color:'#0099fa', logo:null};
-  const days = daysUntil(j.closes, j.closesTime);
+// ── Boot: load job from Firestore ──────────────────
+async function boot() {
+  const jobId = getJobId()
+  if (!jobId) { document.getElementById('not-found').style.display = 'block'; return }
 
-  document.title = `${j.title} at ${co.name} — Cronos Jobs`;
-  document.getElementById('og-title').setAttribute('content', `${j.title} at ${co.name}`);
-  document.getElementById('og-desc').setAttribute('content', j.description.slice(0, 160));
-  document.getElementById('meta-desc').setAttribute('content', j.description.slice(0, 160));
+  currentJobId = jobId
 
-  document.getElementById('bc-title').textContent = j.title;
+  try {
+    const snap = await getDoc(doc(db, 'jobs', jobId))
+    if (!snap.exists()) { document.getElementById('not-found').style.display = 'block'; return }
 
-  // Logo
-  const logoWrap = document.getElementById('co-logo-wrap');
-  if (co.logo) logoWrap.innerHTML = `<img src="${co.logo}" alt="${co.name}" onerror="this.outerHTML='<span class=co-logo-fallback>${co.abbr}</span>'">`;
-  else document.getElementById('co-logo-abbr').textContent = co.abbr;
+    const j    = { id: snap.id, ...snap.data() }
+    const days = daysUntil(j.closes, j.closesTime)
 
-  document.getElementById('jd-title').textContent = j.title;
-  document.getElementById('jd-company-link').textContent = co.name;
-  document.getElementById('jd-company-link').href = `https://${j.slug}.cronos.co.za`;
-  document.getElementById('jd-location').textContent = `${j.city}, ${j.province}`;
-  document.getElementById('jd-type').textContent = typeLabel(j.type) + (j.slots > 1 ? ` · ${j.slots} openings` : '');
-  document.getElementById('jd-dept').textContent = j.dept;
-  document.getElementById('jd-posted').textContent = fmtDate(j.posted);
+    // If job is expired, show a notice but still display the content
+    if (j.status === 'expired' || days < 0) {
+      const notice = document.createElement('div')
+      notice.style.cssText = 'background:#fef2f2;border:1px solid #fca9a9;color:#b91c1c;padding:12px 20px;font-size:13px;font-weight:600;text-align:center;'
+      notice.textContent   = 'This job listing has closed and is no longer accepting applications.'
+      document.body.insertBefore(notice, document.body.firstChild)
+    }
 
-  const closesEl = document.getElementById('jd-closes');
-  closesEl.textContent = `${fmtDate(j.closes)} at ${j.closesTime || '17:00'}`;
-  if (days <= 5 && days >= 0) closesEl.classList.add('closing-soon');
+    const abbr  = (j.employerName || 'CO').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    const color = j.brandColour || '#0099fa'
+    const applyUrl = `apply.html?id=${j.id}`
 
-  const urgency = document.getElementById('jd-urgency');
-  if (days < 0) { urgency.style.display = 'inline-block'; urgency.textContent = 'Closed'; }
-  else if (days === 0) { urgency.style.display = 'inline-block'; urgency.textContent = 'Closes today'; }
-  else if (days <= 3) { urgency.style.display = 'inline-block'; urgency.textContent = `Closing in ${days} day${days!==1?'s':''}`; }
+    // Page meta
+    document.title = `${j.title} at ${j.employerName || ''} — Cronos Jobs`
+    document.getElementById('og-title')?.setAttribute('content', `${j.title} at ${j.employerName || ''}`)
+    document.getElementById('og-desc')?.setAttribute('content',  (j.description || '').slice(0, 160))
+    document.getElementById('meta-desc')?.setAttribute('content', (j.description || '').slice(0, 160))
+    document.getElementById('bc-title').textContent = j.title
 
-  document.getElementById('ab-company').textContent = co.name;
-  document.getElementById('ab-city').textContent = j.city;
-  const applyUrl = `apply.html?job=${j.id}`;
-  document.getElementById('apply-btn').href = applyUrl;
+    // Logo
+    const logoWrap = document.getElementById('co-logo-wrap')
+    if (j.logoUrl) {
+      logoWrap.innerHTML = `<img src="${j.logoUrl}" alt="${j.employerName}" onerror="this.outerHTML='<span class=co-logo-fallback>${abbr}</span>'">`
+    } else {
+      const abbrEl = document.getElementById('co-logo-abbr')
+      if (abbrEl) abbrEl.textContent = abbr
+    }
 
-  document.getElementById('jd-desc').textContent = j.description;
-  document.getElementById('jd-responsibilities').innerHTML = j.responsibilities.map(r => `<li>${r}</li>`).join('');
-  document.getElementById('jd-requirements').innerHTML = j.requirements.map(r => `<li>${r}</li>`).join('');
+    // Header
+    document.getElementById('jd-title').textContent         = j.title
+    document.getElementById('jd-company-link').textContent  = j.employerName || '—'
+    document.getElementById('jd-company-link').href         = j.slug ? `https://${j.slug}.cronos.co.za` : '#'
+    document.getElementById('jd-location').textContent      = [j.city, j.province].filter(Boolean).join(', ')
+    document.getElementById('jd-type').textContent          = typeLabel(j.type)
+    document.getElementById('jd-dept').textContent          = j.department || '—'
+    document.getElementById('jd-posted').textContent        = fmtTimestamp(j.createdAt)
 
-  // Sidebar
-  const sbLogo = document.getElementById('sb-logo-wrap');
-  if (co.logo) sbLogo.innerHTML = `<img src="${co.logo}" alt="${co.name}" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.outerHTML='<span style=font-size:16px;font-weight:700;color:var(--accent)>${co.abbr}</span>'">`;
-  else document.getElementById('sb-logo-abbr').textContent = co.abbr;
+    const closesEl = document.getElementById('jd-closes')
+    closesEl.textContent = `${fmtDate(j.closes)} at ${j.closesTime || '17:00'}`
+    if (days <= 5 && days >= 0) closesEl.classList.add('closing-soon')
 
-  document.getElementById('sb-company').textContent = co.name;
-  document.getElementById('sb-apply-btn').href = applyUrl;
-  document.getElementById('sb-location').textContent = `${j.city}, ${j.province}`;
-  document.getElementById('sb-type').textContent = typeLabel(j.type);
-  document.getElementById('sb-dept').textContent = j.dept;
-  if (j.slots > 1) { document.getElementById('sb-openings').textContent = j.slots + ' positions'; }
-  else { document.getElementById('sb-openings-wrap').style.display = 'none'; }
+    const urgency = document.getElementById('jd-urgency')
+    if (days < 0)       { urgency.style.display = 'inline-block'; urgency.textContent = 'Closed' }
+    else if (days === 0){ urgency.style.display = 'inline-block'; urgency.textContent = 'Closes today' }
+    else if (days <= 3) { urgency.style.display = 'inline-block'; urgency.textContent = `Closing in ${days} day${days !== 1 ? 's' : ''}` }
 
-  const shareUrl = window.location.origin + window.location.pathname + '?id=' + j.id;
-  document.getElementById('share-url-input').value = shareUrl;
+    // Apply bar
+    document.getElementById('ab-company').textContent = j.employerName || '—'
+    document.getElementById('ab-city').textContent    = j.city || '—'
+    document.getElementById('apply-btn').href         = applyUrl
 
-  document.getElementById('page-content').style.display = 'block';
+    // Body content
+    document.getElementById('jd-desc').textContent = j.description || ''
+    document.getElementById('jd-responsibilities').innerHTML = (j.responsibilities || []).map(r => `<li>${r}</li>`).join('')
+    document.getElementById('jd-requirements').innerHTML     = (j.requirements    || []).map(r => `<li>${r}</li>`).join('')
+
+    // Sidebar
+    const sbLogoWrap = document.getElementById('sb-logo-wrap')
+    if (j.logoUrl) {
+      sbLogoWrap.innerHTML = `<img src="${j.logoUrl}" alt="${j.employerName}" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.outerHTML='<span style=font-size:16px;font-weight:700;color:${color}>${abbr}</span>'">`
+    } else {
+      const sbAbbr = document.getElementById('sb-logo-abbr')
+      if (sbAbbr) sbAbbr.textContent = abbr
+    }
+
+    document.getElementById('sb-company').textContent  = j.employerName || '—'
+    document.getElementById('sb-apply-btn').href        = applyUrl
+    document.getElementById('sb-location').textContent  = [j.city, j.province].filter(Boolean).join(', ')
+    document.getElementById('sb-type').textContent      = typeLabel(j.type)
+    document.getElementById('sb-dept').textContent      = j.department || '—'
+
+    const sbOpenings = document.getElementById('sb-openings')
+    const sbOpeningsWrap = document.getElementById('sb-openings-wrap')
+    if (sbOpenings && sbOpeningsWrap) {
+      if (j.slots > 1) { sbOpenings.textContent = j.slots + ' positions' }
+      else { sbOpeningsWrap.style.display = 'none' }
+    }
+
+    // Share URL
+    const shareInput = document.getElementById('share-url-input')
+    if (shareInput) shareInput.value = window.location.origin + window.location.pathname + '?id=' + j.id
+
+    // Save button initial state
+    updateSaveButtons()
+
+    // Show page
+    document.getElementById('page-content').style.display = 'block'
+
+  } catch (err) {
+    document.getElementById('not-found').style.display = 'block'
+    console.error('Error loading job:', err)
+  }
 }
 
-boot();
+boot()
 
-const hamburger = document.getElementById('nav-hamburger');
-const drawer = document.getElementById('nav-drawer');
-hamburger.addEventListener('click', () => { const o = drawer.classList.toggle('open'); hamburger.classList.toggle('open', o); });
-document.addEventListener('click', e => { if (!e.target.closest('.nav') && !e.target.closest('.nav-drawer')) { drawer.classList.remove('open'); hamburger.classList.remove('open'); } });
+// ── Nav hamburger ──────────────────────────────────
+const hamburger = document.getElementById('nav-hamburger')
+const drawer    = document.getElementById('nav-drawer')
+hamburger.addEventListener('click', () => { const o = drawer.classList.toggle('open'); hamburger.classList.toggle('open', o) })
+document.addEventListener('click', e => { if (!e.target.closest('.nav') && !e.target.closest('.nav-drawer')) { drawer.classList.remove('open'); hamburger.classList.remove('open') } })
 </script>
 </body>
 </html>

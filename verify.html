@@ -1293,299 +1293,370 @@ select { background-image: url("data:image/svg+xml,%3Csvg width='16' height='16'
   </main>
 </div><!-- /page-wrap -->
 
-<script>
+<script type="module">
+import { auth, db, storage, requireAuth }  from './firebase.js'
+import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { ref, uploadBytesResumable }       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
+
+// ── Expose to inline handlers ──────────────────────
+window.goToStep         = goToStep
+window.nextStep         = nextStep
+window.prevStep         = prevStep
+window.toggleAuthority  = toggleAuthority
+window.handleFile       = handleFile
+window.dropFile         = dropFile
+window.dragOver         = dragOver
+window.dragLeave        = dragLeave
+window.removeFile       = removeFile
+window.toggleCheck      = toggleCheck
+window.selectRadio      = selectRadio
+window.toggleAgree      = toggleAgree
+window.togglePw         = togglePw
+window.submitApplication= submitApplication
+
 // ── State ──────────────────────────────────────────
-let currentStep = 1;
-const totalSteps = 5;
-const uploadedFiles = { cipc: null, id: null, addr: null, auth: null };
-let needsAuthLetter = false;
+let currentStep    = 1
+const totalSteps   = 5
+const uploadedFiles = { cipc: null, id: null, addr: null, auth: null }
+let needsAuthLetter = false
+let currentUid      = null
+
+// ── Boot: require auth, pre-fill account email ─────
+const user = await requireAuth('employer-register.html')
+currentUid = user.uid
+
+// Pre-fill account email on step 4 and disable it
+// (they already have an account — email is fixed)
+const emailEl = document.getElementById('acc-email')
+if (emailEl) {
+  emailEl.value    = user.email
+  emailEl.readOnly = true
+  emailEl.style.background = 'var(--bg)'
+  emailEl.style.color      = 'var(--text-muted)'
+}
+
+// Hide password fields on step 4 — account already exists
+const passGroup = document.getElementById('acc-pass')?.closest('.form-group')
+const pass2Group = document.getElementById('acc-pass2')?.closest('.form-group')
+if (passGroup)  passGroup.style.display  = 'none'
+if (pass2Group) pass2Group.style.display = 'none'
+
+// Init
+goToStep(1)
+document.querySelectorAll('input, select, textarea').forEach(el => {
+  el.addEventListener('input',  () => el.classList.remove('error'))
+  el.addEventListener('change', () => el.classList.remove('error'))
+})
 
 // ── Step navigation ────────────────────────────────
 function goToStep(n) {
-  if (n < 1 || n > totalSteps) return;
-
-  // Hide all panels
-  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('step-' + n).classList.add('active');
-
-  // Update sidebar
+  if (n < 1 || n > totalSteps) return
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'))
+  document.getElementById('step-' + n).classList.add('active')
   document.querySelectorAll('.step-item').forEach(item => {
-    const s = parseInt(item.dataset.step);
-    item.classList.remove('active','completed');
-    if (s === n) item.classList.add('active');
-    else if (s < n) item.classList.add('completed');
-  });
-
-  // Update .num-text visibility vs checkmark
+    const s = parseInt(item.dataset.step)
+    item.classList.remove('active','completed')
+    if (s === n)      item.classList.add('active')
+    else if (s < n)   item.classList.add('completed')
+  })
   document.querySelectorAll('.step-item').forEach(item => {
-    const numSpan = item.querySelector('.num-text');
-    const svg = item.querySelector('.step-num svg');
+    const numSpan = item.querySelector('.num-text')
+    const svg     = item.querySelector('.step-num svg')
     if (item.classList.contains('completed')) {
-      if (numSpan) numSpan.style.display = 'none';
-      if (svg) svg.style.display = 'block';
+      if (numSpan) numSpan.style.display = 'none'
+      if (svg)     svg.style.display     = 'block'
     } else {
-      if (numSpan) numSpan.style.display = '';
-      if (svg) svg.style.display = 'none';
+      if (numSpan) numSpan.style.display = ''
+      if (svg)     svg.style.display     = 'none'
     }
-  });
-
-  // Progress bar
-  document.getElementById('progress-bar').style.width = (n / totalSteps * 100) + '%';
-
-  currentStep = n;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  // Build review on step 5
-  if (n === 5) buildReview();
+  })
+  document.getElementById('progress-bar').style.width = (n / totalSteps * 100) + '%'
+  currentStep = n
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (n === 5) buildReview()
 }
 
-function nextStep(from) {
-  if (!validateStep(from)) return;
-  goToStep(from + 1);
-}
-
-function prevStep(from) {
-  goToStep(from - 1);
-}
+function nextStep(from) { if (!validateStep(from)) return; goToStep(from + 1) }
+function prevStep(from)  { goToStep(from - 1) }
 
 // ── Validation ─────────────────────────────────────
 function validateStep(step) {
-  clearErrors();
-  let ok = true;
+  clearErrors()
+  let ok = true
 
   if (step === 1) {
-    ok = requireField('co-name','err-co-name') && ok;
-    ok = requireField('co-reg','err-co-reg') && ok;
-    ok = requireSelect('co-type','err-co-type') && ok;
-    ok = requireSelect('co-industry','err-co-industry') && ok;
-    ok = requireField('co-street','err-co-street') && ok;
-    ok = requireField('co-city','err-co-city') && ok;
-    ok = requireSelect('co-province','err-co-province') && ok;
-    ok = requireField('co-postal','err-co-postal') && ok;
-    ok = requireSelect('co-size','err-co-size') && ok;
-    const desc = document.getElementById('co-desc').value.trim();
-    if (desc.length < 50) { showError('err-co-desc'); document.getElementById('co-desc').classList.add('error'); ok = false; }
+    ok = requireField('co-name','err-co-name')         && ok
+    ok = requireField('co-reg','err-co-reg')           && ok
+    ok = requireSelect('co-type','err-co-type')        && ok
+    ok = requireSelect('co-industry','err-co-industry')&& ok
+    ok = requireField('co-street','err-co-street')     && ok
+    ok = requireField('co-city','err-co-city')         && ok
+    ok = requireSelect('co-province','err-co-province')&& ok
+    ok = requireField('co-postal','err-co-postal')     && ok
+    ok = requireSelect('co-size','err-co-size')        && ok
+    const desc = document.getElementById('co-desc').value.trim()
+    if (desc.length < 50) { showError('err-co-desc'); document.getElementById('co-desc').classList.add('error'); ok = false }
   }
 
   if (step === 2) {
-    ok = requireField('ct-first','err-ct-first') && ok;
-    ok = requireField('ct-last','err-ct-last') && ok;
-    ok = requireField('ct-title','err-ct-title') && ok;
-    const id = document.getElementById('ct-id').value.replace(/\s/g,'');
-    if (id.length !== 13 || isNaN(id)) { showError('err-ct-id'); document.getElementById('ct-id').classList.add('error'); ok = false; }
-    ok = requireEmail('ct-email','err-ct-email') && ok;
-    ok = requireField('ct-phone','err-ct-phone') && ok;
-    ok = requireSelect('ct-tenure','err-ct-tenure') && ok;
-    if (!document.querySelector('input[name="authority"]:checked')) { showError('err-auth'); ok = false; }
+    ok = requireField('ct-first','err-ct-first')   && ok
+    ok = requireField('ct-last','err-ct-last')     && ok
+    ok = requireField('ct-title','err-ct-title')   && ok
+    const id = document.getElementById('ct-id').value.replace(/\s/g,'')
+    if (id.length !== 13 || isNaN(id)) { showError('err-ct-id'); document.getElementById('ct-id').classList.add('error'); ok = false }
+    ok = requireEmail('ct-email','err-ct-email')   && ok
+    ok = requireField('ct-phone','err-ct-phone')   && ok
+    ok = requireSelect('ct-tenure','err-ct-tenure')&& ok
+    if (!document.querySelector('input[name="authority"]:checked')) { showError('err-auth'); ok = false }
   }
 
   if (step === 3) {
-    if (!uploadedFiles.cipc) { showError('err-cipc'); ok = false; }
-    if (!uploadedFiles.id) { showError('err-id-doc'); ok = false; }
-    if (!uploadedFiles.addr) { showError('err-addr'); ok = false; }
+    if (!uploadedFiles.cipc) { showError('err-cipc'); ok = false }
+    if (!uploadedFiles.id)   { showError('err-id-doc'); ok = false }
+    if (!uploadedFiles.addr) { showError('err-addr'); ok = false }
   }
 
   if (step === 4) {
-    ok = requireEmail('acc-email','err-acc-email') && ok;
-    const pw = document.getElementById('acc-pass').value;
-    if (pw.length < 8) { showError('err-acc-pass'); document.getElementById('acc-pass').classList.add('error'); ok = false; }
-    const pw2 = document.getElementById('acc-pass2').value;
-    if (pw !== pw2 || pw2 === '') { showError('err-acc-pass2'); document.getElementById('acc-pass2').classList.add('error'); ok = false; }
-    if (!document.querySelector('input[name="posts-per-month"]:checked')) { showError('err-posts'); ok = false; }
-    const checkedProvinces = document.querySelectorAll('#province-checks input[type="checkbox"]:checked');
-    if (checkedProvinces.length === 0) { showError('err-provinces'); ok = false; }
+    // Email is pre-filled + readonly — skip email validation
+    // Password fields are hidden — skip password validation
+    if (!document.querySelector('input[name="posts-per-month"]:checked')) { showError('err-posts'); ok = false }
+    const checkedProvinces = document.querySelectorAll('#province-checks input[type="checkbox"]:checked')
+    if (checkedProvinces.length === 0) { showError('err-provinces'); ok = false }
   }
 
-  return ok;
+  return ok
 }
 
 function requireField(id, errId) {
-  const el = document.getElementById(id);
-  if (!el.value.trim()) { showError(errId); el.classList.add('error'); return false; }
-  return true;
+  const el = document.getElementById(id)
+  if (!el.value.trim()) { showError(errId); el.classList.add('error'); return false }
+  return true
 }
 function requireSelect(id, errId) {
-  const el = document.getElementById(id);
-  if (!el.value) { showError(errId); el.classList.add('error'); return false; }
-  return true;
+  const el = document.getElementById(id)
+  if (!el.value) { showError(errId); el.classList.add('error'); return false }
+  return true
 }
 function requireEmail(id, errId) {
-  const el = document.getElementById(id);
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!re.test(el.value)) { showError(errId); el.classList.add('error'); return false; }
-  return true;
+  const el = document.getElementById(id)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) { showError(errId); el.classList.add('error'); return false }
+  return true
 }
-function showError(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.add('show');
-}
-function clearErrors() {
-  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
-  document.querySelectorAll('input.error, select.error, textarea.error').forEach(e => e.classList.remove('error'));
+function showError(id)  { const el = document.getElementById(id); if (el) el.classList.add('show') }
+function clearErrors()  {
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'))
+  document.querySelectorAll('input.error, select.error, textarea.error').forEach(e => e.classList.remove('error'))
 }
 
 // ── Authority toggle ───────────────────────────────
 function toggleAuthority(val) {
-  needsAuthLetter = (val === 'no');
-  document.getElementById('auth-letter-group').style.display = needsAuthLetter ? 'block' : 'none';
-  ['auth-yes-label','auth-no-label'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('selected');
-  });
-  document.getElementById('auth-'+val+'-label').classList.add('selected');
+  needsAuthLetter = (val === 'no')
+  document.getElementById('auth-letter-group').style.display = needsAuthLetter ? 'block' : 'none'
+  ;['auth-yes-label','auth-no-label'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.classList.remove('selected')
+  })
+  document.getElementById('auth-' + val + '-label').classList.add('selected')
 }
 
 // ── File handling ──────────────────────────────────
 function handleFile(input, key) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { alert('File is too large. Maximum size is 5MB.'); return; }
-  uploadedFiles[key] = file;
-  renderFileItem(key, file);
+  const file = input.files[0]; if (!file) return
+  if (file.size > 5 * 1024 * 1024) { alert('File is too large. Maximum size is 5MB.'); return }
+  uploadedFiles[key] = file
+  renderFileItem(key, file)
 }
 function dropFile(e, key) {
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-  uploadedFiles[key] = file;
-  renderFileItem(key, file);
-  document.getElementById('drop-' + (key==='id'?'id':key==='addr'?'addr':key==='auth'?'auth':'cipc')).classList.remove('drag-over');
+  e.preventDefault()
+  const file = e.dataTransfer.files[0]; if (!file) return
+  uploadedFiles[key] = file
+  renderFileItem(key, file)
+  const dropMap = { cipc:'drop-cipc', id:'drop-id', addr:'drop-addr', auth:'drop-auth' }
+  document.getElementById(dropMap[key])?.classList.remove('drag-over')
 }
-function dragOver(e, id) { e.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
-function dragLeave(id) { document.getElementById(id).classList.remove('drag-over'); }
+function dragOver(e, id)  { e.preventDefault(); document.getElementById(id)?.classList.add('drag-over') }
+function dragLeave(id)    { document.getElementById(id)?.classList.remove('drag-over') }
 function renderFileItem(key, file) {
-  const listId = 'files-' + (key==='id'?'id':key);
-  const list = document.getElementById(listId);
-  if (!list) return;
-  const kb = (file.size / 1024).toFixed(0);
+  const listId = 'files-' + key
+  const list   = document.getElementById(listId); if (!list) return
+  const kb = (file.size / 1024).toFixed(0)
   list.innerHTML = `<div class="file-item">
     <div class="file-item-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6l-3-4z" stroke="currentColor" stroke-width="1.5"/><path d="M13 2v4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
     <div class="file-item-info"><div class="file-item-name">${file.name}</div><div class="file-item-size">${kb} KB</div></div>
     <button class="file-item-remove" onclick="removeFile('${key}','${listId}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-  </div>`;
+  </div>`
 }
 function removeFile(key, listId) {
-  uploadedFiles[key] = null;
-  document.getElementById(listId).innerHTML = '';
-  const inputMap = { cipc:'file-cipc', id:'file-id', addr:'file-addr', auth:'file-auth' };
-  const input = document.getElementById(inputMap[key]);
-  if (input) input.value = '';
+  uploadedFiles[key] = null
+  document.getElementById(listId).innerHTML = ''
+  const inputMap = { cipc:'file-cipc', id:'file-id', addr:'file-addr', auth:'file-auth' }
+  const input = document.getElementById(inputMap[key])
+  if (input) input.value = ''
 }
 
-// ── Check/Radio toggles ────────────────────────────
+// ── Check / radio toggles ──────────────────────────
 function toggleCheck(el) {
-  el.classList.toggle('selected');
-  const input = el.querySelector('input[type="checkbox"]');
-  if (input) input.checked = el.classList.contains('selected');
+  el.classList.toggle('selected')
+  const input = el.querySelector('input[type="checkbox"]')
+  if (input) input.checked = el.classList.contains('selected')
 }
 function selectRadio(el, inputId) {
-  el.closest('.radio-grid').querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById(inputId).checked = true;
+  el.closest('.radio-grid').querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'))
+  el.classList.add('selected')
+  document.getElementById(inputId).checked = true
 }
-
-// ── Agreement checkboxes ───────────────────────────
 function toggleAgree(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle('checked');
-  const input = el.querySelector('input');
-  if (input) input.checked = el.classList.contains('checked');
+  const el = document.getElementById(id)
+  el.classList.toggle('checked')
+  const input = el.querySelector('input')
+  if (input) input.checked = el.classList.contains('checked')
+}
+function togglePw(inputId) {
+  const input = document.getElementById(inputId)
+  input.type = input.type === 'password' ? 'text' : 'password'
 }
 
-// ── Password toggle ────────────────────────────────
-function togglePw(inputId, btn) {
-  const input = document.getElementById(inputId);
-  input.type = input.type === 'password' ? 'text' : 'password';
-}
-
-// ── Build review ───────────────────────────────────
+// ── Review screen ──────────────────────────────────
 function rv(label, value, full) {
-  const v = value || '';
-  return `<div class="review-field${full?' full':''}">
+  const v = value || ''
+  return `<div class="review-field${full ? ' full' : ''}">
     <div class="review-field-label">${label}</div>
-    <div class="review-field-value${!v?' empty':''}">${v || '—'}</div>
-  </div>`;
+    <div class="review-field-value${!v ? ' empty' : ''}">${v || '—'}</div>
+  </div>`
 }
 function buildReview() {
-  // Company
   document.getElementById('review-company').innerHTML =
     rv('Registered Company Name', document.getElementById('co-name').value) +
-    rv('Registration Number', document.getElementById('co-reg').value) +
-    rv('Business Type', document.getElementById('co-type').value) +
-    rv('Industry', document.getElementById('co-industry').value) +
-    rv('Company Size', document.getElementById('co-size').value) +
-    rv('Street Address', document.getElementById('co-street').value) +
-    rv('City', document.getElementById('co-city').value) +
-    rv('Province', document.getElementById('co-province').value) +
-    rv('Postal Code', document.getElementById('co-postal').value) +
-    rv('Website', document.getElementById('co-website').value) +
-    rv('Company Description', document.getElementById('co-desc').value, true);
+    rv('Registration Number',     document.getElementById('co-reg').value) +
+    rv('Business Type',           document.getElementById('co-type').value) +
+    rv('Industry',                document.getElementById('co-industry').value) +
+    rv('Company Size',            document.getElementById('co-size').value) +
+    rv('Street Address',          document.getElementById('co-street').value) +
+    rv('City',                    document.getElementById('co-city').value) +
+    rv('Province',                document.getElementById('co-province').value) +
+    rv('Postal Code',             document.getElementById('co-postal').value) +
+    rv('Website',                 document.getElementById('co-website').value) +
+    rv('Company Description',     document.getElementById('co-desc').value, true)
 
-  // Contact
-  const auth = document.querySelector('input[name="authority"]:checked');
+  const authRadio = document.querySelector('input[name="authority"]:checked')
   document.getElementById('review-contact').innerHTML =
-    rv('Full Name', (document.getElementById('ct-first').value + ' ' + document.getElementById('ct-last').value).trim()) +
-    rv('Job Title', document.getElementById('ct-title').value) +
-    rv('SA ID Number', document.getElementById('ct-id').value.replace(/(\d{6})(\d{4})(\d{3})/, '$1 $2 $3')) +
-    rv('Work Email', document.getElementById('ct-email').value) +
-    rv('Phone Number', document.getElementById('ct-phone-code').value + ' ' + document.getElementById('ct-phone').value) +
-    rv('LinkedIn', document.getElementById('ct-linkedin').value) +
-    rv('Tenure at Company', document.getElementById('ct-tenure').value) +
-    rv('Authorised to Post', auth ? (auth.value === 'yes' ? 'Yes — self-authorised' : 'No — letter provided') : '—');
+    rv('Full Name',           (document.getElementById('ct-first').value + ' ' + document.getElementById('ct-last').value).trim()) +
+    rv('Job Title',           document.getElementById('ct-title').value) +
+    rv('SA ID Number',        document.getElementById('ct-id').value.replace(/(\d{6})(\d{4})(\d{3})/, '$1 $2 $3')) +
+    rv('Work Email',          document.getElementById('ct-email').value) +
+    rv('Phone Number',        (document.getElementById('ct-phone-code')?.value || '') + ' ' + document.getElementById('ct-phone').value) +
+    rv('LinkedIn',            document.getElementById('ct-linkedin').value) +
+    rv('Tenure at Company',   document.getElementById('ct-tenure').value) +
+    rv('Authorised to Post',  authRadio ? (authRadio.value === 'yes' ? 'Yes — self-authorised' : 'No — letter provided') : '—')
 
-  // Documents
   document.getElementById('review-docs').innerHTML =
-    rv('CIPC Certificate', uploadedFiles.cipc ? '✓ ' + uploadedFiles.cipc.name : null) +
-    rv('ID Document', uploadedFiles.id ? '✓ ' + uploadedFiles.id.name : null) +
-    rv('Proof of Address', uploadedFiles.addr ? '✓ ' + uploadedFiles.addr.name : null) +
-    rv('Authorisation Letter', uploadedFiles.auth ? '✓ ' + uploadedFiles.auth.name : 'Not required');
+    rv('CIPC Certificate',     uploadedFiles.cipc ? '✓ ' + uploadedFiles.cipc.name : null) +
+    rv('ID Document',          uploadedFiles.id   ? '✓ ' + uploadedFiles.id.name   : null) +
+    rv('Proof of Address',     uploadedFiles.addr ? '✓ ' + uploadedFiles.addr.name : null) +
+    rv('Authorisation Letter', uploadedFiles.auth ? '✓ ' + uploadedFiles.auth.name : 'Not required')
 
-  // Account
-  const posts = document.querySelector('input[name="posts-per-month"]:checked');
-  const provinces = [...document.querySelectorAll('#province-checks input:checked')].map(i => i.value).join(', ');
+  const posts     = document.querySelector('input[name="posts-per-month"]:checked')
+  const provinces = [...document.querySelectorAll('#province-checks input:checked')].map(i => i.value).join(', ')
   document.getElementById('review-account').innerHTML =
-    rv('Account Email', document.getElementById('acc-email').value) +
-    rv('Password', '••••••••') +
-    rv('Posts per Month', posts ? posts.value : null) +
-    rv('Hiring Provinces', provinces, true);
+    rv('Account Email',    user.email) +
+    rv('Posts per Month',  posts ? posts.value : null) +
+    rv('Hiring Provinces', provinces, true)
 }
 
-// ── Submit ─────────────────────────────────────────
-function submitApplication() {
-  clearErrors();
-  const a1 = document.getElementById('chk-agree1').checked;
-  const a2 = document.getElementById('chk-agree2').checked;
-  const a3 = document.getElementById('chk-agree3').checked;
-  if (!a1 || !a2 || !a3) { showError('err-agree'); return; }
-
-  // Generate ref
-  const ref = 'CRN-' + Math.random().toString(36).substring(2,8).toUpperCase();
-  document.getElementById('success-ref').textContent = ref;
-
-  // Hide form panels, show success
-  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('success-panel').classList.add('show');
-
-  // Update sidebar — all complete
-  document.querySelectorAll('.step-item').forEach(item => {
-    item.classList.remove('active'); item.classList.add('completed');
-    const numSpan = item.querySelector('.num-text');
-    const svg = item.querySelector('.step-num svg');
-    if (numSpan) numSpan.style.display = 'none';
-    if (svg) svg.style.display = 'block';
-  });
-  document.getElementById('progress-bar').style.width = '100%';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+// ── Upload a single file to Storage ───────────────
+function uploadFile(file, path) {
+  return new Promise((resolve, reject) => {
+    uploadBytesResumable(ref(storage, path), file)
+      .on('state_changed', null, reject, resolve)
+  })
 }
 
-// ── Init ───────────────────────────────────────────
-goToStep(1);
+// ── Submit verification to Firestore ──────────────
+async function submitApplication() {
+  clearErrors()
+  const a1 = document.getElementById('chk-agree1').checked
+  const a2 = document.getElementById('chk-agree2').checked
+  const a3 = document.getElementById('chk-agree3').checked
+  if (!a1 || !a2 || !a3) { showError('err-agree'); return }
 
-// Remove error on input
-document.querySelectorAll('input, select, textarea').forEach(el => {
-  el.addEventListener('input', () => { el.classList.remove('error'); });
-  el.addEventListener('change', () => { el.classList.remove('error'); });
-});
+  const btn = document.querySelector('.step-panel.active .btn-submit') ||
+              document.querySelector('[onclick="submitApplication()"]')
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…' }
+
+  try {
+    const verRef = `verifications/${currentUid}`
+
+    // 1. Upload documents to Firebase Storage
+    const docPaths = {}
+    for (const [key, file] of Object.entries(uploadedFiles)) {
+      if (!file) continue
+      const path = `${verRef}/${key}_${file.name.replace(/\s+/g, '_')}`
+      await uploadFile(file, path)
+      docPaths[key] = path
+    }
+
+    // 2. Collect form data
+    const authRadio = document.querySelector('input[name="authority"]:checked')
+    const posts     = document.querySelector('input[name="posts-per-month"]:checked')
+    const provinces = [...document.querySelectorAll('#province-checks input:checked')].map(i => i.value)
+
+    // 3. Update employer doc with verification submission
+    await updateDoc(doc(db, 'employers', currentUid), {
+      verificationStatus: 'submitted',
+      verificationRef:    'CRN-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      submittedAt:        serverTimestamp(),
+      updatedAt:          serverTimestamp(),
+      // Company info
+      companyName:        document.getElementById('co-name').value.trim(),
+      registrationNumber: document.getElementById('co-reg').value.trim(),
+      businessType:       document.getElementById('co-type').value,
+      industry:           document.getElementById('co-industry').value,
+      companySize:        document.getElementById('co-size').value,
+      streetAddress:      document.getElementById('co-street').value.trim(),
+      city:               document.getElementById('co-city').value.trim(),
+      province:           document.getElementById('co-province').value,
+      postalCode:         document.getElementById('co-postal').value.trim(),
+      website:            document.getElementById('co-website')?.value.trim() || null,
+      about:              document.getElementById('co-desc').value.trim(),
+      // Contact person
+      contactFirstName:   document.getElementById('ct-first').value.trim(),
+      contactLastName:    document.getElementById('ct-last').value.trim(),
+      contactTitle:       document.getElementById('ct-title').value.trim(),
+      contactIdNumber:    document.getElementById('ct-id').value.replace(/\s/g, ''),
+      contactEmail:       document.getElementById('ct-email').value.trim(),
+      contactPhone:       (document.getElementById('ct-phone-code')?.value || '') + ' ' + document.getElementById('ct-phone').value.trim(),
+      contactLinkedIn:    document.getElementById('ct-linkedin')?.value.trim() || null,
+      contactTenure:      document.getElementById('ct-tenure').value,
+      selfAuthorised:     authRadio?.value === 'yes',
+      // Preferences
+      postsPerMonth:      posts?.value || null,
+      hiringProvinces:    provinces,
+      // Document storage paths
+      documents:          docPaths,
+    })
+
+    // 4. Show success
+    const verRefEl = document.getElementById('success-ref')
+    if (verRefEl) verRefEl.textContent = document.querySelector('[data-ref]')?.dataset.ref ||
+      'CRN-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'))
+    document.getElementById('success-panel').classList.add('show')
+    document.querySelectorAll('.step-item').forEach(item => {
+      item.classList.remove('active'); item.classList.add('completed')
+      const numSpan = item.querySelector('.num-text')
+      const svg     = item.querySelector('.step-num svg')
+      if (numSpan) numSpan.style.display = 'none'
+      if (svg)     svg.style.display     = 'block'
+    })
+    document.getElementById('progress-bar').style.width = '100%'
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  } catch (err) {
+    alert('Submission failed. Please check your connection and try again. (' + err.message + ')')
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit application' }
+  }
+}
 </script>
 </body>
 </html>

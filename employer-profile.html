@@ -460,132 +460,338 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
-const EMPLOYER = { slug:'boxer', name:'Boxer Superstore', abbr:'BX', colour:'#E65100' };
-let brandColour = EMPLOYER.colour;
-let isDirty = false;
+<script type="module">
+import { auth, db, storage, requireAuth, signOutEmployer } from './firebase.js'
+import { doc, getDoc, updateDoc,
+         deleteDoc, serverTimestamp }                       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { ref, uploadBytesResumable,
+         getDownloadURL, deleteObject }                     from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
+import { deleteUser }                                       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"
 
-function markDirty(){
-  isDirty=true;
-  document.getElementById('unsaved-dot').classList.add('show');
-  document.getElementById('save-btn').disabled=false;
-}
-function markClean(){
-  isDirty=false;
-  document.getElementById('unsaved-dot').classList.remove('show');
-  document.getElementById('save-btn').disabled=true;
+// ── Expose to inline handlers ──────────────────────────────────
+window.markDirty           = markDirty
+window.updatePreview       = updatePreview
+window.selectColour        = selectColour
+window.applyCustomColour   = applyCustomColour
+window.applyHexInput       = applyHexInput
+window.countChars          = countChars
+window.handleLogoUpload    = handleLogoUpload
+window.removeLogo          = removeLogo
+window.toggleProv          = toggleProv
+window.copySubdomain       = copySubdomain
+window.saveProfile         = saveProfile
+window.showToast           = showToast
+window.openDeactivateModal = openDeactivateModal
+window.closeModal          = closeModal
+window.deactivateAccount   = deactivateAccount
+window.toggleSidebar       = () => document.getElementById('sidebar').classList.toggle('open')
+window.signOut             = signOutEmployer
+
+// ── State ──────────────────────────────────────────────────────
+let brandColour  = '#0099fa'
+let isDirty      = false
+let currentUid   = null
+let profile      = {}
+let logoFile     = null   // new logo file selected by user
+
+// ── Boot ───────────────────────────────────────────────────────
+const user = await requireAuth()
+currentUid = user.uid
+await loadProfile()
+
+async function loadProfile() {
+  const snap = await getDoc(doc(db, 'employers', currentUid))
+  if (!snap.exists()) return
+  profile = snap.data()
+
+  const slug = profile.slug || generateSlug(profile.companyName || '')
+
+  // Sidebar
+  document.getElementById('sb-co-name').textContent    = profile.companyName || '—'
+  document.getElementById('sb-plan-name').textContent  = profile.plan        || 'No plan'
+  document.getElementById('sb-plan-renews').textContent= profile.planRenews  ? 'Renews ' + profile.planRenews : ''
+
+  // Form fields
+  setField('f-name',       profile.companyName  || '')
+  setField('f-industry',   profile.industry     || '')
+  setField('f-size',       profile.companySize  || '')
+  setField('f-hq',         profile.province     || '')
+  setField('f-founded',    profile.founded      || '')
+  setField('f-website',    profile.website      || '')
+  setField('f-linkedin',   profile.linkedin     || '')
+  setField('f-about',      profile.about        || '')
+  setField('f-app-email',  profile.appEmail     || profile.email || '')
+  setField('f-reply-name', profile.replyName    || '')
+
+  // Brand colour
+  brandColour = profile.brandColour || '#0099fa'
+  document.getElementById('colour-hex').value                    = brandColour
+  document.getElementById('colour-picker').value                 = brandColour
+  document.getElementById('colour-preview-swatch').style.background = brandColour
+  // Highlight matching swatch if any
+  document.querySelectorAll('.colour-swatch').forEach(s => {
+    s.classList.toggle('selected', s.dataset.colour === brandColour)
+  })
+
+  // Logo
+  if (profile.logoUrl) {
+    document.getElementById('logo-preview').innerHTML =
+      `<img src="${profile.logoUrl}" alt="Logo">`
+    document.getElementById('prev-logo').innerHTML =
+      `<img src="${profile.logoUrl}" alt="Logo" style="width:100%;height:100%;object-fit:contain;padding:6px;">`
+  }
+
+  // Hiring provinces
+  const provinces = profile.hiringProvinces || []
+  document.querySelectorAll('.prov-item').forEach(item => {
+    const label = item.querySelector('.prov-label')?.textContent
+    if (label && provinces.includes(label)) {
+      item.classList.add('checked')
+      item.querySelector('input').checked = true
+    } else {
+      item.classList.remove('checked')
+      item.querySelector('input').checked = false
+    }
+  })
+
+  // Subdomain
+  document.getElementById('subdomain-url').textContent  = slug + '.cronos.co.za'
+  document.getElementById('view-page-btn').href          = 'https://' + slug + '.cronos.co.za'
+
+  countChars('f-about', 'about-count', 50, 800)
+  updatePreview()
+  markClean()
 }
 
-function updatePreview(){
-  const name  = document.getElementById('f-name').value.trim() || EMPLOYER.name;
-  const hq    = document.getElementById('f-hq').value.trim();
-  const ind   = document.getElementById('f-industry').value;
-  const about = document.getElementById('f-about').value.trim();
-  document.getElementById('prev-name').textContent    = name;
-  document.getElementById('prev-hq').textContent      = hq;
-  document.getElementById('prev-industry').textContent = ind;
-  document.getElementById('prev-about').textContent   = about;
-  const abbr = name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('prev-logo-abbr').textContent = abbr;
-  document.getElementById('logo-abbr').textContent      = abbr;
-  document.getElementById('prev-cover').style.background = brandColour;
-  document.getElementById('prev-logo').style.background  = brandColour;
-  document.getElementById('sb-co-name').textContent = name;
+function setField(id, val) {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.value = val
 }
 
-function selectColour(hex, el){
-  brandColour = hex;
-  document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('colour-hex').value = hex;
-  document.getElementById('colour-picker').value = hex;
-  document.getElementById('colour-preview-swatch').style.background = hex;
-  updatePreview(); markDirty();
+function generateSlug(name) {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
-function applyCustomColour(hex){
-  brandColour=hex;
-  document.getElementById('colour-hex').value=hex;
-  document.getElementById('colour-preview-swatch').style.background=hex;
-  document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));
-  updatePreview(); markDirty();
+
+// ── Dirty state ────────────────────────────────────────────────
+function markDirty() {
+  isDirty = true
+  document.getElementById('unsaved-dot').classList.add('show')
+  document.getElementById('save-btn').disabled = false
 }
-function applyHexInput(val){
-  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
-    brandColour=val;
-    document.getElementById('colour-picker').value=val;
-    document.getElementById('colour-preview-swatch').style.background=val;
-    document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));
-    updatePreview(); markDirty();
+function markClean() {
+  isDirty = false
+  document.getElementById('unsaved-dot').classList.remove('show')
+  document.getElementById('save-btn').disabled = true
+}
+
+// ── Live preview ───────────────────────────────────────────────
+function updatePreview() {
+  const name  = document.getElementById('f-name').value.trim()  || profile.companyName || 'Your Company'
+  const hq    = document.getElementById('f-hq').value.trim()
+  const ind   = document.getElementById('f-industry').value
+  const about = document.getElementById('f-about').value.trim()
+  document.getElementById('prev-name').textContent     = name
+  document.getElementById('prev-hq').textContent       = hq
+  document.getElementById('prev-industry').textContent = ind
+  document.getElementById('prev-about').textContent    = about
+  const abbr = name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  document.getElementById('prev-logo-abbr') && (document.getElementById('prev-logo-abbr').textContent = abbr)
+  document.getElementById('logo-abbr')      && (document.getElementById('logo-abbr').textContent      = abbr)
+  document.getElementById('prev-cover').style.background = brandColour
+  if (!profile.logoUrl && !logoFile) document.getElementById('prev-logo').style.background = brandColour
+  document.getElementById('sb-co-name').textContent = name
+}
+
+// ── Colour picker ──────────────────────────────────────────────
+function selectColour(hex, el) {
+  brandColour = hex
+  document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'))
+  el.classList.add('selected')
+  document.getElementById('colour-hex').value                       = hex
+  document.getElementById('colour-picker').value                    = hex
+  document.getElementById('colour-preview-swatch').style.background = hex
+  updatePreview(); markDirty()
+}
+function applyCustomColour(hex) {
+  brandColour = hex
+  document.getElementById('colour-hex').value                       = hex
+  document.getElementById('colour-preview-swatch').style.background = hex
+  document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'))
+  updatePreview(); markDirty()
+}
+function applyHexInput(val) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    brandColour = val
+    document.getElementById('colour-picker').value                    = val
+    document.getElementById('colour-preview-swatch').style.background = val
+    document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'))
+    updatePreview(); markDirty()
   }
 }
 
-function countChars(fId,cId,min,max){
-  const v=document.getElementById(fId).value;
-  const el=document.getElementById(cId);
-  el.textContent=v.length+' / '+max;
-  el.className='char-counter'+(v.length>max?' over':v.length>max*0.85?' warn':'');
+// ── Char counter ───────────────────────────────────────────────
+function countChars(fId, cId, min, max) {
+  const v  = document.getElementById(fId).value
+  const el = document.getElementById(cId)
+  el.textContent = v.length + ' / ' + max
+  el.className   = 'char-counter' + (v.length > max ? ' over' : v.length > max * 0.85 ? ' warn' : '')
 }
 
-function handleLogoUpload(input){
-  const file=input.files[0]; if(!file) return;
-  if(file.size>2*1024*1024){showToast('Logo must be under 2MB');return;}
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const wrap=document.getElementById('logo-preview');
-    wrap.innerHTML=`<img src="${e.target.result}" alt="Logo">`;
-    document.getElementById('prev-logo').innerHTML=`<img src="${e.target.result}" alt="Logo" style="width:100%;height:100%;object-fit:contain;padding:6px;">`;
-    markDirty();
-  };
-  reader.readAsDataURL(file);
+// ── Logo upload ────────────────────────────────────────────────
+function handleLogoUpload(input) {
+  const file = input.files[0]; if (!file) return
+  if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB'); return }
+  logoFile = file
+  const reader = new FileReader()
+  reader.onload = e => {
+    document.getElementById('logo-preview').innerHTML =
+      `<img src="${e.target.result}" alt="Logo">`
+    document.getElementById('prev-logo').innerHTML =
+      `<img src="${e.target.result}" alt="Logo" style="width:100%;height:100%;object-fit:contain;padding:6px;">`
+    markDirty()
+  }
+  reader.readAsDataURL(file)
 }
-function removeLogo(){
-  const abbr=document.getElementById('f-name').value.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||EMPLOYER.abbr;
-  document.getElementById('logo-preview').innerHTML=`<span class="logo-preview-abbr" id="logo-abbr">${abbr}</span>`;
-  document.getElementById('prev-logo').innerHTML=`<span id="prev-logo-abbr" style="font-size:16px;font-weight:700;color:#fff">${abbr}</span>`;
-  markDirty();
-}
-
-function toggleProv(el){el.classList.toggle('checked');const cb=el.querySelector('input');cb.checked=el.classList.contains('checked');markDirty();}
-
-function copySubdomain(){
-  const url='https://'+EMPLOYER.slug+'.cronos.co.za';
-  navigator.clipboard.writeText(url).then(()=>{
-    const btn=document.getElementById('copy-subdomain-btn');
-    btn.textContent='Copied!'; btn.classList.add('copied');
-    setTimeout(()=>{btn.textContent='Copy link';btn.classList.remove('copied');},2000);
-  });
+function removeLogo() {
+  logoFile = null
+  profile.logoUrl = null
+  const abbr = (document.getElementById('f-name').value.trim() || 'CO')
+    .split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  document.getElementById('logo-preview').innerHTML =
+    `<span class="logo-preview-abbr" id="logo-abbr">${abbr}</span>`
+  document.getElementById('prev-logo').innerHTML =
+    `<span id="prev-logo-abbr" style="font-size:16px;font-weight:700;color:#fff">${abbr}</span>`
+  markDirty()
 }
 
-function saveProfile(){
-  /* In production: PATCH /api/employer/profile with form data + logo */
-  markClean();
-  showToast('Profile saved successfully');
+// ── Provinces ──────────────────────────────────────────────────
+function toggleProv(el) {
+  el.classList.toggle('checked')
+  el.querySelector('input').checked = el.classList.contains('checked')
+  markDirty()
 }
 
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+// ── Subdomain copy ─────────────────────────────────────────────
+function copySubdomain() {
+  const slug = profile.slug || generateSlug(document.getElementById('f-name').value.trim())
+  const url  = 'https://' + slug + '.cronos.co.za'
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copy-subdomain-btn')
+    btn.textContent = 'Copied!'; btn.classList.add('copied')
+    setTimeout(() => { btn.textContent = 'Copy link'; btn.classList.remove('copied') }, 2000)
+  })
 }
 
-function openDeactivateModal(){document.getElementById('deactivate-modal').classList.add('open');}
-function closeModal(e){if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');}
-function deactivateAccount(){showToast('Account deactivated. Redirecting…');setTimeout(()=>window.location.href='employer-login.html',2000);}
+// ── Save profile to Firestore ──────────────────────────────────
+async function saveProfile() {
+  const btn = document.getElementById('save-btn')
+  btn.disabled = true
+  btn.textContent = 'Saving…'
 
-/* ── BOOT ── */
-(function(){
-  document.getElementById('view-page-btn').href='https://'+EMPLOYER.slug+'.cronos.co.za';
-  document.getElementById('subdomain-url').textContent=EMPLOYER.slug+'.cronos.co.za';
-  document.getElementById('colour-preview-swatch').style.background=brandColour;
-  countChars('f-about','about-count',50,800);
-  updatePreview();
-})();
-document.addEventListener('keydown',e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();if(isDirty)saveProfile();}
-  if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
-});
-window.addEventListener('beforeunload',e=>{if(isDirty){e.preventDefault();e.returnValue='';}});
-document.addEventListener('click',e=>{if(window.innerWidth<=900&&!e.target.closest('#sidebar')&&!e.target.closest('.topbar-mobile-menu'))document.getElementById('sidebar').classList.remove('open');});
+  try {
+    // 1. Upload new logo if selected
+    let logoUrl = profile.logoUrl || null
+    if (logoFile) {
+      const logoPath = `logos/${currentUid}/logo_${Date.now()}_${logoFile.name.replace(/\s+/g,'_')}`
+      const uploadTask = uploadBytesResumable(ref(storage, logoPath), logoFile)
+      await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed', null, reject, resolve)
+      })
+      logoUrl = await getDownloadURL(ref(storage, logoPath))
+      logoFile = null
+    } else if (!profile.logoUrl) {
+      logoUrl = null
+    }
+
+    // 2. Collect hiring provinces
+    const hiringProvinces = [...document.querySelectorAll('.prov-item.checked .prov-label')]
+      .map(el => el.textContent)
+
+    // 3. Build update object
+    const updates = {
+      companyName:      document.getElementById('f-name').value.trim(),
+      industry:         document.getElementById('f-industry').value,
+      companySize:      document.getElementById('f-size').value,
+      province:         document.getElementById('f-hq').value.trim(),
+      founded:          document.getElementById('f-founded').value.trim()   || null,
+      website:          document.getElementById('f-website').value.trim()   || null,
+      linkedin:         document.getElementById('f-linkedin').value.trim()  || null,
+      about:            document.getElementById('f-about').value.trim(),
+      appEmail:         document.getElementById('f-app-email').value.trim(),
+      replyName:        document.getElementById('f-reply-name').value.trim()|| null,
+      brandColour,
+      hiringProvinces,
+      logoUrl,
+      updatedAt:        serverTimestamp(),
+    }
+
+    // Also generate slug if not already set
+    if (!profile.slug) {
+      updates.slug = generateSlug(updates.companyName)
+    }
+
+    // 4. Save to Firestore
+    await updateDoc(doc(db, 'employers', currentUid), updates)
+    Object.assign(profile, updates)
+
+    markClean()
+    showToast('Profile saved successfully')
+
+    // Update sidebar
+    document.getElementById('sb-co-name').textContent = updates.companyName
+
+  } catch (err) {
+    showToast('Save failed. Please try again.')
+    btn.disabled = false
+  } finally {
+    btn.textContent = 'Save changes'
+    if (!isDirty) btn.disabled = true
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2800)
+}
+
+// ── Deactivate account ─────────────────────────────────────────
+function openDeactivateModal() {
+  document.getElementById('deactivate-modal').classList.add('open')
+}
+function closeModal(e) {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open')
+}
+async function deactivateAccount() {
+  try {
+    // Delete Firestore employer doc
+    await deleteDoc(doc(db, 'employers', currentUid))
+    // Delete Firebase Auth user
+    await deleteUser(auth.currentUser)
+    showToast('Account deactivated. Redirecting…')
+    setTimeout(() => window.location.href = 'employer-login.html', 2000)
+  } catch (err) {
+    // Firebase requires recent login for deleteUser — prompt re-login if needed
+    if (err.code === 'auth/requires-recent-login') {
+      showToast('Please sign out and sign back in before deactivating.')
+    } else {
+      showToast('Could not deactivate. Please contact support.')
+    }
+  }
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (isDirty) saveProfile() }
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'))
+})
+window.addEventListener('beforeunload', e => { if (isDirty) { e.preventDefault(); e.returnValue = '' } })
+document.addEventListener('click', e => {
+  if (window.innerWidth <= 900 && !e.target.closest('#sidebar') && !e.target.closest('.topbar-mobile-menu'))
+    document.getElementById('sidebar').classList.remove('open')
+})
 </script>
 </body>
 </html>

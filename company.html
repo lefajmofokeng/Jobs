@@ -694,237 +694,106 @@ body {
 
 </div><!-- /page-content -->
 
-<script>
-/* ── COMPANY DATABASE ─────────────────────────────────────────────────────
-   In production this is replaced with: fetch(`/api/companies/${slug}`)
-   For now it mirrors the COMPANIES array from index.html + extra profile fields.
-   ──────────────────────────────────────────────────────────────────────── */
-const COMPANY_DB = {
-  boxer: {
-    name: 'Boxer Superstore',
-    abbr: 'BX',
-    color: '#E53935',
-    industry: 'Retail & Grocery',
-    size: '10,000+ employees',
-    hq: 'Durban, KwaZulu-Natal',
-    founded: '1977',
-    website: 'https://www.boxer.co.za',
-    about: 'Boxer Superstore is one of South Africa\'s leading discount food retailers, with over 400 stores nationwide. We are committed to providing affordable groceries to communities across the country.',
-    logo: 'assets/logos/boxer.png',
-  },
-  clicks: {
-    name: 'Clicks Group',
-    abbr: 'CL',
-    color: '#1565C0',
-    industry: 'Retail & Health',
-    size: '15,000+ employees',
-    hq: 'Cape Town, Western Cape',
-    founded: '1968',
-    website: 'https://www.clicks.co.za',
-    about: 'Clicks Group is a leading health and beauty retailer in southern Africa, operating over 900 stores. We offer pharmacy, beauty, and wellness products to millions of customers.',
-    logo: 'https://logo.clearbit.com/clicks.co.za',
-  },
-  shoprite: {
-    name: 'Shoprite Holdings',
-    abbr: 'SR',
-    color: '#E65100',
-    industry: 'Retail & Grocery',
-    size: '150,000+ employees',
-    hq: 'Cape Town, Western Cape',
-    founded: '1979',
-    website: 'https://www.shoprite.co.za',
-    about: 'Shoprite Holdings is Africa\'s largest food retailer, operating across 30+ countries with thousands of stores under various retail brands including Shoprite, Checkers, and USave.',
-    logo: 'https://logo.clearbit.com/shoprite.co.za',
-  },
-  medicross: {
-    name: 'Medicross Clinics',
-    abbr: 'MC',
-    color: '#0099fa',
-    industry: 'Healthcare',
-    size: '2,000+ employees',
-    hq: 'Johannesburg, Gauteng',
-    founded: '1984',
-    website: 'https://www.medicross.co.za',
-    about: 'Medicross is one of South Africa\'s largest private primary healthcare networks, with medical and dental centres across major urban areas. We provide affordable, accessible healthcare to all.',
-    logo: 'https://logo.clearbit.com/medicross.co.za',
-  },
-  abclogistics: {
-    name: 'ABC Logistics',
-    abbr: 'AL',
-    color: '#5E35B1',
-    industry: 'Logistics & Supply Chain',
-    size: '1,000–5,000 employees',
-    hq: 'Johannesburg, Gauteng',
-    founded: '1995',
-    website: 'https://www.abclogistics.co.za',
-    about: 'ABC Logistics is a leading South African logistics and supply chain company, offering warehousing, distribution, and freight services to clients across all industries.',
-    logo: 'https://logo.clearbit.com/abclogistics.co.za',
-  },
-  spur: {
-    name: 'Spur Corporation',
-    abbr: 'SP',
-    color: '#C62828',
-    industry: 'Hospitality & Restaurants',
-    size: '5,000+ employees',
-    hq: 'Cape Town, Western Cape',
-    founded: '1967',
-    website: 'https://www.spurcorporation.com',
-    about: 'Spur Corporation is one of South Africa\'s most loved family restaurant groups, operating popular brands including Spur Steak Ranches, Panarottis, and John Dory\'s across southern Africa.',
-    logo: 'https://logo.clearbit.com/spur.co.za',
-  },
-  pnp: {
-    name: 'Pick n Pay',
-    abbr: 'PP',
-    color: '#1B5E20',
-    industry: 'Retail & Grocery',
-    size: '50,000+ employees',
-    hq: 'Cape Town, Western Cape',
-    founded: '1967',
-    website: 'https://www.picknpay.co.za',
-    about: 'Pick n Pay is one of South Africa\'s largest supermarket chains, with a strong presence in all nine provinces. We are committed to fresh food, great value, and community upliftment.',
-    logo: 'https://logo.clearbit.com/picknpay.co.za',
-  },
-  dischem: {
-    name: 'Dis-Chem Pharmacies',
-    abbr: 'DC',
-    color: '#1A237E',
-    industry: 'Retail Pharmacy & Health',
-    size: '20,000+ employees',
-    hq: 'Midrand, Gauteng',
-    founded: '1978',
-    website: 'https://www.dischem.co.za',
-    about: 'Dis-Chem Pharmacies is South Africa\'s largest retail pharmacy group, offering pharmaceutical, beauty, health, and wellness products through 300+ stores nationwide.',
-    logo: 'https://logo.clearbit.com/dischem.co.za',
-  },
-};
+<script type="module">
+import { db }                              from './firebase.js'
+import { collection, query, where,
+         orderBy, getDocs, addDoc,
+         serverTimestamp }                 from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-/* ── JOB DATABASE ─────────────────────────────────────────────────────────
-   In production: fetch(`/api/jobs?company=${slug}&status=active`)
-   ──────────────────────────────────────────────────────────────────────── */
-const ALL_JOBS = [
-  { id:1,  slug:'boxer',        title:'Store Manager',              dept:'Management',    type:'full-time', city:'Johannesburg', closes:'2026-04-28', closesTime:'17:00', slots:1, posted:'2026-01-12', desc:'Lead and manage the daily operations of a high-volume Boxer Superstore, ensuring excellent customer service, stock availability, and staff performance.' },
-  { id:2,  slug:'boxer',        title:'Assistant Store Manager',    dept:'Management',    type:'full-time', city:'Pinetown',      closes:'2026-04-27', closesTime:'17:00', slots:1, posted:'2026-02-10', desc:'Support the Store Manager in overseeing store operations, staff scheduling, and maintaining Boxer\'s retail standards across the branch.' },
-  { id:3,  slug:'boxer',        title:'Cashier (x5)',               dept:'Store Ops',     type:'full-time', city:'Pretoria',      closes:'2026-04-25', closesTime:'12:00', slots:5, posted:'2026-01-18', desc:'Process customer transactions accurately and efficiently while providing friendly service at our busy store.' },
-  { id:4,  slug:'boxer',        title:'Shelf Packer (Night Shift)', dept:'Store Ops',     type:'part-time', city:'Johannesburg',  closes:'2026-05-10', closesTime:'08:00', slots:4, posted:'2026-01-28', desc:'Replenish shelves and maintain store displays during overnight hours to ensure products are ready for morning shoppers.' },
-  { id:5,  slug:'boxer',        title:'Customer Service Agent',     dept:'Store Ops',     type:'full-time', city:'Pinetown',      closes:'2026-04-27', closesTime:'17:00', slots:1, posted:'2026-02-10', desc:'Handle customer queries, complaints, and returns at the service desk with professionalism and a positive attitude.' },
-  { id:6,  slug:'boxer',        title:'Warehouse Receiving Clerk',  dept:'Warehouse',     type:'full-time', city:'Pretoria',      closes:'2026-05-01', closesTime:'10:00', slots:2, posted:'2026-02-08', desc:'Receive and verify incoming stock deliveries, capture into the inventory system, and coordinate with the floor team.' },
-  { id:7,  slug:'boxer',        title:'HR Administrator',           dept:'Admin & HR',    type:'full-time', city:'Durban',        closes:'2026-04-30', closesTime:'12:00', slots:1, posted:'2026-02-05', desc:'Support the HR team with recruitment coordination, employee records, onboarding, and payroll administration.' },
-  { id:8,  slug:'medicross',    title:'Registered Nurse (x2)',      dept:'Clinical',      type:'full-time', city:'Durban',        closes:'2026-04-30', closesTime:'16:00', slots:2, posted:'2026-01-15', desc:'Provide quality patient care, conduct clinical assessments, administer medication, and support our doctors in delivering excellent healthcare.' },
-  { id:9,  slug:'medicross',    title:'IT Support Technician',      dept:'IT & Tech',     type:'full-time', city:'Midrand',       closes:'2026-05-14', closesTime:'16:00', slots:1, posted:'2026-02-14', desc:'Maintain and support clinical IT systems across Midrand facilities, ensuring minimal downtime and excellent technical support.' },
-  { id:10, slug:'pnp',          title:'Cashier (x5)',               dept:'Retail',        type:'full-time', city:'Pretoria',      closes:'2026-04-25', closesTime:'12:00', slots:5, posted:'2026-01-18', desc:'Process customer transactions accurately and provide friendly, professional service at our Pretoria store.' },
-  { id:11, slug:'abclogistics', title:'Delivery Driver',            dept:'Logistics',     type:'contract',  city:'Cape Town',     closes:'2026-05-06', closesTime:'09:00', slots:1, posted:'2026-01-20', desc:'Deliver goods safely and on time to clients across the Western Cape. Valid Code 10 licence required.' },
-  { id:12, slug:'abclogistics', title:'Forklift Operator',          dept:'Warehouse',     type:'full-time', city:'Boksburg',      closes:'2026-05-01', closesTime:'10:00', slots:2, posted:'2026-02-08', desc:'Operate counterbalance forklift safely to move and organise stock in our busy Boksburg distribution facility.' },
-  { id:13, slug:'dischem',      title:'Pharmacist Assistant',       dept:'Pharmacy',      type:'full-time', city:'Sandton',       closes:'2026-04-30', closesTime:'15:00', slots:1, posted:'2026-01-22', desc:'Assist the pharmacist in dispensing medication and providing healthcare advice to customers in our Sandton store.' },
-  { id:14, slug:'spur',         title:'Waitron / Floor Staff',      dept:'Hospitality',   type:'part-time', city:'Cape Town',     closes:'2026-04-22', closesTime:'17:00', slots:3, posted:'2026-01-25', desc:'Deliver exceptional dining experiences to our customers in a fast-paced, fun family restaurant environment.' },
-  { id:15, slug:'shoprite',     title:'Shelf Packer (Night Shift)', dept:'Retail',        type:'part-time', city:'Port Elizabeth', closes:'2026-05-10', closesTime:'08:00', slots:4, posted:'2026-01-28', desc:'Ensure shelves are fully stocked and neatly arranged before store opening as part of our replenishment team.' },
-  { id:16, slug:'shoprite',     title:'HR Administrator',           dept:'HR & Admin',    type:'full-time', city:'Johannesburg',  closes:'2026-05-04', closesTime:'12:00', slots:1, posted:'2026-02-05', desc:'Support the HR team with recruitment coordination, onboarding, employee records management, and payroll administration.' },
-  { id:17, slug:'clicks',       title:'Beauty Advisor',             dept:'Retail',        type:'full-time', city:'Umhlanga',      closes:'2026-04-16', closesTime:'16:30', slots:1, posted:'2026-02-01', desc:'Assist customers in selecting beauty and skincare products, driving sales and building lasting customer relationships.' },
-];
+// ── Expose to inline handlers ──────────────────────
+window.submitAlert  = submitAlert
+window.closeDrawer  = closeDrawer
 
-/* ── HELPERS ──────────────────────────────────────── */
+// ── State ──────────────────────────────────────────
+let activeDept     = 'all'
+let activeLocation = 'all'
+let activeType     = 'all'
+let searchQ        = ''
+let companyJobs    = []
+let currentSlug    = ''
+let currentEmployerId = ''
+
+// ── Get slug from subdomain or ?company= param ─────
 function getSlug() {
-  const host = window.location.hostname;
-  if (host.includes('.cronos.co.za')) return host.split('.cronos.co.za')[0].toLowerCase();
-  if (host.includes('.cronos.co')) return host.split('.cronos.co')[0].toLowerCase();
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('company')) return params.get('company').toLowerCase();
-  return 'boxer';
+  const host = window.location.hostname
+  if (host.includes('.cronos.co.za')) return host.split('.cronos.co.za')[0].toLowerCase()
+  if (host.includes('.cronos.co'))    return host.split('.cronos.co')[0].toLowerCase()
+  const params = new URLSearchParams(window.location.search)
+  return params.get('company')?.toLowerCase() || params.get('slug')?.toLowerCase() || null
 }
 
-function isExpired(closes, time) {
-  return new Date(closes + 'T' + (time || '17:00') + ':00') < new Date();
-}
-
-function daysAgoLabel(posted) {
-  const days = Math.floor((new Date() - new Date(posted + 'T00:00:00')) / 86400000);
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7)  return days + ' days ago';
-  if (days < 14) return '1 week ago';
-  return Math.floor(days / 7) + ' weeks ago';
-}
-
-function typeClass(t) {
-  if (t === 'full-time') return 'tag-full';
-  if (t === 'part-time') return 'tag-part';
-  return 'tag-contract';
-}
-function typeLabel(t) {
-  if (t === 'full-time') return 'Full-time';
-  if (t === 'part-time') return 'Part-time';
-  return 'Contract';
-}
-
+// ── Colour helpers ─────────────────────────────────
 function setColor(hex) {
-  document.documentElement.style.setProperty('--brand', hex);
-  const dark = adjustColor(hex, -20);
-  const light = hexToRgba(hex, 0.1);
-  document.documentElement.style.setProperty('--brand-dark', dark);
-  document.documentElement.style.setProperty('--brand-light', light);
+  document.documentElement.style.setProperty('--brand', hex)
+  document.documentElement.style.setProperty('--brand-dark',  adjustColor(hex, -20))
+  document.documentElement.style.setProperty('--brand-light', hexToRgba(hex, 0.1))
 }
-
 function adjustColor(hex, amount) {
-  const num = parseInt(hex.slice(1), 16);
-  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xFF) + amount));
-  const b = Math.min(255, Math.max(0, (num & 0xFF) + amount));
-  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+  const num = parseInt(hex.slice(1), 16)
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount))
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xFF) + amount))
+  const b = Math.min(255, Math.max(0, (num & 0xFF) + amount))
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)
 }
-
 function hexToRgba(hex, alpha) {
-  const num = parseInt(hex.slice(1), 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
+  const num = parseInt(hex.slice(1), 16)
+  return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`
 }
 
-/* ── STATE ────────────────────────────────────────── */
-let activeDept = 'all';
-let activeLocation = 'all';
-let activeType = 'all';
-let searchQ = '';
-let companyJobs = [];
-let currentSlug = '';
+// ── Date helpers ───────────────────────────────────
+function isExpired(closes, time) {
+  if (!closes) return false
+  return new Date(closes + 'T' + (time || '17:00') + ':00') < new Date()
+}
+function daysAgoLabel(val) {
+  if (!val) return ''
+  const d = val?.toDate ? val.toDate() : new Date(val)
+  const days = Math.floor((new Date() - d) / 86400000)
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 7)  return days + ' days ago'
+  if (days < 14) return '1 week ago'
+  return Math.floor(days / 7) + ' weeks ago'
+}
+function typeClass(t) { return t==='full-time'?'tag-full':t==='part-time'?'tag-part':'tag-contract' }
+function typeLabel(t) { return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract' }
 
-/* ── RENDER JOBS ──────────────────────────────────── */
+// ── Filter ─────────────────────────────────────────
 function getFiltered() {
   return companyJobs.filter(j => {
-    if (activeDept !== 'all' && j.dept !== activeDept) return false;
-    if (activeLocation !== 'all' && j.city.toLowerCase() !== activeLocation) return false;
-    if (activeType !== 'all' && j.type !== activeType) return false;
+    if (activeDept !== 'all' && (j.department || j.dept) !== activeDept) return false
+    if (activeLocation !== 'all' && (j.city || '').toLowerCase() !== activeLocation) return false
+    if (activeType !== 'all' && j.type !== activeType) return false
     if (searchQ) {
-      const q = searchQ.toLowerCase();
-      if (!j.title.toLowerCase().includes(q) && !j.desc.toLowerCase().includes(q) && !j.city.toLowerCase().includes(q)) return false;
+      const q = searchQ.toLowerCase()
+      if (!(j.title.toLowerCase().includes(q) || (j.description||'').toLowerCase().includes(q) || (j.city||'').toLowerCase().includes(q))) return false
     }
-    return true;
-  });
+    return true
+  })
 }
 
+// ── Dept tab counts ────────────────────────────────
 function updateDeptTabCounts() {
   const filtered = companyJobs.filter(j => {
-    if (activeLocation !== 'all' && j.city.toLowerCase() !== activeLocation) return false;
-    if (activeType !== 'all' && j.type !== activeType) return false;
-    if (searchQ) {
-      const q = searchQ.toLowerCase();
-      if (!j.title.toLowerCase().includes(q) && !j.desc.toLowerCase().includes(q)) return false;
-    }
-    return true;
-  });
-
+    if (activeLocation !== 'all' && (j.city||'').toLowerCase() !== activeLocation) return false
+    if (activeType !== 'all' && j.type !== activeType) return false
+    if (searchQ) { const q = searchQ.toLowerCase(); if (!(j.title.toLowerCase().includes(q) || (j.description||'').toLowerCase().includes(q))) return false }
+    return true
+  })
   document.querySelectorAll('.dept-tab').forEach(tab => {
-    const d = tab.dataset.dept;
-    const count = d === 'all' ? filtered.length : filtered.filter(j => j.dept === d).length;
-    const badge = tab.querySelector('.dept-tab-count');
-    if (badge) badge.textContent = count;
-    tab.style.display = (d !== 'all' && count === 0) ? 'none' : '';
-  });
+    const d     = tab.dataset.dept
+    const count = d === 'all' ? filtered.length : filtered.filter(j => (j.department||j.dept) === d).length
+    const badge = tab.querySelector('.dept-tab-count')
+    if (badge) badge.textContent = count
+    tab.style.display = (d !== 'all' && count === 0) ? 'none' : ''
+  })
 }
 
+// ── Render jobs ────────────────────────────────────
 function renderJobs() {
-  const list = getFiltered();
-  const el = document.getElementById('jobs-list');
-  updateDeptTabCounts();
+  const list = getFiltered()
+  const el   = document.getElementById('jobs-list')
+  updateDeptTabCounts()
 
   if (!list.length) {
     el.innerHTML = `
@@ -932,206 +801,228 @@ function renderJobs() {
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
         <strong>No positions match your filters</strong>
         Try adjusting your search or clearing some filters.
-      </div>`;
-    return;
+      </div>`
+    return
   }
 
   el.innerHTML = list.map((j, i) => `
-    <a class="job-card" href="https://${currentSlug}.cronos.co.za/job/${j.id}" style="animation-delay:${Math.min(i,6)*0.05}s">
+    <a class="job-card" href="job-detail.html?id=${j.id}" style="animation-delay:${Math.min(i,6)*0.05}s">
       <div class="job-card-left">
         <div class="job-card-title">${j.title}</div>
         <div class="job-card-tags">
           <span class="tag tag-location">
             <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>
-            ${j.city}
+            ${j.city || ''}
           </span>
           <span class="tag ${typeClass(j.type)}">${typeLabel(j.type)}</span>
-          <span class="tag tag-dept">${j.dept}</span>
-          ${j.slots > 1 ? `<span class="tag" style="background:var(--accent-light);color:var(--accent);border-color:#bfdbfe">${j.slots} openings</span>` : ''}
+          <span class="tag tag-dept">${j.department || j.dept || ''}</span>
+          ${(j.slots||1) > 1 ? `<span class="tag" style="background:var(--accent-light);color:var(--accent);border-color:#bfdbfe">${j.slots} openings</span>` : ''}
         </div>
-        <div class="job-card-desc">${j.desc}</div>
+        <div class="job-card-desc">${j.description || ''}</div>
       </div>
       <div class="job-card-right">
-        <span class="job-time">${daysAgoLabel(j.posted)}</span>
+        <span class="job-time">${daysAgoLabel(j.createdAt)}</span>
         <span class="job-apply">Apply now</span>
       </div>
-    </a>
-  `).join('');
+    </a>`).join('')
 }
 
-/* ── BOOT ─────────────────────────────────────────── */
-function boot() {
-  const slug = getSlug();
-  currentSlug = slug;
-  const co = COMPANY_DB[slug];
+// ── Boot: load company + jobs from Firestore ───────
+async function boot() {
+  const slug = getSlug()
+  currentSlug = slug || ''
 
-  if (!co) {
-    document.getElementById('skeleton').style.display = 'none';
-    document.getElementById('not-found').style.display = 'block';
-    return;
+  if (!slug) {
+    document.getElementById('skeleton').style.display  = 'none'
+    document.getElementById('not-found').style.display = 'block'
+    return
   }
 
-  // Get this company's active jobs only
-  companyJobs = ALL_JOBS.filter(j => j.slug === slug && !isExpired(j.closes, j.closesTime));
+  try {
+    // 1. Find employer by slug
+    const empSnap = await getDocs(
+      query(collection(db, 'employers'),
+        where('slug', '==', slug),
+        where('verified', '==', true))
+    )
 
-  // Apply brand colour
-  setColor(co.color);
+    if (empSnap.empty) {
+      document.getElementById('skeleton').style.display  = 'none'
+      document.getElementById('not-found').style.display = 'block'
+      return
+    }
 
-  // Dynamic <title> + OG
-  const title = co.name + ' — Jobs & Careers | Cronos';
-  document.title = title;
-  document.getElementById('og-title').setAttribute('content', co.name + ' is hiring on Cronos Jobs');
-  document.getElementById('og-desc').setAttribute('content', `${companyJobs.length} open position${companyJobs.length !== 1 ? 's' : ''} at ${co.name}. Apply free on Cronos Jobs.`);
+    const co = { id: empSnap.docs[0].id, ...empSnap.docs[0].data() }
+    currentEmployerId = co.id
+    const color = co.brandColour || '#0099fa'
+    const abbr  = (co.companyName || 'CO').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
-  // Nav
-  document.getElementById('nav-company-name').textContent = co.name + ' — Careers';
-  document.getElementById('nav-logo-abbr').textContent = co.abbr;
-  const navLogoWrap = document.getElementById('nav-logo-wrap');
-  navLogoWrap.style.background = co.color;
-  if (co.logo) {
-    navLogoWrap.innerHTML = `<img src="${co.logo}" alt="${co.name}" onerror="this.outerHTML='<span>${co.abbr}</span>'">`;
+    // 2. Load live jobs for this employer
+    const jobsSnap = await getDocs(
+      query(collection(db, 'jobs'),
+        where('employerId', '==', co.id),
+        where('status', '==', 'live'),
+        orderBy('createdAt', 'desc'))
+    )
+    companyJobs = jobsSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(j => !isExpired(j.closes, j.closesTime))
+
+    // 3. Apply brand colour
+    setColor(color)
+
+    // 4. Page meta
+    const jobCount = companyJobs.length
+    document.title = `${co.companyName} — Jobs & Careers | Cronos`
+    document.getElementById('og-title')?.setAttribute('content', `${co.companyName} is hiring on Cronos Jobs`)
+    document.getElementById('og-desc')?.setAttribute('content',  `${jobCount} open position${jobCount !== 1 ? 's' : ''} at ${co.companyName}. Apply free on Cronos Jobs.`)
+
+    // 5. Nav
+    document.getElementById('nav-company-name').textContent = co.companyName + ' — Careers'
+    const navLogoWrap = document.getElementById('nav-logo-wrap')
+    navLogoWrap.style.background = color
+    if (co.logoUrl) {
+      navLogoWrap.innerHTML = `<img src="${co.logoUrl}" alt="${co.companyName}" onerror="this.outerHTML='<span>${abbr}</span>'">`
+    } else {
+      document.getElementById('nav-logo-abbr').textContent = abbr
+    }
+
+    // 6. Hero
+    document.getElementById('hero-cover').style.background = color
+    document.getElementById('hero-logo').style.background  = color
+    if (co.logoUrl) {
+      document.getElementById('hero-logo').innerHTML = `<img src="${co.logoUrl}" alt="${co.companyName}" onerror="this.outerHTML='<span style=\\'font-size:22px;font-weight:700;color:#fff;\\'>${abbr}</span>'">`
+    } else {
+      document.getElementById('hero-logo-abbr').textContent = abbr
+    }
+    document.getElementById('hero-company-name').textContent = co.companyName
+    document.getElementById('meta-hq').textContent           = co.province || co.city || '—'
+    document.getElementById('meta-industry-text').textContent= co.industry     || '—'
+    document.getElementById('meta-size-text').textContent    = co.companySize  || '—'
+
+    // 7. Hiring badge
+    if (jobCount === 0) {
+      document.getElementById('hiring-badge').classList.add('inactive')
+      document.getElementById('badge-text').textContent = 'Not currently hiring'
+    }
+
+    // 8. Stats
+    const cities = [...new Set(companyJobs.map(j => j.city).filter(Boolean))]
+    const depts  = [...new Set(companyJobs.map(j => j.department || j.dept).filter(Boolean))]
+    document.getElementById('stat-openings').textContent = jobCount
+    document.getElementById('stat-branches').textContent = cities.length || '—'
+    document.getElementById('stat-depts').textContent    = depts.length  || '—'
+
+    // 9. Sidebar
+    document.getElementById('sidebar-about').textContent = co.about || ''
+    const websiteEl = document.getElementById('sidebar-website')
+    if (co.website) {
+      websiteEl.href        = co.website
+      websiteEl.textContent = 'Visit ' + co.website.replace('https://www.','').replace('https://','') + ' →'
+    } else {
+      websiteEl.style.display = 'none'
+    }
+    document.getElementById('info-industry').textContent = co.industry    || '—'
+    document.getElementById('info-size').textContent     = co.companySize || '—'
+    document.getElementById('info-hq').textContent       = co.province    || '—'
+    if (co.founded) {
+      document.getElementById('info-founded').textContent = co.founded
+    } else {
+      document.getElementById('info-founded-wrap') && (document.getElementById('info-founded-wrap').style.display = 'none')
+    }
+
+    // 10. Alert descriptions
+    const alertDesc = `Be the first to know when ${co.companyName} posts new vacancies.`
+    document.getElementById('sidebar-alert-desc').textContent = alertDesc
+    document.getElementById('mobile-alert-desc').textContent  = alertDesc
+
+    // 11. Footer
+    document.getElementById('footer-text').innerHTML = `${co.companyName} &copy; ${new Date().getFullYear()} &middot; Hiring powered by <strong>Cronos Jobs</strong>`
+
+    // 12. Location dropdown
+    const locSelect = document.getElementById('location-select')
+    cities.sort().forEach(city => {
+      const opt = document.createElement('option')
+      opt.value = city.toLowerCase(); opt.textContent = city
+      locSelect.appendChild(opt)
+    })
+
+    // 13. Dept tabs
+    buildDeptTabs(depts)
+
+    // 14. Render jobs & show page
+    renderJobs()
+    document.getElementById('skeleton').style.display      = 'none'
+    document.getElementById('page-content').style.display  = 'block'
+
+  } catch (err) {
+    console.error('Error loading company page:', err)
+    document.getElementById('skeleton').style.display  = 'none'
+    document.getElementById('not-found').style.display = 'block'
   }
-
-  // Hero
-  document.getElementById('hero-cover').style.background = co.color;
-  document.getElementById('hero-logo-abbr').textContent = co.abbr;
-  document.getElementById('hero-logo').style.background = co.color;
-  if (co.logo) {
-    document.getElementById('hero-logo').innerHTML = `<img src="${co.logo}" alt="${co.name}" onerror="this.outerHTML='<span style=\\'font-size:22px;font-weight:700;color:#fff;\\'>${co.abbr}</span>'">`;
-  }
-  document.getElementById('hero-company-name').textContent = co.name;
-  document.getElementById('meta-hq').textContent = co.hq;
-  document.getElementById('meta-industry-text').textContent = co.industry;
-  document.getElementById('meta-size-text').textContent = co.size;
-
-  // Hiring badge
-  if (companyJobs.length === 0) {
-    document.getElementById('hiring-badge').classList.add('inactive');
-    document.getElementById('badge-text').textContent = 'Not currently hiring';
-  }
-
-  // Stats
-  const cities = [...new Set(companyJobs.map(j => j.city))];
-  const depts  = [...new Set(companyJobs.map(j => j.dept))];
-  document.getElementById('stat-openings').textContent = companyJobs.length;
-  document.getElementById('stat-branches').textContent = cities.length || '—';
-  document.getElementById('stat-depts').textContent    = depts.length  || '—';
-
-  // Sidebar
-  document.getElementById('sidebar-about').textContent = co.about;
-  const websiteEl = document.getElementById('sidebar-website');
-  if (co.website) {
-    websiteEl.href = co.website;
-    websiteEl.textContent = 'Visit ' + co.website.replace('https://www.', '').replace('https://', '') + ' →';
-  } else {
-    websiteEl.style.display = 'none';
-  }
-  document.getElementById('info-industry').textContent = co.industry;
-  document.getElementById('info-size').textContent     = co.size;
-  document.getElementById('info-hq').textContent       = co.hq;
-  if (co.founded) {
-    document.getElementById('info-founded').textContent = co.founded;
-  } else {
-    document.getElementById('info-founded-wrap').style.display = 'none';
-  }
-
-  // Alert descriptions
-  const alertDesc = `Be the first to know when ${co.name} posts new vacancies.`;
-  document.getElementById('sidebar-alert-desc').textContent = alertDesc;
-  document.getElementById('mobile-alert-desc').textContent  = alertDesc;
-
-  // Footer
-  document.getElementById('footer-text').innerHTML = `${co.name} &copy; ${new Date().getFullYear()} &middot; Hiring powered by <strong>Cronos Jobs</strong>`;
-
-  // Location select
-  const locSelect = document.getElementById('location-select');
-  cities.sort().forEach(city => {
-    const opt = document.createElement('option');
-    opt.value = city.toLowerCase();
-    opt.textContent = city;
-    locSelect.appendChild(opt);
-  });
-
-  // Dept tabs
-  buildDeptTabs(depts);
-
-  // Render jobs
-  renderJobs();
-
-  // Show page
-  document.getElementById('skeleton').style.display = 'none';
-  document.getElementById('page-content').style.display = 'block';
 }
 
-/* ── DEPT TABS ────────────────────────────────────── */
+// ── Dept tabs ──────────────────────────────────────
 function buildDeptTabs(depts) {
-  const container = document.getElementById('dept-tabs');
-  const allCount = companyJobs.length;
-
-  let html = `<button class="dept-tab active" data-dept="all">All <span class="dept-tab-count">${allCount}</span></button>`;
+  const container = document.getElementById('dept-tabs')
+  let html = `<button class="dept-tab active" data-dept="all">All <span class="dept-tab-count">${companyJobs.length}</span></button>`
   depts.sort().forEach(dept => {
-    const count = companyJobs.filter(j => j.dept === dept).length;
-    html += `<button class="dept-tab" data-dept="${dept}">${dept} <span class="dept-tab-count">${count}</span></button>`;
-  });
-  container.innerHTML = html;
-
+    const count = companyJobs.filter(j => (j.department||j.dept) === dept).length
+    html += `<button class="dept-tab" data-dept="${dept}">${dept} <span class="dept-tab-count">${count}</span></button>`
+  })
+  container.innerHTML = html
   container.addEventListener('click', e => {
-    const tab = e.target.closest('.dept-tab');
-    if (!tab) return;
-    container.querySelectorAll('.dept-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeDept = tab.dataset.dept;
-    renderJobs();
-  });
+    const tab = e.target.closest('.dept-tab'); if (!tab) return
+    container.querySelectorAll('.dept-tab').forEach(t => t.classList.remove('active'))
+    tab.classList.add('active')
+    activeDept = tab.dataset.dept
+    renderJobs()
+  })
 }
 
-/* ── FILTER LISTENERS ─────────────────────────────── */
-document.getElementById('location-select').addEventListener('change', e => {
-  activeLocation = e.target.value; renderJobs();
-});
-document.getElementById('type-select').addEventListener('change', e => {
-  activeType = e.target.value; renderJobs();
-});
-let searchTimer;
+// ── Filter listeners ───────────────────────────────
+document.getElementById('location-select').addEventListener('change', e => { activeLocation = e.target.value; renderJobs() })
+document.getElementById('type-select').addEventListener('change',     e => { activeType     = e.target.value; renderJobs() })
+let searchTimer
 document.getElementById('search-input').addEventListener('input', e => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { searchQ = e.target.value; renderJobs(); }, 220);
-});
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => { searchQ = e.target.value; renderJobs() }, 220)
+})
 
-/* ── ALERT SUBMIT ─────────────────────────────────── */
-function submitAlert(source) {
-  const emailEl = document.getElementById(source + '-alert-email');
-  const email = emailEl.value.trim();
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!re.test(email)) {
-    emailEl.style.borderColor = '#ef4444';
-    emailEl.focus();
-    setTimeout(() => emailEl.style.borderColor = '', 2000);
-    return;
+// ── Job alert: save email to Firestore ─────────────
+async function submitAlert(source) {
+  const emailEl = document.getElementById(source + '-alert-email')
+  const email   = emailEl.value.trim()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    emailEl.style.borderColor = '#ef4444'; emailEl.focus()
+    setTimeout(() => emailEl.style.borderColor = '', 2000)
+    return
   }
-  /* In production: POST /api/alerts { email, company: currentSlug } */
-  console.log('Alert subscription:', { email, company: currentSlug });
-  document.getElementById(source + '-alert-form').style.display = 'none';
-  document.getElementById(source + '-alert-success').classList.add('show');
+  try {
+    await addDoc(collection(db, 'jobAlerts'), {
+      email,
+      employerId:   currentEmployerId,
+      companySlug:  currentSlug,
+      companyName:  document.getElementById('hero-company-name')?.textContent || '',
+      createdAt:    serverTimestamp(),
+    })
+  } catch (err) {
+    console.error('Alert save failed:', err)
+    // Still show success to user — don't block on error
+  }
+  document.getElementById(source + '-alert-form').style.display = 'none'
+  document.getElementById(source + '-alert-success').classList.add('show')
 }
 
-/* ── HAMBURGER ────────────────────────────────────── */
-const hamburger = document.getElementById('nav-hamburger');
-const drawer    = document.getElementById('mobile-drawer');
-hamburger.addEventListener('click', () => {
-  const open = drawer.classList.toggle('open');
-  hamburger.classList.toggle('open', open);
-});
-function closeDrawer() {
-  drawer.classList.remove('open');
-  hamburger.classList.remove('open');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.nav') && !e.target.closest('.mobile-drawer')) closeDrawer();
-});
+// ── Hamburger ──────────────────────────────────────
+const hamburger = document.getElementById('nav-hamburger')
+const drawer    = document.getElementById('mobile-drawer')
+hamburger.addEventListener('click', () => { const open = drawer.classList.toggle('open'); hamburger.classList.toggle('open', open) })
+function closeDrawer() { drawer.classList.remove('open'); hamburger.classList.remove('open') }
+document.addEventListener('click', e => { if (!e.target.closest('.nav') && !e.target.closest('.mobile-drawer')) closeDrawer() })
 
-/* ── GO ───────────────────────────────────────────── */
-boot();
+// ── Go ─────────────────────────────────────────────
+boot()
 </script>
 </body>
 </html>

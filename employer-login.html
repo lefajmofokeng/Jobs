@@ -246,14 +246,40 @@ label.field-label{font-size:13px;font-weight:600;color:var(--text-primary);}
   </div>
 </div>
 
-<script>
-function handleLogin(e) {
-  e.preventDefault();
-  let ok = true;
-  const email = document.getElementById('email').value.trim();
-  const pass = document.getElementById('password').value;
-  document.getElementById('login-error').classList.remove('show');
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+<script type="module">
+import { auth, db, getEmployerProfile }             from './firebase.js';
+import { signInWithEmailAndPassword,
+         sendPasswordResetEmail,
+         onAuthStateChanged }                        from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
+// ── If already logged in, skip straight to dashboard ──────────────────────
+onAuthStateChanged(auth, (user) => {
+  if (user) window.location.href = 'employer-dashboard.html';
+});
+
+// ── Expose functions to inline handlers ───────────────────────────────────
+window.handleLogin           = handleLogin;
+window.togglePw              = togglePw;
+window.openForgot            = openForgot;
+window.closeForgot           = closeForgot;
+window.closeForgotOnOverlay  = closeForgotOnOverlay;
+window.sendReset             = sendReset;
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeForgot(); });
+
+// ── Login ──────────────────────────────────────────────────────────────────
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('password').value;
+
+  // Clear previous errors
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('sub-notice').style.display = 'none';
+
+  // Client-side validation
+  let ok = true;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     document.getElementById('err-email').classList.add('show');
     document.getElementById('email').classList.add('error');
@@ -272,45 +298,93 @@ function handleLogin(e) {
   }
   if (!ok) return;
 
+  // Loading state
   const btn = document.getElementById('login-btn');
   btn.disabled = true;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>Signing in…';
 
-  /* In production: POST /api/auth/login then redirect to employer-dashboard.html
-     Handles three states: success, wrong credentials, subscription inactive */
-  setTimeout(() => {
+  try {
+    // 1. Sign in with Firebase Auth
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+
+    // 2. Fetch employer profile from Firestore
+    const profile = await getEmployerProfile(cred.user.uid);
+
+    // 3. Check subscription status — show notice if inactive
+    if (profile && profile.planStatus === 'inactive' && profile.verified) {
+      btn.disabled = false;
+      btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      document.getElementById('sub-notice').style.display = 'flex';
+      return;
+    }
+
+    // 4. All good — go to dashboard
+    window.location.href = 'employer-dashboard.html';
+
+  } catch (err) {
     btn.disabled = false;
     btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    // Demo: show subscription notice
-    const subNotice = document.getElementById('sub-notice');
-    subNotice.style.display = 'flex';
-    /* On real success: window.location.href = 'employer-dashboard.html'; */
-    /* On subscription lapsed: show the sub-notice above */
-    /* On wrong credentials: document.getElementById('login-error').classList.add('show'); */
-  }, 1200);
+
+    const messages = {
+      'auth/invalid-credential':     'Incorrect email or password. Please try again.',
+      'auth/user-not-found':         'No account found with this email address.',
+      'auth/wrong-password':         'Incorrect password. Please try again.',
+      'auth/too-many-requests':      'Too many failed attempts. Please wait a moment before trying again.',
+      'auth/user-disabled':          'This account has been disabled. Please contact support.',
+      'auth/network-request-failed': 'Network error — please check your connection and try again.',
+    };
+    const errEl = document.getElementById('login-error');
+    errEl.querySelector('span') 
+      ? errEl.querySelector('span').textContent = messages[err.code] || 'Something went wrong. Please try again.'
+      : errEl.textContent = messages[err.code] || 'Something went wrong. Please try again.';
+    errEl.classList.add('show');
+  }
 }
 
+// ── Password visibility toggle ─────────────────────────────────────────────
 function togglePw() {
   const input = document.getElementById('password');
   input.type = input.type === 'password' ? 'text' : 'password';
 }
 
-function openForgot(e) { e.preventDefault(); document.getElementById('forgot-modal').classList.add('open'); }
-function closeForgot() { document.getElementById('forgot-modal').classList.remove('open'); }
-function closeForgotOnOverlay(e) { if (e.target === document.getElementById('forgot-modal')) closeForgot(); }
-function sendReset() {
+// ── Forgot password modal ──────────────────────────────────────────────────
+function openForgot(e) {
+  e.preventDefault();
+  document.getElementById('forgot-modal').classList.add('open');
+}
+function closeForgot() {
+  document.getElementById('forgot-modal').classList.remove('open');
+  // Reset modal state
+  document.getElementById('forgot-form-section').style.display = 'block';
+  document.getElementById('forgot-sent').classList.remove('show');
+  document.getElementById('reset-email').value = '';
+  document.getElementById('err-reset-email').classList.remove('show');
+  document.getElementById('reset-email').classList.remove('error');
+}
+function closeForgotOnOverlay(e) {
+  if (e.target === document.getElementById('forgot-modal')) closeForgot();
+}
+
+async function sendReset() {
   const email = document.getElementById('reset-email').value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     document.getElementById('err-reset-email').classList.add('show');
     document.getElementById('reset-email').classList.add('error');
     return;
   }
-  /* POST /api/auth/reset { email } */
+  document.getElementById('err-reset-email').classList.remove('show');
+  document.getElementById('reset-email').classList.remove('error');
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (err) {
+    // Silently succeed even if email not found — security best practice
+  }
+
+  // Always show success (don't reveal whether email exists)
   document.getElementById('forgot-form-section').style.display = 'none';
   document.getElementById('forgot-sent').classList.add('show');
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeForgot(); });
 </script>
-<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 </body>
 </html>

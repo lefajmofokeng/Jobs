@@ -811,6 +811,8 @@ window.openEmployer         = openEmployer
 window.openInvite           = openInvite
 window.sendInvite           = sendInvite
 window.rejectInvite         = rejectInvite
+window.forceApproveStatus   = forceApproveStatus
+window.forceSetStatus       = forceSetStatus
 window.doApprove            = doApprove
 window.doReject             = doReject
 window.doSetPlan            = doSetPlan
@@ -836,9 +838,11 @@ onAuthStateChanged(auth, user => {
     document.getElementById('admin-email-display').textContent = user.email
     loadAll()
   } else {
+    // Show login gate only — never sign out passively
+    // Passive signOut kills employer sessions on other tabs
+    // (Firebase Auth is shared across all browser tabs)
     document.getElementById('login-gate').style.display = 'flex'
     document.getElementById('app').style.display = 'none'
-    if (user) signOut(auth)
   }
 })
 
@@ -850,6 +854,7 @@ async function adminLogin() {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass)
     if (cred.user.email !== ADMIN_EMAIL) {
+      // Sign out this wrong account — they tried to log into admin
       await signOut(auth)
       errEl.textContent = 'Access denied. This account is not authorised.'
       errEl.classList.add('show')
@@ -915,10 +920,18 @@ async function loadJobs() {
     }
     const snap = await getDocs(q)
     ALL_JOBS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    console.log('Loaded jobs:', ALL_JOBS.length, 'filter:', statusFilter)
   } catch (err) {
-    const snap = await getDocs(collection(db, 'jobs'))
-    ALL_JOBS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .filter(j => statusFilter === 'all' || j.status === statusFilter)
+    console.warn('Jobs ordered query failed, trying fallback:', err.message)
+    try {
+      const snap = await getDocs(collection(db, 'jobs'))
+      ALL_JOBS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .filter(j => statusFilter === 'all' || j.status === statusFilter)
+      console.log('Fallback loaded jobs:', ALL_JOBS.length)
+    } catch (e) {
+      console.error('Could not load jobs:', e)
+      ALL_JOBS = []
+    }
   }
   renderJobs()
   updateTopStats()
@@ -1290,6 +1303,40 @@ async function sendInvite(id) {
   }
 }
 
+// ── Force fix account status (for corrupted accounts) ────────────────────
+async function forceApproveStatus(uid) {
+  try {
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    await updateDoc(doc(db, 'employers', uid), {
+      verificationStatus: 'approved',
+      verified:           true,
+      updatedAt:          serverTimestamp(),
+    })
+    if (emp) { emp.verificationStatus = 'approved'; emp.verified = true }
+    toast('✓ Account status set to APPROVED', 'success')
+    closeDrawer()
+    renderAllEmployers(); renderApproved(); renderPending(); updateTopStats()
+  } catch (err) {
+    toast('Failed: ' + err.message, 'error')
+  }
+}
+async function forceSetStatus(uid, status) {
+  if (!confirm('Set verificationStatus to "' + status + '" for this account?')) return
+  try {
+    await updateDoc(doc(db, 'employers', uid), {
+      verificationStatus: status,
+      updatedAt:          serverTimestamp(),
+    })
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    if (emp) emp.verificationStatus = status
+    toast('Status set to: ' + status, 'success')
+    closeDrawer()
+    renderAllEmployers(); renderApproved(); renderPending(); updateTopStats()
+  } catch (err) {
+    toast('Failed: ' + err.message, 'error')
+  }
+}
+
 // ── Reject invite ─────────────────────────────────────────────────────────
 async function rejectInvite(id) {
   const reason = document.getElementById('inv-reject-reason')?.value.trim() || ''
@@ -1421,6 +1468,16 @@ function openEmployer(uid, tab) {
         <button class="btn btn-danger" onclick="doReject('${esc(uid)}')">Reject</button>
       </div>
     </div>` : ''}
+
+    <div class="drawer-section">
+      <div class="drawer-section-title" style="color:var(--amber)">▸ Fix / Reset Account Status</div>
+      <p style="font-size:11px;color:var(--text-2);margin-bottom:10px;">Use this if an employer's verificationStatus got corrupted or reset incorrectly after approval.</p>
+      <div class="form-actions" style="gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-approve" onclick="forceApproveStatus('${esc(e.uid)}')">Force Set: Approved</button>
+        <button class="btn btn-ghost"   onclick="forceSetStatus('${esc(e.uid)}','submitted')">Set: Submitted</button>
+        <button class="btn btn-ghost"   onclick="forceSetStatus('${esc(e.uid)}','pending')">Set: Pending</button>
+      </div>
+    </div>
 
     ${e.verificationStatus === 'approved' ? `
     <div class="drawer-section">

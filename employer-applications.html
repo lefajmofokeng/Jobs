@@ -749,9 +749,12 @@ if (profile) {
   const verifiedBadge = document.getElementById('sb-co-verified')
   if (verifiedBadge) verifiedBadge.style.display = profile.verified ? 'inline-flex' : 'none'
 
-  // Verification gate — must be approved to access
+  // Gate: use planStatus as primary — prevents lockout if verificationStatus reset
   const vStatus = profile.verificationStatus || 'pending'
-  if (vStatus !== 'approved') {
+  const pStatus = profile.planStatus || 'inactive'
+  const hasActivePlan = pStatus === 'active' || pStatus === 'expiring'
+
+  if (!hasActivePlan && vStatus !== 'approved') {
     showAccessBlock(
       vStatus === 'submitted' ? 'Verification under review' : 'Access restricted',
       vStatus === 'submitted'
@@ -760,7 +763,7 @@ if (profile) {
       vStatus === 'pending' ? 'Complete verification' : null,
       vStatus === 'pending' ? 'verify.html' : null
     )
-    throw new Error('access_blocked')
+    return  // Don't throw — clean exit prevents login redirect
   }
 }
 

@@ -289,7 +289,7 @@ body {
 .btn-load-more:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ── RIGHT PANEL ──────────────────────────────────── */
-.job-detail-panel { display: none !important; /* panel replaced by job-detail.html */
+.job-detail-panel { display: block;
   background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-lg);
   overflow: hidden; position: sticky; top: calc(var(--nav-height) + 16px);
   max-height: calc(100vh - var(--nav-height) - 32px);
@@ -599,7 +599,8 @@ body {
   .jobs-panels { grid-template-columns: 1fr; }
   .jobs-list-outer { position: static; max-height: none; }
   .jobs-list-scroll { overflow-y: visible; max-height: none; }
-  .job-detail-panel { display: none !important; /* panel replaced by job-detail.html */ position: static; max-height: none; overflow-y: visible; }
+  .job-detail-panel { display: none; position: static; max-height: none; overflow-y: visible; }
+  .job-detail-panel.has-content { display: block; }
   .job-list-card.active::after { display: none; }
   .jobs-section-wrap { padding: 24px 16px 60px; }
   .filter-dropdowns { gap: 10px; }
@@ -781,8 +782,7 @@ body {
       </button>
       <div class="filter-dropdown-list" id="fdl-company">
         <div class="filter-option selected" data-filter="company" data-value="all" onclick="selectFilter('company','all','All Companies')"><span class="filter-option-dot"></span>All Companies</div>
-        <div class="filter-option" data-filter="company" data-value="boxer" onclick="selectFilter('company','boxer','Boxer Superstore')"><span class="filter-option-dot"></span>Boxer Superstore</div>
-        <div class="filter-option" data-filter="company" data-value="clicks" onclick="selectFilter('company','clicks','Clicks Group')"><span class="filter-option-dot"></span>Clicks Group</div>
+                <div class="filter-option" data-filter="company" data-value="clicks" onclick="selectFilter('company','clicks','Clicks Group')"><span class="filter-option-dot"></span>Clicks Group</div>
         <div class="filter-option" data-filter="company" data-value="shoprite" onclick="selectFilter('company','shoprite','Shoprite Holdings')"><span class="filter-option-dot"></span>Shoprite Holdings</div>
         <div class="filter-option" data-filter="company" data-value="medicross" onclick="selectFilter('company','medicross','Medicross Clinics')"><span class="filter-option-dot"></span>Medicross Clinics</div>
         <div class="filter-option" data-filter="company" data-value="abclogistics" onclick="selectFilter('company','abclogistics','ABC Logistics')"><span class="filter-option-dot"></span>ABC Logistics</div>
@@ -1244,7 +1244,7 @@ function renderJobList() {
     var urgClass= days<=5 ? 'jlc-closing-soon' : ''
     var urgText = days===0?'Closes today':days===1?'1 day left':days<=5?(days+' days left'):null
     var postedDate = j.createdAt ? fmtTimestamp(j.createdAt) : '—'
-    return '<div class="job-list-card'+(isActive?' active':'')+'" onclick="selectJob(\''+j.id+'\')" style="cursor:pointer;">'+
+    return '<div class="job-list-card'+(isActive?' active':'')+'" data-jobid="'+j.id+'" onclick="selectJob(\''+j.id+'\')" style="cursor:pointer;">'+
       (isSaved?'<span class="saved-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2H5z"/></svg> Saved</span>':'')+
       '<div class="jlc-top">'+
         '<div class="jlc-logo">'+logoHtml(j,40)+'</div>'+
@@ -1319,11 +1319,12 @@ function selectJob(id) {
       (reqList ?'<div class="jd-section"><div class="jd-section-title">Requirements</div><ul class="jd-list">'+reqList+'</ul></div>':'')+
     '</div>'
 
-  // Only re-render list to update active state — don't call selectJob again
-  var panel = document.getElementById('jobs-list-panel')
-  panel.querySelectorAll('.job-list-card').forEach(function(card) {
-    card.classList.toggle('active', card.getAttribute('onclick') && card.getAttribute('onclick').includes("'" + id + "'"))
+  // Update active card highlight without re-rendering everything
+  document.querySelectorAll('.job-list-card').forEach(function(card) {
+    card.classList.toggle('active', card.dataset.jobid === id)
   })
+  // Show right panel on mobile
+  document.getElementById('job-detail-panel').classList.add('has-content')
   if (window.innerWidth <= 860) document.getElementById('job-detail-panel').scrollIntoView({behavior:'smooth',block:'start'})
 }
 

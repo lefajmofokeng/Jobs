@@ -925,6 +925,20 @@ select {
 
 </div>
 
+<script>
+// ── Plain script — toggleAgree must be here to avoid double-fire ──────────
+// label wraps a hidden checkbox — onclick on label fires PLUS browser toggles
+// the checkbox, which cancels out. Fix: read actual checked state after settle.
+function toggleAgree(id) {
+  setTimeout(function() {
+    var el    = document.getElementById(id);
+    var input = el ? el.querySelector('input[type="checkbox"]') : null;
+    if (!el || !input) return;
+    el.classList.toggle('checked', input.checked);
+  }, 0);
+}
+</script>
+
 <script type="module">
 import { db, storage }                    from './firebase.js'
 import { doc, getDoc, addDoc, getDocs,
@@ -938,7 +952,6 @@ window.goStep2             = goStep2
 window.goStep3             = goStep3
 window.goStep2from3        = () => setStep(2)
 window.buildReview         = buildReview
-window.toggleAgree         = toggleAgree
 window.submitApp           = submitApp
 window.updateCount         = updateCount
 window.cvDragOver          = cvDragOver
@@ -1136,11 +1149,7 @@ function buildReview() {
     </div>`).join('')
 }
 
-function toggleAgree(id) {
-  const el = document.getElementById(id)
-  el.classList.toggle('checked')
-  el.querySelector('input').checked = el.classList.contains('checked')
-}
+// toggleAgree handled in plain script above
 
 // ── Submit ─────────────────────────────────────────────────────────────────
 async function submitApp() {

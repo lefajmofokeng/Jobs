@@ -205,7 +205,7 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
     <a href="employer-dashboard.html"><img src="logo.png" alt="Cronos Jobs"/><div class="sidebar-logo-sep"></div><span class="sidebar-logo-label">Employer Portal</span></a>
   </div>
   <div class="sidebar-company">
-    <div class="sidebar-co-name" id="sb-co-name">Boxer Superstore</div>
+    <div class="sidebar-co-name" id="sb-co-name">Your Company</div>
     <div class="sidebar-co-verified"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 1l5 2V8c0 3.5-2.5 5.5-5 6.5C5.5 13.5 3 11.5 3 8V3L8 1z" fill="rgba(0,153,250,0.2)" stroke="var(--accent)" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified employer</div>
   </div>
   <nav class="sidebar-nav">
@@ -276,7 +276,7 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
 
             <div class="form-group col-span-2">
               <label class="lbl" for="f-name">Registered company name<span class="lbl-req">*</span></label>
-              <input class="field" type="text" id="f-name" value="Boxer Superstore" oninput="markDirty();updatePreview()">
+              <input class="field" type="text" id="f-name" value="" oninput="markDirty();updatePreview()">
             </div>
 
             <div class="form-group">
@@ -311,7 +311,7 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
 
             <div class="form-group">
               <label class="lbl" for="f-website">Company website<span class="lbl-opt">Optional</span></label>
-              <input class="field" type="url" id="f-website" value="https://www.boxer.co.za" placeholder="https://www.yourcompany.co.za" oninput="markDirty()">
+              <input class="field" type="url" id="f-website" value="" placeholder="https://www.yourcompany.co.za" oninput="markDirty()">
             </div>
 
             <div class="form-group">
@@ -351,7 +351,7 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
           <div class="form-card-header"><div class="form-card-title">About your company</div><div class="form-card-sub">Shown to candidates on your company page and alongside listings. Write to a job seeker.</div></div>
           <div class="form-group">
             <label class="lbl" for="f-about">Company description<span class="lbl-req">*</span></label>
-            <textarea class="field" id="f-about" rows="5" oninput="markDirty();countChars('f-about','about-count',50,800);updatePreview()">Boxer Superstore is one of South Africa's leading discount food retailers, with over 400 stores nationwide. We are committed to providing affordable groceries to communities across the country while creating jobs and economic opportunity in the areas we serve.</textarea>
+            <textarea class="field" id="f-about" rows="5" oninput="markDirty();countChars('f-about','about-count',50,800);updatePreview()"></textarea>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
               <span class="field-hint">Min. 50 characters. Candidates read this when deciding to apply.</span>
               <span class="char-counter" id="about-count"></span>
@@ -365,12 +365,12 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
           <div class="form-grid form-grid-2">
             <div class="form-group">
               <label class="lbl" for="f-app-email">Default application email<span class="lbl-req">*</span></label>
-              <input class="field" type="email" id="f-app-email" value="hr@boxer.co.za" placeholder="hr@yourcompany.co.za" oninput="markDirty()">
+              <input class="field" type="email" id="f-app-email" value="" placeholder="hr@yourcompany.co.za" oninput="markDirty()">
               <div class="field-hint">Applications forward to this address unless overridden per listing.</div>
             </div>
             <div class="form-group">
               <label class="lbl" for="f-reply-name">Display name for email replies<span class="lbl-opt">Optional</span></label>
-              <input class="field" type="text" id="f-reply-name" value="Boxer HR Team" placeholder="e.g. HR Team, Talent Acquisition" oninput="markDirty()">
+              <input class="field" type="text" id="f-reply-name" value="" placeholder="e.g. HR Team, Talent Acquisition" oninput="markDirty()">
             </div>
           </div>
         </div>
@@ -395,7 +395,7 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
         <div class="form-card">
           <div class="form-card-header"><div class="form-card-title">Company page URL</div><div class="form-card-sub">Your unique branded URL on the Cronos platform. Share this with job seekers and on your website.</div></div>
           <div class="subdomain-display">
-            <span class="subdomain-display-url" id="subdomain-url">boxer.cronos.co.za</span>
+            <span class="subdomain-display-url" id="subdomain-url">yourcompany.cronos.co.za</span>
             <button class="subdomain-copy-btn" id="copy-subdomain-btn" onclick="copySubdomain()">Copy link</button>
           </div>
           <div class="field-hint" style="margin-top:8px">Your subdomain is set when your account is created. To request a change, contact support.</div>
@@ -428,7 +428,7 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
               <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="3" fill="var(--accent)" opacity=".5"/><circle cx="5" cy="5" r="1.5" fill="var(--accent)"/></svg>
               Actively hiring
             </div>
-            <div class="preview-co-name" id="prev-name">Boxer Superstore</div>
+            <div class="preview-co-name" id="prev-name">Your Company</div>
             <div class="preview-meta">
               <div class="preview-meta-item"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.79 1 3 2.79 3 5c0 3.18 4 9 4 9s4-5.82 4-9c0-2.21-1.79-4-4-4z" stroke="currentColor" stroke-width="1.2"/></svg><span id="prev-hq">Durban, KwaZulu-Natal</span></div>
               <div class="preview-meta-item"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M2 4h10v7a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1.2"/></svg><span id="prev-industry">Retail &amp; Grocery</span></div>
@@ -460,6 +460,96 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script>
+// ── Plain script — UI functions available immediately ─────────────────────
+
+// Province toggle — uses setTimeout to avoid label double-fire
+function toggleProv(el) {
+  setTimeout(function() {
+    var input = el.querySelector('input[type="checkbox"]');
+    if (!input) return;
+    el.classList.toggle('checked', input.checked);
+    if (window._markDirty) window._markDirty();
+  }, 0);
+}
+
+// Colour swatches
+function selectColour(hex, el) {
+  if (window._selectColour) { window._selectColour(hex, el); return; }
+  document.querySelectorAll('.colour-swatch').forEach(function(s) { s.classList.remove('selected'); });
+  el.classList.add('selected');
+  var hexEl = document.getElementById('colour-hex');
+  var pickerEl = document.getElementById('colour-picker');
+  var previewEl = document.getElementById('colour-preview-swatch');
+  if (hexEl) hexEl.value = hex;
+  if (pickerEl) pickerEl.value = hex;
+  if (previewEl) previewEl.style.background = hex;
+}
+function applyCustomColour(hex) {
+  if (window._applyCustomColour) window._applyCustomColour(hex);
+}
+function applyHexInput(val) {
+  if (window._applyHexInput) window._applyHexInput(val);
+}
+
+// Logo
+function handleLogoUpload(input) {
+  if (window._handleLogoUpload) window._handleLogoUpload(input);
+}
+function removeLogo() {
+  if (window._removeLogo) window._removeLogo();
+}
+
+// Char counter
+function countChars(fId, cId, min, max) {
+  var v  = (document.getElementById(fId) || {}).value || '';
+  var el = document.getElementById(cId);
+  if (!el) return;
+  el.textContent = v.length + ' / ' + max;
+  el.className = 'char-counter' + (v.length > max ? ' over' : v.length > max * 0.85 ? ' warn' : '');
+}
+
+// Dirty state
+function markDirty() {
+  var dot = document.getElementById('unsaved-dot');
+  var btn = document.getElementById('save-btn');
+  if (dot) dot.classList.add('show');
+  if (btn) btn.disabled = false;
+  if (window._markDirty) window._markDirty();
+}
+function updatePreview() {
+  if (window._updatePreview) window._updatePreview();
+}
+
+// Subdomain copy
+function copySubdomain() {
+  if (window._copySubdomain) window._copySubdomain();
+}
+
+// Save and deactivate delegate to module
+function saveProfile() {
+  if (window._saveProfile) window._saveProfile();
+}
+function openDeactivateModal() {
+  var m = document.getElementById('deactivate-modal');
+  if (m) m.classList.add('open');
+}
+function closeModal(e) {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+}
+function deactivateAccount() {
+  if (window._deactivateAccount) window._deactivateAccount();
+}
+function showToast(msg, isError) {
+  if (window._showToast) { window._showToast(msg, isError); return; }
+  alert(msg); // fallback before module loads
+}
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  if (s) s.classList.toggle('open');
+}
+</script>
+
 <script type="module">
 import { auth, db, storage, requireAuth, signOutEmployer, getEmployerProfile } from './firebase.js'
 import { doc, getDoc, updateDoc, deleteDoc,
@@ -470,23 +560,23 @@ import { ref, uploadBytesResumable,
 import { deleteUser }                                                            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"
 
 // ── Expose to inline handlers ──────────────────────────────────────────────
-window.markDirty           = markDirty
-window.updatePreview       = updatePreview
-window.selectColour        = selectColour
-window.applyCustomColour   = applyCustomColour
-window.applyHexInput       = applyHexInput
-window.countChars          = countChars
-window.handleLogoUpload    = handleLogoUpload
-window.removeLogo          = removeLogo
-window.toggleProv          = toggleProv
-window.copySubdomain       = copySubdomain
-window.saveProfile         = saveProfile
-window.showToast           = showToast
-window.openDeactivateModal = openDeactivateModal
-window.closeModal          = closeModal
-window.deactivateAccount   = deactivateAccount
-window.toggleSidebar       = () => document.getElementById('sidebar').classList.toggle('open')
-window.signOut             = signOutEmployer
+window._markDirty         = markDirty
+window._updatePreview     = updatePreview
+window._selectColour      = selectColour
+window._applyCustomColour = applyCustomColour
+window._applyHexInput     = applyHexInput
+// countChars in plain script
+window._handleLogoUpload  = handleLogoUpload
+window._removeLogo        = removeLogo
+// toggleProv in plain script
+window._copySubdomain     = copySubdomain
+window._saveProfile       = saveProfile
+window._showToast         = showToast
+// openDeactivateModal in plain script
+// closeModal in plain script
+window._deactivateAccount = deactivateAccount
+// toggleSidebar in plain script
+window.signOut = signOutEmployer
 
 // ── State ──────────────────────────────────────────────────────────────────
 let brandColour = '#0099fa'
@@ -499,11 +589,17 @@ let logoFile    = null
 const user = await requireAuth()
 currentUid = user.uid
 
-// Verification gate
+// Gate: use planStatus as primary check — prevents lockout if verificationStatus
+// was reset incorrectly after approval (which happens if employer re-opens verify.html)
 const profileCheck = await getEmployerProfile(currentUid)
 if (profileCheck) {
   const vStatus = profileCheck.verificationStatus || 'pending'
-  if (vStatus !== 'approved') {
+  const pStatus = profileCheck.planStatus || 'inactive'
+  const hasActivePlan = pStatus === 'active' || pStatus === 'expiring'
+
+  // Only block if BOTH verification is not approved AND no active plan
+  // Having an active plan means they were approved — don't lock them out
+  if (!hasActivePlan && vStatus !== 'approved') {
     showAccessBlock(
       vStatus === 'submitted' ? 'Verification under review' : 'Access restricted',
       vStatus === 'submitted'
@@ -512,7 +608,8 @@ if (profileCheck) {
       vStatus === 'pending' ? 'Complete verification' : null,
       vStatus === 'pending' ? 'verify.html' : null
     )
-    throw new Error('access_blocked')
+    // Don't throw — just return cleanly to avoid module crash → login redirect
+    return
   }
 }
 

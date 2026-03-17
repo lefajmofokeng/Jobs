@@ -204,7 +204,7 @@ td{padding:14px 22px;font-size:13px;color:var(--text-secondary);vertical-align:m
     </a>
   </div>
   <div class="sidebar-company">
-    <div class="sidebar-co-name" id="sb-co-name">Boxer Superstore</div>
+    <div class="sidebar-co-name" id="sb-co-name">Your Company</div>
     <div class="sidebar-co-verified">
       <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 1l5 2V8c0 3.5-2.5 5.5-5 6.5C5.5 13.5 3 11.5 3 8V3L8 1z" fill="rgba(0,153,250,0.2)" stroke="var(--accent)" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Verified employer
@@ -220,16 +220,20 @@ td{padding:14px 22px;font-size:13px;color:var(--text-secondary);vertical-align:m
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v8M6 10h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Post a Job
     </a>
-    <button class="nav-item" onclick="showSection('listings',this)">
+    <a href="#listings" class="nav-item" onclick="scrollToListings(this)">
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 9h14M7 5V3M13 5V3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       My Listings
       <span class="nav-badge" id="badge-active">0</span>
-    </button>
+    </a>
+    <a href="employer-applications.html" class="nav-item">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M14 2H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2z" stroke="currentColor" stroke-width="1.4"/><path d="M8 7h4M8 11h4M8 15h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Applications
+    </a>
     <span class="nav-section-label">Account</span>
-    <button class="nav-item" onclick="showSection('profile',this)">
+    <a href="employer-profile.html" class="nav-item">
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 2a5 5 0 100 10A5 5 0 0010 2zM4 18a6 6 0 0112 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Company Profile
-    </button>
+    </a>
     <a href="pricing.html" class="nav-item">
       <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 9h16" stroke="currentColor" stroke-width="1.3"/><path d="M6 13h2M10 13h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
       Subscription &amp; Billing
@@ -396,20 +400,75 @@ td{padding:14px 22px;font-size:13px;color:var(--text-secondary);vertical-align:m
   </div>
 </div>
 
+<script>
+// ── Plain script — all UI functions available immediately on page load ──────
+
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  if (s) s.classList.toggle('open');
+}
+
+function showSection(name, el) {
+  var t = document.getElementById('topbar-title');
+  if (t) t.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+  if (el) el.classList.add('active');
+}
+
+function scrollToListings(el) {
+  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  var t = document.getElementById('topbar-title');
+  if (t) t.textContent = 'Listings';
+  var card = document.querySelector('.listings-card');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterListings(status, el) {
+  if (window._filterListings) { window._filterListings(status, el); return; }
+  document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+}
+
+function closeJob(id) {
+  if (window._closeJob) window._closeJob(id);
+}
+
+function deleteJob(id) {
+  if (window._deleteJob) window._deleteJob(id);
+}
+
+function copySubdomain() {
+  if (window._copySubdomain) window._copySubdomain();
+}
+
+function signOut() {
+  if (window._signOut) window._signOut();
+}
+
+// Close sidebar on outside click
+document.addEventListener('click', function(e) {
+  if (window.innerWidth <= 900 &&
+      !e.target.closest('#sidebar') &&
+      !e.target.closest('.topbar-mobile-menu')) {
+    var s = document.getElementById('sidebar');
+    if (s) s.classList.remove('open');
+  }
+});
+</script>
+
 <script type="module">
 import { auth, db, requireAuth, signOutEmployer } from './firebase.js';
 import { doc, getDoc, collection, query, where,
          getDocs, updateDoc, deleteDoc,
          orderBy, serverTimestamp }                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-// ── Expose to inline handlers ──────────────────────────────────────────────
-window.filterListings = filterListings;
-window.closeJob       = closeJob;
-window.deleteJob      = deleteJob;
-window.copySubdomain  = copySubdomain;
-window.showSection    = showSection;
-window.toggleSidebar  = toggleSidebar;
-window.signOut        = signOutEmployer;
+// ── Expose Firebase actions to plain script ────────────────────────────────
+window._signOut       = signOutEmployer;
+window._closeJob      = closeJob;
+window._deleteJob     = deleteJob;
+window._copySubdomain = copySubdomain;
+window._filterListings= filterListings;
 
 // ── State ──────────────────────────────────────────────────────────────────
 let EMPLOYER     = {};
@@ -422,7 +481,7 @@ const user = await requireAuth();
 currentUid = user.uid;
 await loadDashboard();
 
-// ── Access block (shown when verification not approved) ────────────────────
+// ── Access block ───────────────────────────────────────────────────────────
 function showAccessBlock(title, message, btnText, btnHref) {
   document.querySelector('.main').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;">
@@ -440,132 +499,106 @@ function showAccessBlock(title, message, btnText, btnHref) {
     </div>`;
 }
 
-// ── Load dashboard data ────────────────────────────────────────────────────
+// ── Load dashboard ─────────────────────────────────────────────────────────
 async function loadDashboard() {
-  // 1. Load employer profile (direct doc lookup — fastest)
   const snap = await getDoc(doc(db, 'employers', currentUid));
-  if (snap.exists()) {
-    EMPLOYER = { id: snap.id, ...snap.data() };
-  } else {
-    EMPLOYER = { companyName: user.displayName || 'Your Company', plan: 'none', planStatus: 'inactive', verificationStatus: 'pending' };
-  }
+  EMPLOYER = snap.exists()
+    ? { id: snap.id, ...snap.data() }
+    : { companyName: user.displayName || 'Your Company', plan: 'none', planStatus: 'inactive', verificationStatus: 'pending' };
 
-  // 2. Verification gate — must be approved to access dashboard
-  const vStatus = EMPLOYER.verificationStatus || 'pending';
-  const pStatus = EMPLOYER.planStatus || 'inactive';
+  const vStatus      = EMPLOYER.verificationStatus || 'pending';
+  const pStatus      = EMPLOYER.planStatus         || 'inactive';
+  const hasActivePlan = pStatus === 'active' || pStatus === 'expiring';
 
-  if (vStatus === 'pending') {
-    showAccessBlock(
-      'Verification required',
-      'You need to complete your business verification before accessing the dashboard.',
-      'Complete verification', 'verify.html'
-    );
-    return;
-  }
-  if (vStatus === 'submitted') {
-    showAccessBlock(
-      'Verification under review',
-      'Your business verification has been submitted and is being reviewed by the Cronos team. You will receive an email once approved — this usually takes 1–2 business days.',
-      null, null
-    );
-    return;
-  }
-  if (vStatus === 'rejected') {
-    showAccessBlock(
-      'Verification unsuccessful',
-      'Your business verification was not approved.' + (EMPLOYER.rejectionReason ? ' Reason: ' + EMPLOYER.rejectionReason : '') + ' Please contact support@cronos.co.za for assistance.',
-      null, null
-    );
-    return;
-  }
-
-  // 3. Load job listings for this employer (all statuses — employer sees own drafts too)
-  try {
-    const jobsSnap = await getDocs(
-      query(collection(db, 'jobs'),
-        where('employerId', '==', currentUid),
-        orderBy('createdAt', 'desc'))
-    );
-    listings = jobsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch (err) {
-    // Fallback: no orderBy (index may not exist yet)
-    try {
-      const jobsSnap = await getDocs(
-        query(collection(db, 'jobs'), where('employerId', '==', currentUid))
-      );
-      listings = jobsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => {
-          const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-          const db_ = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
-          return db_ - da;
-        });
-    } catch (e) {
-      console.error('Could not load listings:', e);
-      listings = [];
+  if (!hasActivePlan) {
+    if (vStatus === 'pending') {
+      showAccessBlock('Verification required',
+        'You need to complete your business verification before accessing the dashboard.',
+        'Complete verification', 'verify.html'); return;
+    }
+    if (vStatus === 'submitted') {
+      showAccessBlock('Verification under review',
+        'Your business verification has been submitted and is being reviewed. You will receive an email once approved — this usually takes 1–2 business days.',
+        null, null); return;
+    }
+    if (vStatus === 'rejected') {
+      showAccessBlock('Verification unsuccessful',
+        'Your business verification was not approved.' + (EMPLOYER.rejectionReason ? ' Reason: ' + EMPLOYER.rejectionReason : '') + ' Please contact support@cronos.co.za.',
+        null, null); return;
     }
   }
 
-  // 4. Load total applicant count for this employer
+  // Load listings
   try {
-    const appsSnap = await getDocs(
-      query(collection(db, 'applications'), where('employerId', '==', currentUid))
-    );
-    window._totalApplicants = appsSnap.size;
-  } catch (err) {
-    window._totalApplicants = null;
+    const s = await getDocs(query(collection(db,'jobs'), where('employerId','==',currentUid), orderBy('createdAt','desc')));
+    listings = s.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    try {
+      const s = await getDocs(query(collection(db,'jobs'), where('employerId','==',currentUid)));
+      listings = s.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a,b) => {
+          const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0);
+          const db_ = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0);
+          return db_ - da;
+        });
+    } catch(e) { console.error('listings failed:', e); listings = []; }
   }
 
-  // 5. Render everything
+  // Load applicant count
+  try {
+    const a = await getDocs(query(collection(db,'applications'), where('employerId','==',currentUid)));
+    window._totalApplicants = a.size;
+  } catch { window._totalApplicants = null; }
+
   renderProfile();
   renderBanner();
   updateStats();
   renderListings();
 }
 
-// ── Render sidebar profile ─────────────────────────────────────────────────
+// ── Render profile sidebar ─────────────────────────────────────────────────
 function renderProfile() {
   const name = EMPLOYER.companyName || EMPLOYER.displayName || 'Your Company';
   const plan = EMPLOYER.plan || 'none';
-  const slug = EMPLOYER.slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const slug = EMPLOYER.slug || name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
 
   document.getElementById('sb-co-name').textContent     = name;
   document.getElementById('sb-plan-name').textContent   = plan === 'none' ? 'No active plan' : plan;
   document.getElementById('sb-plan-renews').textContent = EMPLOYER.planRenews ? 'Renews ' + EMPLOYER.planRenews : 'No active subscription';
 
-  // Verified badge
-  const verifiedBadge = document.getElementById('sb-co-verified');
-  if (verifiedBadge) {
-    verifiedBadge.style.display = EMPLOYER.verified ? 'inline-flex' : 'none';
-  }
+  const badge = document.getElementById('sb-co-verified');
+  if (badge) badge.style.display = EMPLOYER.verified ? 'inline-flex' : 'none';
 
-  // Subdomain
-  const subdomain = `${slug}.cronos.co.za`;
-  document.getElementById('widget-subdomain').textContent = subdomain;
-  document.getElementById('visit-subdomain').href         = 'https://' + subdomain;
-  const qaSub = document.getElementById('qa-subdomain');
-  if (qaSub) qaSub.textContent = subdomain;
+  const subdomain = slug + '.cronos.co.za';
+  const widgetSub = document.getElementById('widget-subdomain');
+  const visitSub  = document.getElementById('visit-subdomain');
+  const qaSub     = document.getElementById('qa-subdomain');
+  if (widgetSub) widgetSub.textContent = subdomain;
+  if (visitSub)  visitSub.href         = 'https://' + subdomain;
+  if (qaSub)     qaSub.textContent     = subdomain;
 }
 
-// ── Subscription banner ────────────────────────────────────────────────────
+// ── Banner ─────────────────────────────────────────────────────────────────
 function renderBanner() {
   const banner = document.getElementById('sub-banner');
   const bt     = document.getElementById('banner-title');
   const bs     = document.getElementById('banner-sub');
   const bb     = document.getElementById('banner-btn');
+  if (!banner) return;
   const status = EMPLOYER.planStatus || 'inactive';
   const plan   = EMPLOYER.plan || 'None';
 
   if (status === 'active') {
     banner.className = 'sub-banner active';
-    bt.textContent   = `${plan} plan — active`;
+    bt.textContent   = plan + ' plan — active';
     bs.textContent   = EMPLOYER.planRenews
-      ? `Renews ${EMPLOYER.planRenews} · ${plan === 'Starter' ? '2 listings included' : 'Unlimited listings included'}`
-      : `${plan} plan active`;
+      ? 'Renews ' + EMPLOYER.planRenews + ' · ' + (plan === 'Starter' ? '2 listings included' : 'Unlimited listings included')
+      : plan + ' plan active';
     bb.textContent   = 'Manage subscription';
   } else if (status === 'expiring') {
     banner.className = 'sub-banner expiring';
     bt.textContent   = 'Subscription expiring soon';
-    bs.textContent   = `Renews ${EMPLOYER.planRenews} — renew now to keep your listings live`;
+    bs.textContent   = 'Renews ' + EMPLOYER.planRenews + ' — renew now to keep your listings live';
     bb.textContent   = 'Renew now';
   } else if (status === 'expired') {
     banner.className = 'sub-banner expired';
@@ -573,7 +606,6 @@ function renderBanner() {
     bs.textContent   = 'Your listings are paused. Choose a plan to make them visible to candidates.';
     bb.textContent   = 'View plans';
   } else {
-    // inactive — approved but no plan yet
     banner.className = 'sub-banner expired';
     bt.textContent   = 'No active subscription';
     bs.textContent   = 'You need a subscription to post jobs. Contact Cronos to get invoiced.';
@@ -584,11 +616,11 @@ function renderBanner() {
 // ── Date helpers ───────────────────────────────────────────────────────────
 function fmtDate(iso) {
   if (!iso) return '—';
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
 }
 function daysUntil(iso, time) {
-  if (!iso) return 0;
-  return Math.ceil((new Date(iso + 'T' + (time || '17:00') + ':00') - new Date()) / 86400000);
+  if (!iso) return 999;
+  return Math.ceil((new Date(iso + 'T' + (time||'17:00') + ':00') - new Date()) / 86400000);
 }
 
 // ── Render listings table ──────────────────────────────────────────────────
@@ -606,17 +638,15 @@ function renderListings() {
   tbody.innerHTML = list.map(l => {
     const d = daysUntil(l.closes, l.closesTime);
     let badge = '';
-    if (l.status === 'live' && d <= 5 && d >= 0)
-                            badge = `<span class="status-badge status-closing">Closes in ${d}d</span>`;
+    if      (l.status === 'live' && d <= 5 && d >= 0) badge = `<span class="status-badge status-closing">Closes in ${d}d</span>`;
     else if (l.status === 'live')    badge = `<span class="status-badge status-live">Live</span>`;
-    else if (l.status === 'closing') badge = `<span class="status-badge status-closing">Closes in ${d}d</span>`;
     else if (l.status === 'expired') badge = `<span class="status-badge status-expired">Expired</span>`;
     else if (l.status === 'paused')  badge = `<span class="status-badge status-paused">Paused</span>`;
     else if (l.status === 'draft')   badge = `<span class="status-badge status-paused">Draft</span>`;
     return `<tr>
-      <td><div class="td-title"><a href="job-detail.html?id=${l.id}">${l.title}</a></div><div class="td-dept">${l.department || l.dept || ''}</div></td>
+      <td><div class="td-title"><a href="job-detail.html?id=${l.id}">${l.title||'—'}</a></div><div class="td-dept">${l.department||''}</div></td>
       <td>${badge}</td>
-      <td>${l.city || l.location || '—'}</td>
+      <td>${l.city||'—'}</td>
       <td>${fmtDate(l.closes)}</td>
       <td><div class="td-actions">
         <a href="post-job.html?edit=${l.id}" class="action-btn">Edit</a>
@@ -630,67 +660,55 @@ function renderListings() {
 function filterListings(status, el) {
   activeFilter = status;
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   renderListings();
 }
 
-// ── Close job ──────────────────────────────────────────────────────────────
+// ── Close/delete job ───────────────────────────────────────────────────────
 async function closeJob(id) {
   if (!confirm('Close this listing? It will no longer appear to candidates.')) return;
   try {
     await updateDoc(doc(db, 'jobs', id), { status: 'expired', updatedAt: serverTimestamp() });
     const j = listings.find(l => l.id === id);
     if (j) j.status = 'expired';
-    renderListings();
-    updateStats();
+    renderListings(); updateStats();
     showToast('Listing closed successfully.');
-  } catch (err) {
-    showToast('Could not close listing. Please try again.', true);
-  }
+  } catch (err) { showToast('Could not close listing. Please try again.', true); }
 }
 
-// ── Delete job ─────────────────────────────────────────────────────────────
 async function deleteJob(id) {
   if (!confirm('Permanently delete this listing? This cannot be undone.')) return;
   try {
     await deleteDoc(doc(db, 'jobs', id));
     listings = listings.filter(l => l.id !== id);
-    renderListings();
-    updateStats();
+    renderListings(); updateStats();
     showToast('Listing deleted.');
-  } catch (err) {
-    showToast('Could not delete listing. Please try again.', true);
-  }
+  } catch (err) { showToast('Could not delete listing. Please try again.', true); }
 }
 
 // ── Stats ──────────────────────────────────────────────────────────────────
 function updateStats() {
   const live    = listings.filter(l => l.status === 'live').length;
   const closing = listings.filter(l => l.status === 'live' && daysUntil(l.closes, l.closesTime) <= 5).length;
-  const locs    = [...new Set(listings.filter(l => l.status === 'live').map(l => l.city || l.location))].filter(Boolean).length;
-
-  // Plan limits — set by internal control system via Firestore
-  // Starter: 2 listings, Growth/Enterprise: unlimited (null)
-  const limit = EMPLOYER.plan === 'Starter' ? 2 : null;
+  const locs    = [...new Set(listings.filter(l => l.status==='live').map(l => l.city).filter(Boolean))].length;
+  const limit   = EMPLOYER.plan === 'Starter' ? 2 : null;
 
   document.getElementById('stat-active').textContent    = live;
   document.getElementById('stat-closing').textContent   = closing;
   document.getElementById('stat-locations').textContent = locs;
   document.getElementById('badge-active').textContent   = live + closing;
 
-  // Applicants — real count loaded from Firestore
   const appCount = window._totalApplicants;
-  document.getElementById('stat-applicants').textContent = appCount !== null && appCount !== undefined ? appCount : '—';
+  document.getElementById('stat-applicants').textContent = appCount != null ? appCount : '—';
 
-  // Usage widget
-  const used      = live + closing;
-  const pct       = limit ? Math.min(100, Math.round(used / limit * 100)) : 0;
+  const used = live;
+  const pct  = limit ? Math.min(100, Math.round(used/limit*100)) : 0;
   const fillClass = pct > 80 ? 'danger' : pct > 60 ? 'warn' : '';
   document.getElementById('usage-list').innerHTML = `
     <div class="usage-item">
       <div class="usage-item-top">
         <span class="usage-label">Active listings</span>
-        <span class="usage-val">${used}${limit ? ' / ' + limit : ' / Unlimited'}</span>
+        <span class="usage-val">${used}${limit ? ' / '+limit : ' / Unlimited'}</span>
       </div>
       ${limit
         ? `<div class="usage-bar"><div class="usage-fill ${fillClass}" style="width:${pct}%"></div></div>`
@@ -699,23 +717,23 @@ function updateStats() {
     <div class="usage-item">
       <div class="usage-item-top">
         <span class="usage-label">Plan</span>
-        <span class="usage-val">${EMPLOYER.plan || 'None'}</span>
+        <span class="usage-val">${EMPLOYER.plan||'None'}</span>
       </div>
       <div style="font-size:11px;color:var(--text-muted)">
-        ${EMPLOYER.planRenews ? 'Renews ' + EMPLOYER.planRenews : 'No active subscription'}
+        ${EMPLOYER.planRenews ? 'Renews '+EMPLOYER.planRenews : 'No active subscription'}
       </div>
     </div>`;
 }
 
 // ── Subdomain copy ─────────────────────────────────────────────────────────
 function copySubdomain() {
-  const slug = EMPLOYER.slug || (EMPLOYER.companyName || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const url  = `https://${slug}.cronos.co.za`;
+  const slug = EMPLOYER.slug || (EMPLOYER.companyName||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const url  = 'https://' + slug + '.cronos.co.za';
   navigator.clipboard.writeText(url).then(() => showToast('Link copied: ' + url));
 }
 
-// ── Toast notification ─────────────────────────────────────────────────────
-function showToast(msg, isError = false) {
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg, isError) {
   let toast = document.getElementById('dash-toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -723,29 +741,12 @@ function showToast(msg, isError = false) {
     toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:600;color:#fff;z-index:9999;transition:opacity 0.3s;box-shadow:0 4px 16px rgba(0,0,0,0.15);white-space:nowrap;';
     document.body.appendChild(toast);
   }
-  toast.textContent = msg;
+  toast.textContent      = msg;
   toast.style.background = isError ? '#ef4444' : '#0f1628';
   toast.style.opacity    = '1';
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
 }
-
-// ── UI helpers ─────────────────────────────────────────────────────────────
-function showSection(name, el) {
-  document.getElementById('topbar-title').textContent = name.charAt(0).toUpperCase() + name.slice(1);
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
-}
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-document.addEventListener('click', e => {
-  if (window.innerWidth <= 900 && !e.target.closest('#sidebar') && !e.target.closest('.topbar-mobile-menu')) {
-    document.getElementById('sidebar').classList.remove('open');
-  }
-});
 </script>
 </body>
 </html>

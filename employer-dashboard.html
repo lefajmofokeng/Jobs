@@ -400,62 +400,6 @@ td{padding:14px 22px;font-size:13px;color:var(--text-secondary);vertical-align:m
   </div>
 </div>
 
-<script>
-// ── Plain script — all UI functions available immediately on page load ──────
-
-function toggleSidebar() {
-  var s = document.getElementById('sidebar');
-  if (s) s.classList.toggle('open');
-}
-
-function showSection(name, el) {
-  var t = document.getElementById('topbar-title');
-  if (t) t.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
-  if (el) el.classList.add('active');
-}
-
-function scrollToListings(el) {
-  document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
-  if (el) el.classList.add('active');
-  var t = document.getElementById('topbar-title');
-  if (t) t.textContent = 'Listings';
-  var card = document.querySelector('.listings-card');
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function filterListings(status, el) {
-  if (window._filterListings) { window._filterListings(status, el); return; }
-  document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
-  if (el) el.classList.add('active');
-}
-
-function closeJob(id) {
-  if (window._closeJob) window._closeJob(id);
-}
-
-function deleteJob(id) {
-  if (window._deleteJob) window._deleteJob(id);
-}
-
-function copySubdomain() {
-  if (window._copySubdomain) window._copySubdomain();
-}
-
-function signOut() {
-  if (window._signOut) window._signOut();
-}
-
-// Close sidebar on outside click
-document.addEventListener('click', function(e) {
-  if (window.innerWidth <= 900 &&
-      !e.target.closest('#sidebar') &&
-      !e.target.closest('.topbar-mobile-menu')) {
-    var s = document.getElementById('sidebar');
-    if (s) s.classList.remove('open');
-  }
-});
-</script>
 
 <script type="module">
 import { auth, db, requireAuth, signOutEmployer } from './firebase.js';
@@ -463,12 +407,24 @@ import { doc, getDoc, collection, query, where,
          getDocs, updateDoc, deleteDoc,
          orderBy, serverTimestamp }                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-// ── Expose Firebase actions to plain script ────────────────────────────────
-window._signOut       = signOutEmployer;
-window._closeJob      = closeJob;
-window._deleteJob     = deleteJob;
-window._copySubdomain = copySubdomain;
-window._filterListings= filterListings;
+// ── Expose ALL onclick handlers to window before any await ────────────────
+// Function declarations are hoisted in modules so these refs are valid immediately
+window.signOut          = signOutEmployer
+window.toggleSidebar    = () => document.getElementById('sidebar')?.classList.toggle('open')
+window.showSection      = (n, el) => {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'))
+  if (el) el.classList.add('active')
+  const t = document.getElementById('topbar-title')
+  if (t) t.textContent = n.charAt(0).toUpperCase() + n.slice(1)
+}
+window.scrollToListings = (el) => {
+  window.showSection('listings', el)
+  document.querySelector('.listings-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+window.filterListings   = filterListings
+window.closeJob         = closeJob
+window.deleteJob        = deleteJob
+window.copySubdomain    = copySubdomain
 
 // ── State ──────────────────────────────────────────────────────────────────
 let EMPLOYER     = {};
@@ -733,6 +689,15 @@ function copySubdomain() {
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
+// ── Sidebar close on outside click ────────────────────────────────────────
+document.addEventListener('click', e => {
+  if (window.innerWidth <= 900 &&
+      !e.target.closest('#sidebar') &&
+      !e.target.closest('.topbar-mobile-menu')) {
+    document.getElementById('sidebar')?.classList.remove('open')
+  }
+})
+
 function showToast(msg, isError) {
   let toast = document.getElementById('dash-toast');
   if (!toast) {

@@ -46,10 +46,27 @@ export { app, auth, db, storage, analytics }
 //
 export function requireAuth(redirectTo = 'employer-login.html') {
   return new Promise((resolve) => {
+    // If Firebase already has the user in memory, resolve immediately.
+    // This handles normal page navigation without waiting for onAuthStateChanged.
+    if (auth.currentUser) {
+      resolve(auth.currentUser)
+      return
+    }
+
+    // Otherwise wait for Firebase to restore the persisted session from IndexedDB.
+    // This fires once then unsubscribes. We add a 6-second safety timeout
+    // so slow connections never hang forever — they get redirected to login.
+    let done = false
+    const timer = setTimeout(() => {
+      if (!done) { done = true; unsub(); window.location.replace(redirectTo) }
+    }, 6000)
+
     const unsub = onAuthStateChanged(auth, (user) => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
       unsub()
       if (!user) {
-        // Use replace() so the protected page is removed from history
         window.location.replace(redirectTo)
       } else {
         resolve(user)

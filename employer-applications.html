@@ -705,7 +705,8 @@ import { collection, doc, getDoc, getDocs,
          updateDoc, serverTimestamp }                                             from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 import { ref, getDownloadURL }                                                   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
 
-// ── Expose to inline handlers ──────────────────────────────────────────────
+// ── Expose to inline handlers ─────────────────────────────────────────────
+// All exposed before any await so onclick handlers never throw "not defined"
 window.setStatusTab    = setStatusTab
 window.handleSearch    = handleSearch
 window.openDrawerById  = openDrawerById
@@ -720,7 +721,9 @@ window.toggleSelectAll = toggleSelectAll
 window.bulkStatus      = bulkStatus
 window.exportCSV       = exportCSV
 window.signOut         = signOutEmployer
-window.toggleSidebar   = () => document.getElementById('sidebar').classList.toggle('open')
+window.toggleSidebar   = () => document.getElementById('sidebar')?.classList.toggle('open')
+window.applyFilters    = applyFilters
+window.filterByJob     = () => applyFilters()
 
 // ── State ──────────────────────────────────────────────────────────────────
 let APPS        = []
@@ -790,49 +793,63 @@ function showAccessBlock(title, message, btnText, btnHref) {
 
 // ── Load applications from Firestore ───────────────────────────────────────
 async function loadApplications() {
-  document.getElementById('loading-state').style.display = 'block'
-  document.getElementById('empty-state').style.display   = 'none'
-  document.getElementById('apps-tbody').innerHTML        = ''
+  const loadingEl = document.getElementById('loading-state')
+  const emptyEl   = document.getElementById('empty-state')
+  const tbody     = document.getElementById('apps-tbody')
+
+  if (loadingEl) loadingEl.style.display = 'block'
+  if (emptyEl)   emptyEl.style.display   = 'none'
+  if (tbody)     tbody.innerHTML          = ''
 
   try {
-    const snap = await getDocs(
-      query(collection(db, 'applications'),
-        where('employerId', '==', currentUid),
-        orderBy('createdAt', 'desc'))
-    )
-    ALL_APPS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  } catch (err) {
-    // Fallback: load without ordering if index doesn't exist yet
+    // Try ordered query first (requires composite index)
     try {
+      const snap = await getDocs(
+        query(collection(db, 'applications'),
+          where('employerId', '==', currentUid),
+          orderBy('createdAt', 'desc'))
+      )
+      ALL_APPS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    } catch (err) {
+      console.warn('Ordered applications query failed, trying fallback:', err.code)
+      // Fallback: unordered query + client-side sort
       const snap = await getDocs(
         query(collection(db, 'applications'), where('employerId', '==', currentUid))
       )
       ALL_APPS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => {
-          const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
+          const da  = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
           const db_ = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
           return db_ - da
         })
-    } catch (e) {
-      ALL_APPS = []
-      showToast('Could not load applications. Please refresh.', true)
     }
+
+    // Populate job filter dropdown
+    const jobSel = document.getElementById('job-filter')
+    if (jobSel) {
+      while (jobSel.options.length > 1) jobSel.remove(1)
+      ALL_APPS.forEach(a => {
+        if (a.jobId && !jobSel.querySelector(`option[value="${a.jobId}"]`)) {
+          const o = document.createElement('option')
+          o.value       = a.jobId
+          o.textContent = a.jobTitle || a.jobId
+          jobSel.appendChild(o)
+        }
+      })
+    }
+
+    applyFilters()
+
+  } catch (err) {
+    // Complete failure — show error, clear state
+    console.error('loadApplications failed:', err.code, err.message)
+    ALL_APPS = []
+    applyFilters()
+    showToast('Could not load applications (' + (err.code || err.message) + '). Check your connection and refresh.', true)
+  } finally {
+    // ALWAYS hide loading state — this was the bug causing infinite spinner
+    if (loadingEl) loadingEl.style.display = 'none'
   }
-
-  // Populate job filter dropdown
-  const jobSel = document.getElementById('job-filter')
-  while (jobSel.options.length > 1) jobSel.remove(1)
-  ALL_APPS.forEach(a => {
-    if (a.jobId && !jobSel.querySelector(`option[value="${a.jobId}"]`)) {
-      const o = document.createElement('option')
-      o.value = a.jobId
-      o.textContent = a.jobTitle || a.jobId
-      jobSel.appendChild(o)
-    }
-  })
-
-  applyFilters()
-  document.getElementById('loading-state').style.display = 'none'
 }
 
 // ── Apply filters ──────────────────────────────────────────────────────────

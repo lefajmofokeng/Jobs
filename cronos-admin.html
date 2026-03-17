@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronos Control — Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:         #080b12;
+  --bg-2:       #0d1120;
+  --bg-3:       #131929;
+  --surface:    #161d2e;
+  --surface-2:  #1c2539;
+  --border:     rgba(255,255,255,0.07);
+  --border-2:   rgba(255,255,255,0.12);
+  --accent:     #00e5ff;
+  --accent-dim: rgba(0,229,255,0.12);
+  --accent-dim2:rgba(0,229,255,0.06);
+  --green:      #00ff88;
+  --green-dim:  rgba(0,255,136,0.12);
+  --amber:      #ffb800;
+  --amber-dim:  rgba(255,184,0,0.12);
+  --red:        #ff4444;
+  --red-dim:    rgba(255,68,68,0.12);
+  --purple:     #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --text:       #e8eaf0;
+  --text-2:     #8892a4;
+  --text-3:     #4a5568;
+  --mono:       'JetBrains Mono', monospace;
+  --sans:       'DM Sans', -apple-system, sans-serif;
+  --radius:     8px;
+  --radius-lg:  12px;
+}
+html{height:100%;}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  font-size:13px;
+  line-height:1.5;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── LOGIN GATE ─────────────────────────────────────── */
+#login-gate{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;
+  background:var(--bg);
+}
+.login-box{
+  width:100%;max-width:380px;
+  background:var(--surface);
+  border:1px solid var(--border-2);
+  border-radius:var(--radius-lg);
+  padding:36px 32px;
+}
+.login-logo{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:28px;
+}
+.login-logo-mark{
+  width:36px;height:36px;
+  background:var(--accent);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.login-logo-mark svg{color:#000;}
+.login-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2);}
+.login-box h2{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em;}
+.login-box p{font-size:13px;color:var(--text-2);margin-bottom:24px;}
+.login-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.login-field label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);}
+.login-field input{
+  font-family:var(--mono);font-size:13px;
+  background:var(--bg-2);border:1px solid var(--border-2);
+  border-radius:var(--radius);padding:10px 14px;
+  color:var(--text);outline:none;width:100%;
+  transition:border-color .15s;
+}
+.login-field input:focus{border-color:var(--accent);}
+.login-btn{
+  width:100%;font-family:var(--sans);font-size:13px;font-weight:700;
+  background:var(--accent);color:#000;border:none;
+  padding:11px;border-radius:var(--radius);cursor:pointer;
+  transition:opacity .15s;margin-top:6px;
+}
+.login-btn:hover{opacity:.85;}
+.login-err{
+  font-size:12px;color:var(--red);margin-top:8px;
+  display:none;
+}
+.login-err.show{display:block;}
+
+/* ── APP SHELL ──────────────────────────────────────── */
+#app{display:none;}
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+
+/* ── SIDEBAR ────────────────────────────────────────── */
+.sidebar{
+  background:var(--bg-2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;
+}
+.sidebar-head{
+  padding:18px 16px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.sidebar-mark{
+  width:30px;height:30px;background:var(--accent);
+  border-radius:6px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.sidebar-mark svg{color:#000;}
+.sidebar-brand{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);
+  line-height:1.3;
+}
+.sidebar-brand span{display:block;color:var(--accent);font-size:10px;}
+.sidebar-nav{flex:1;padding:10px 8px;}
+.nav-group{margin-bottom:20px;}
+.nav-group-label{
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);padding:0 8px;margin-bottom:4px;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:7px 8px;border-radius:6px;
+  font-family:var(--sans);font-size:12px;font-weight:500;
+  color:var(--text-2);background:none;border:none;cursor:pointer;
+  text-align:left;transition:all .12s;
+}
+.nav-btn:hover{background:var(--surface);color:var(--text);}
+.nav-btn.active{background:var(--accent-dim2);color:var(--accent);}
+.nav-btn svg{flex-shrink:0;opacity:.6;}
+.nav-btn.active svg{opacity:1;}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:9px;font-weight:700;padding:1px 5px;
+  border-radius:50px;font-family:var(--mono);
+  display:none;
+}
+.nav-badge.show{display:inline;}
+.sidebar-footer{
+  padding:12px 16px;border-top:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;color:var(--text-3);
+}
+.signout-btn{
+  font-family:var(--sans);font-size:11px;color:var(--text-3);
+  background:none;border:none;cursor:pointer;padding:0;
+  margin-top:4px;display:block;
+  transition:color .15s;
+}
+.signout-btn:hover{color:var(--red);}
+
+/* ── MAIN ───────────────────────────────────────────── */
+.main{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:var(--bg);border-bottom:1px solid var(--border);
+  padding:0 24px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;
+}
+.topbar-title{
+  font-family:var(--mono);font-size:12px;font-weight:600;
+  letter-spacing:.04em;color:var(--text-2);
+}
+.topbar-title span{color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.stat-pill{
+  font-family:var(--mono);font-size:11px;
+  background:var(--surface);border:1px solid var(--border-2);
+  border-radius:50px;padding:3px 10px;color:var(--text-2);
+}
+.stat-pill b{color:var(--text);}
+.content{padding:24px;flex:1;}
+
+/* ── SECTION PANELS ─────────────────────────────────── */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ── CARDS ──────────────────────────────────────────── */
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px 18px;
+}
+.stat-card-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;}
+.stat-card-value{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);line-height:1;}
+.stat-card-sub{font-size:11px;color:var(--text-2);margin-top:4px;}
+.stat-card.accent .stat-card-value{color:var(--accent);}
+.stat-card.green  .stat-card-value{color:var(--green);}
+.stat-card.amber  .stat-card-value{color:var(--amber);}
+.stat-card.red    .stat-card-value{color:var(--red);}
+
+/* ── TABLE ──────────────────────────────────────────── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;gap:12px;flex-wrap:wrap;
+}
+.section-title{
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);
+}
+.section-actions{display:flex;align-items:center;gap:8px;}
+.search-input{
+  font-family:var(--mono);font-size:12px;
+  background:var(--surface);border:1px solid var(--border-2);
+  border-radius:var(--radius);padding:6px 12px;
+  color:var(--text);outline:none;width:200px;
+  transition:border-color .15s;
+}
+.search-input:focus{border-color:var(--accent);}
+.filter-select{
+  font-family:var(--sans);font-size:12px;
+  background:var(--surface);border:1px solid var(--border-2);
+  border-radius:var(--radius);padding:6px 10px;
+  color:var(--text-2);outline:none;cursor:pointer;
+}
+.table-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;
+}
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:1px solid var(--border-2);}
+th{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);padding:10px 14px;text-align:left;
+  white-space:nowrap;
+}
+td{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  font-size:12px;vertical-align:middle;
+}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.015);}
+.loading-row td{text-align:center;padding:32px;color:var(--text-3);font-family:var(--mono);font-size:11px;}
+
+/* ── BADGES ─────────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.04em;padding:3px 8px;border-radius:4px;
+  white-space:nowrap;
+}
+.badge-pending  {background:var(--surface-2);color:var(--text-2);}
+.badge-submitted{background:var(--amber-dim);color:var(--amber);}
+.badge-approved {background:var(--green-dim);color:var(--green);}
+.badge-rejected {background:var(--red-dim);color:var(--red);}
+.badge-active   {background:var(--green-dim);color:var(--green);}
+.badge-inactive {background:var(--surface-2);color:var(--text-3);}
+.badge-expiring {background:var(--amber-dim);color:var(--amber);}
+.badge-expired  {background:var(--red-dim);color:var(--red);}
+.badge-none     {background:var(--surface-2);color:var(--text-3);}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── EMPLOYER NAME CELL ─────────────────────────────── */
+.emp-name{font-weight:600;color:var(--text);font-size:12px;}
+.emp-email{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:2px;}
+.emp-ref{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+
+/* ── ACTION BUTTONS ─────────────────────────────────── */
+.action-row{display:flex;align-items:center;gap:6px;}
+.btn{
+  font-family:var(--sans);font-size:11px;font-weight:600;
+  border:none;border-radius:6px;padding:5px 10px;
+  cursor:pointer;transition:opacity .12s;white-space:nowrap;
+}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-approve{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,255,136,.2);}
+.btn-approve:hover:not(:disabled){background:rgba(0,255,136,.2);}
+.btn-reject {background:var(--red-dim);color:var(--red);border:1px solid rgba(255,68,68,.2);}
+.btn-reject:hover:not(:disabled){background:rgba(255,68,68,.2);}
+.btn-view   {background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,229,255,.2);}
+.btn-view:hover:not(:disabled){background:rgba(0,229,255,.2);}
+.btn-plan   {background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,.2);}
+.btn-plan:hover:not(:disabled){background:rgba(167,139,250,.2);}
+.btn-ghost  {background:var(--surface-2);color:var(--text-2);border:1px solid var(--border-2);}
+.btn-ghost:hover:not(:disabled){color:var(--text);}
+.btn-primary{background:var(--accent);color:#000;border:none;padding:8px 16px;font-size:12px;font-weight:700;}
+.btn-primary:hover:not(:disabled){opacity:.85;}
+.btn-danger {background:var(--red-dim);color:var(--red);border:1px solid rgba(255,68,68,.2);padding:8px 16px;font-size:12px;font-weight:700;}
+.btn-danger:hover:not(:disabled){background:rgba(255,68,68,.25);}
+
+/* ── DRAWER / MODAL ──────────────────────────────────── */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+}
+.overlay.open{display:block;}
+.drawer{
+  position:fixed;right:0;top:0;bottom:0;z-index:101;
+  width:520px;max-width:100vw;
+  background:var(--bg-2);border-left:1px solid var(--border-2);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+.drawer.open{transform:translateX(0);}
+.drawer-head{
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  flex-shrink:0;
+}
+.drawer-head-info{}
+.drawer-company{font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.drawer-email{font-family:var(--mono);font-size:11px;color:var(--text-3);}
+.drawer-close{
+  background:none;border:none;cursor:pointer;
+  color:var(--text-3);padding:2px;transition:color .12s;
+}
+.drawer-close:hover{color:var(--text);}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 20px;}
+.drawer-section{margin-bottom:22px;}
+.drawer-section-title{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:10px;
+  padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.field-item{}
+.field-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:3px;}
+.field-value{font-size:12px;color:var(--text);word-break:break-all;}
+.field-value.mono{font-family:var(--mono);}
+.field-value.full{grid-column:1/-1;}
+.doc-links{display:flex;flex-direction:column;gap:6px;}
+.doc-link{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:8px 12px;
+  text-decoration:none;color:var(--text-2);font-size:11px;
+  transition:border-color .12s,color .12s;
+}
+.doc-link:hover{border-color:var(--accent);color:var(--accent);}
+.doc-link svg{flex-shrink:0;}
+.drawer-footer{
+  padding:14px 20px;border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+
+/* ── APPROVE FORM ────────────────────────────────────── */
+.approve-form{display:flex;flex-direction:column;gap:10px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);}
+.form-input,.form-select{
+  font-family:var(--mono);font-size:12px;
+  background:var(--bg);border:1px solid var(--border-2);
+  border-radius:var(--radius);padding:8px 10px;
+  color:var(--text);outline:none;width:100%;
+  transition:border-color .15s;
+}
+.form-input:focus,.form-select:focus{border-color:var(--accent);}
+.form-select{cursor:pointer;}
+.form-actions{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.reject-row{display:flex;gap:8px;margin-top:4px;}
+.reject-input{
+  flex:1;font-family:var(--mono);font-size:12px;
+  background:var(--bg);border:1px solid var(--border-2);
+  border-radius:var(--radius);padding:8px 10px;
+  color:var(--text);outline:none;
+  transition:border-color .15s;
+}
+.reject-input:focus{border-color:var(--red);}
+.plan-inline{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 14px;
+  margin-top:12px;
+}
+.plan-inline-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;}
+
+/* ── TOAST ───────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border-2);
+  font-family:var(--mono);font-size:12px;color:var(--text);
+  padding:10px 18px;border-radius:50px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  z-index:999;opacity:0;transition:opacity .2s;
+  pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1;}
+#toast.success{border-color:var(--green);color:var(--green);}
+#toast.error{border-color:var(--red);color:var(--red);}
+
+/* ── EMPTY STATE ─────────────────────────────────────── */
+.empty-state{
+  text-align:center;padding:48px 24px;
+  font-family:var(--mono);font-size:11px;color:var(--text-3);
+}
+
+/* ── JOB ROW ─────────────────────────────────────────── */
+.job-title-cell{font-weight:600;color:var(--text);font-size:12px;}
+.job-emp-cell{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:2px;}
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px;}
+
+/* ── ANIMATIONS ──────────────────────────────────────── */
+.badge-invited{background:rgba(0,229,255,0.12);color:#00e5ff;}
+.inv-note{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:2px;}
+.invite-send-box{background:var(--bg);border:1px solid var(--border-2);border-radius:var(--radius);padding:14px;margin-top:4px;}
+.invite-send-box p{font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.5;}
+.btn-invite{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+.btn-invite:hover:not(:disabled){background:rgba(139,92,246,.25);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.panel.active{animation:fadeIn .2s ease;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinning{animation:spin .7s linear infinite;}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN GATE ─────────────────────────────────────── -->
+<div id="login-gate">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="login-title">Cronos Internal</div>
+      </div>
+    </div>
+    <h2>Control System</h2>
+    <p>Restricted access. Authorised personnel only.</p>
+    <div class="login-field">
+      <label>Admin Email</label>
+      <input type="email" id="admin-email" placeholder="admin@cronos.co.za" autocomplete="email"/>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="admin-password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="login-btn" onclick="adminLogin()">Access Control System →</button>
+    <div class="login-err" id="login-err">Invalid credentials. Access denied.</div>
+  </div>
+</div>
+
+<!-- ── APP ────────────────────────────────────────────── -->
+<div id="app">
+  <div class="shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-mark">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="sidebar-brand">
+          Cronos Control
+          <span>Internal System</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-group-label">Overview</div>
+          <button class="nav-btn active" onclick="showPanel('dashboard',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+            Dashboard
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Pipeline</div>
+          <button class="nav-btn" id="nav-btn-invites" onclick="showPanel('invites',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/></svg>
+            Expressions of Interest
+            <span class="nav-badge" id="badge-invites">0</span>
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Employers</div>
+          <button class="nav-btn" id="nav-btn-pending" onclick="showPanel('pending',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Pending Review
+            <span class="nav-badge" id="badge-pending">0</span>
+          </button>
+          <button class="nav-btn" onclick="showPanel('approved',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5l-7 7L3 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Approved
+          </button>
+          <button class="nav-btn" onclick="showPanel('all-employers',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 7a3 3 0 10-6 0 3 3 0 006 0zM2 14a5 5 0 0110 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M13 5v6M10 8h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            All Employers
+          </button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Content</div>
+          <button class="nav-btn" onclick="showPanel('jobs',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 3V2a2 2 0 014 0v1M4 8h8M4 11h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Job Listings
+          </button>
+          <button class="nav-btn" onclick="showPanel('alerts',this)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a5 5 0 00-5 5v3l-1 2h12l-1-2v-3a5 5 0 00-5-5z" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3"/></svg>
+            Job Alerts
+          </button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div id="admin-email-display" style="margin-bottom:4px;font-size:11px;color:var(--text-2);"></div>
+        <button class="signout-btn" onclick="adminSignOut()">→ Sign out</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-title">CRONOS / <span id="topbar-section">DASHBOARD</span></div>
+        <div class="topbar-right">
+          <div class="stat-pill"><b id="pill-pending">0</b> pending</div>
+          <div class="stat-pill"><b id="pill-approved">0</b> approved</div>
+        </div>
+      </div>
+      <div class="content">
+
+        <!-- ── DASHBOARD ── -->
+        <div class="panel active" id="panel-dashboard">
+          <div class="cards-grid">
+            <div class="stat-card" style="cursor:pointer" onclick="showPanel('invites',document.getElementById('nav-btn-invites'))">
+              <div class="stat-card-label">New Expressions</div>
+              <div class="stat-card-value" id="stat-invites" style="color:var(--purple)">—</div>
+              <div class="stat-card-sub">Awaiting your review</div>
+            </div>
+            <div class="stat-card amber">
+              <div class="stat-card-label">Pending Verification</div>
+              <div class="stat-card-value" id="stat-pending">—</div>
+              <div class="stat-card-sub">Docs submitted</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-card-label">Approved</div>
+              <div class="stat-card-value" id="stat-approved">—</div>
+              <div class="stat-card-sub">Active employers</div>
+            </div>
+            <div class="stat-card accent">
+              <div class="stat-card-label">Live Jobs</div>
+              <div class="stat-card-value" id="stat-live-jobs">—</div>
+              <div class="stat-card-sub">Visible to candidates</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Total Applications</div>
+              <div class="stat-card-value" id="stat-total-apps">—</div>
+              <div class="stat-card-sub">All time</div>
+            </div>
+          </div>
+          <div class="section-header">
+            <div class="section-title">Recent Submissions</div>
+            <button class="btn btn-view" onclick="showPanel('pending', document.querySelector('.nav-btn:nth-child(2)'))">View all →</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Company</th>
+                <th>Submitted</th>
+                <th>Ref</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr></thead>
+              <tbody id="recent-tbody">
+                <tr class="loading-row"><td colspan="5">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── PENDING ── -->
+        <div class="panel" id="panel-pending">
+          <div class="section-header">
+            <div class="section-title">Pending Verification</div>
+            <div class="section-actions">
+              <input class="search-input" placeholder="Search company…" oninput="filterTable('pending-tbody',this.value)"/>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Industry</th>
+                <th>Submitted</th>
+                <th>Ref</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="pending-tbody">
+                <tr class="loading-row"><td colspan="6">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── APPROVED ── -->
+        <div class="panel" id="panel-approved">
+          <div class="section-header">
+            <div class="section-title">Approved Employers</div>
+            <div class="section-actions">
+              <input class="search-input" placeholder="Search…" oninput="filterTable('approved-tbody',this.value)"/>
+              <select class="filter-select" onchange="filterByPlan(this.value)">
+                <option value="all">All plans</option>
+                <option value="Starter">Starter</option>
+                <option value="Growth">Growth</option>
+                <option value="Enterprise">Enterprise</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Company</th>
+                <th>Plan</th>
+                <th>Plan Status</th>
+                <th>Renews</th>
+                <th>Live Jobs</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="approved-tbody">
+                <tr class="loading-row"><td colspan="6">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── ALL EMPLOYERS ── -->
+        <div class="panel" id="panel-all-employers">
+          <div class="section-header">
+            <div class="section-title">All Employers</div>
+            <div class="section-actions">
+              <input class="search-input" placeholder="Search…" oninput="filterTable('all-employers-tbody',this.value)"/>
+              <select class="filter-select" onchange="filterByStatus(this.value)">
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="submitted">Submitted</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Company</th>
+                <th>Verification</th>
+                <th>Plan</th>
+                <th>Registered</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="all-employers-tbody">
+                <tr class="loading-row"><td colspan="5">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── JOBS ── -->
+        <div class="panel" id="panel-jobs">
+          <div class="section-header">
+            <div class="section-title">Job Listings</div>
+            <div class="section-actions">
+              <input class="search-input" placeholder="Search jobs…" oninput="filterTable('jobs-tbody',this.value)"/>
+              <select class="filter-select" id="jobs-status-filter" onchange="loadJobs()">
+                <option value="live">Live</option>
+                <option value="draft">Draft</option>
+                <option value="expired">Expired</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Job Title</th>
+                <th>Employer</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Closes</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="jobs-tbody">
+                <tr class="loading-row"><td colspan="6">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── ALERTS ── -->
+        <div class="panel" id="panel-alerts">
+          <div class="section-header">
+            <div class="section-title">Job Alert Subscriptions</div>
+            <div class="section-actions">
+              <input class="search-input" placeholder="Search email…" oninput="filterTable('alerts-tbody',this.value)"/>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Subscribed</th>
+              </tr></thead>
+              <tbody id="alerts-tbody">
+                <tr class="loading-row"><td colspan="3">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── INVITES ── -->
+        <div class="panel" id="panel-invites">
+          <div class="section-header">
+            <div class="section-title">Expressions of Interest</div>
+            <div class="section-actions">
+              <input class="search-input" placeholder="Search company or email…" oninput="filterTable('invites-tbody',this.value)"/>
+              <select class="filter-select" onchange="filterInvitesByStatus(this.value)">
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="invited">Invited</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Industry</th>
+                <th>Province</th>
+                <th>Received</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="invites-tbody">
+                <tr class="loading-row"><td colspan="7">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </main>
+  </div><!-- /shell -->
+</div><!-- /app -->
+
+<!-- ── INVITE DRAWER ────────────────────────────────── -->
+<div class="overlay" id="invite-overlay" onclick="closeInviteDrawer()"></div>
+<div class="drawer" id="invite-drawer">
+  <div class="drawer-head">
+    <div class="drawer-head-info">
+      <div class="drawer-company" id="inv-company">—</div>
+      <div class="drawer-email" id="inv-email-display">—</div>
+    </div>
+    <button class="drawer-close" onclick="closeInviteDrawer()">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="invite-drawer-body"></div>
+</div>
+
+<!-- ── EMPLOYER DRAWER ──────────────────────────────── -->
+<div class="overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="employer-drawer">
+  <div class="drawer-head">
+    <div class="drawer-head-info">
+      <div class="drawer-company" id="dr-company">—</div>
+      <div class="drawer-email" id="dr-email">—</div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawer-body"><!-- filled dynamically --></div>
+  <div class="drawer-footer" id="drawer-footer"><!-- filled dynamically --></div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script type="module">
+import { auth, db, approveEmployer, rejectEmployer, setEmployerPlan } from './firebase.js'
+import { signInWithEmailAndPassword, signOut,
+         onAuthStateChanged }                                           from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"
+import { collection, query, where, orderBy,
+         getDocs, getDoc, doc,
+         updateDoc, deleteDoc,
+         serverTimestamp, limit }                                       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+
+// ── Expose to inline handlers ──────────────────────────────────────────────
+window.adminLogin           = adminLogin
+window.adminSignOut         = adminSignOut
+window.showPanel            = showPanel
+window.closeDrawer          = closeDrawer
+window.closeInviteDrawer    = closeInviteDrawer
+window.filterTable          = filterTable
+window.filterByPlan         = filterByPlan
+window.filterByStatus       = filterByStatus
+window.filterInvitesByStatus= filterInvitesByStatus
+window.loadJobs             = loadJobs
+window.openEmployer         = openEmployer
+window.openInvite           = openInvite
+window.sendInvite           = sendInvite
+window.rejectInvite         = rejectInvite
+window.doApprove            = doApprove
+window.doReject             = doReject
+window.doSetPlan            = doSetPlan
+window.doExpireJob          = doExpireJob
+window.doDeleteJob          = doDeleteJob
+
+// ── ADMIN EMAIL ───────────────────────────────────────────────────────────
+const ADMIN_EMAIL = 'lefamjack@gmail.com'
+
+// ── State ──────────────────────────────────────────────────────────────────
+let ALL_EMPLOYERS    = []
+let ALL_JOBS         = []
+let ALL_ALERTS       = []
+let ALL_INVITES      = []
+let currentDrawerUid = null
+let currentInviteId  = null
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  if (user && user.email === ADMIN_EMAIL) {
+    document.getElementById('login-gate').style.display = 'none'
+    document.getElementById('app').style.display = 'block'
+    document.getElementById('admin-email-display').textContent = user.email
+    loadAll()
+  } else {
+    document.getElementById('login-gate').style.display = 'flex'
+    document.getElementById('app').style.display = 'none'
+    if (user) signOut(auth)
+  }
+})
+
+async function adminLogin() {
+  const email = document.getElementById('admin-email').value.trim()
+  const pass  = document.getElementById('admin-password').value
+  const errEl = document.getElementById('login-err')
+  errEl.classList.remove('show')
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass)
+    if (cred.user.email !== ADMIN_EMAIL) {
+      await signOut(auth)
+      errEl.textContent = 'Access denied. This account is not authorised.'
+      errEl.classList.add('show')
+    }
+  } catch (err) {
+    errEl.classList.add('show')
+  }
+}
+async function adminSignOut() {
+  await signOut(auth)
+}
+
+// Allow Enter key on login
+document.getElementById('admin-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') adminLogin()
+})
+
+// ── Load everything ────────────────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadEmployers(), loadJobs(), loadAlerts(), loadInvites()])
+  updateTopStats()
+}
+
+async function loadInvites() {
+  try {
+    const snap = await getDocs(query(collection(db, 'invites'), orderBy('createdAt', 'desc')))
+    ALL_INVITES = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } catch (err) {
+    const snap = await getDocs(collection(db, 'invites'))
+    ALL_INVITES = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  }
+  renderInvites()
+}
+
+async function loadEmployers() {
+  try {
+    const snap = await getDocs(query(collection(db, 'employers'), orderBy('createdAt', 'desc')))
+    ALL_EMPLOYERS = snap.docs.map(d => ({ uid: d.id, ...d.data() }))
+  } catch (err) {
+    // Fallback without orderBy if index missing
+    const snap = await getDocs(collection(db, 'employers'))
+    ALL_EMPLOYERS = snap.docs.map(d => ({ uid: d.id, ...d.data() }))
+      .sort((a,b) => {
+        const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt||0)
+        const db_ = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt||0)
+        return db_ - da
+      })
+  }
+  renderDashboard()
+  renderPending()
+  renderApproved()
+  renderAllEmployers()
+}
+
+async function loadJobs() {
+  const statusFilter = document.getElementById('jobs-status-filter')?.value || 'live'
+  try {
+    let q
+    if (statusFilter === 'all') {
+      q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'))
+    } else {
+      q = query(collection(db, 'jobs'), where('status','==',statusFilter), orderBy('createdAt', 'desc'))
+    }
+    const snap = await getDocs(q)
+    ALL_JOBS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } catch (err) {
+    const snap = await getDocs(collection(db, 'jobs'))
+    ALL_JOBS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(j => statusFilter === 'all' || j.status === statusFilter)
+  }
+  renderJobs()
+  updateTopStats()
+}
+
+async function loadAlerts() {
+  try {
+    const snap = await getDocs(query(collection(db, 'jobAlerts'), orderBy('createdAt', 'desc')))
+    ALL_ALERTS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } catch (err) {
+    const snap = await getDocs(collection(db, 'jobAlerts'))
+    ALL_ALERTS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  }
+  renderAlerts()
+}
+
+// ── Top stats ──────────────────────────────────────────────────────────────
+function updateTopStats() {
+  const pending  = ALL_EMPLOYERS.filter(e => e.verificationStatus === 'submitted').length
+  const approved = ALL_EMPLOYERS.filter(e => e.verificationStatus === 'approved').length
+  const liveJobs = ALL_JOBS.filter(j => j.status === 'live').length
+  const newInvites = ALL_INVITES.filter(i => i.status === 'pending').length
+
+  document.getElementById('stat-pending').textContent   = pending
+  document.getElementById('stat-approved').textContent  = approved
+  document.getElementById('stat-live-jobs').textContent = liveJobs
+  document.getElementById('stat-invites').textContent   = newInvites
+  document.getElementById('pill-pending').textContent   = pending
+  document.getElementById('pill-approved').textContent  = approved
+
+  const badge = document.getElementById('badge-pending')
+  badge.textContent = pending
+  badge.classList.toggle('show', pending > 0)
+
+  const invBadge = document.getElementById('badge-invites')
+  invBadge.textContent = newInvites
+  invBadge.classList.toggle('show', newInvites > 0)
+}
+
+// ── Render helpers ─────────────────────────────────────────────────────────
+function fmtDate(val) {
+  if (!val) return '—'
+  try {
+    const d = val?.toDate ? val.toDate() : new Date(val)
+    if (isNaN(d)) return '—'
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+  } catch { return '—' }
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+function vBadge(status) {
+  const map = {
+    pending:   ['badge-pending',  'PENDING'],
+    submitted: ['badge-submitted','SUBMITTED'],
+    approved:  ['badge-approved', 'APPROVED'],
+    rejected:  ['badge-rejected', 'REJECTED'],
+  }
+  const [cls, label] = map[status] || ['badge-pending','UNKNOWN']
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`
+}
+function pBadge(plan, status) {
+  const cls = { active:'badge-active', expiring:'badge-expiring', expired:'badge-expired', inactive:'badge-inactive', none:'badge-none' }[status] || 'badge-none'
+  const planName = plan && plan !== 'none' ? plan : '—'
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${esc(planName)}</span>`
+}
+function invBadge(status) {
+  const map = {
+    pending:  ['badge-submitted', 'PENDING'],
+    approved: ['badge-approved',  'APPROVED'],
+    rejected: ['badge-rejected',  'REJECTED'],
+    invited:  ['badge-invited',   'INVITED'],
+  }
+  const [cls, label] = map[status] || ['badge-pending', 'UNKNOWN']
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`
+}
+function jobBadge(status) {
+  const map = { live:'badge-approved', draft:'badge-pending', expired:'badge-rejected', paused:'badge-submitted' }
+  return `<span class="badge ${map[status]||'badge-pending'}">${esc(status||'unknown').toUpperCase()}</span>`
+}
+
+// ── Render dashboard ───────────────────────────────────────────────────────
+function renderDashboard() {
+  const recent = ALL_EMPLOYERS
+    .filter(e => e.verificationStatus === 'submitted')
+    .slice(0, 8)
+
+  // Also load total apps
+  getDocs(collection(db, 'applications')).then(snap => {
+    document.getElementById('stat-total-apps').textContent = snap.size
+  }).catch(() => {})
+
+  const tbody = document.getElementById('recent-tbody')
+  if (!recent.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">No pending submissions</td></tr>'
+    return
+  }
+  tbody.innerHTML = recent.map(e => `
+    <tr>
+      <td><div class="emp-name">${esc(e.companyName||'—')}</div><div class="emp-email">${esc(e.email||'')}</div></td>
+      <td style="color:var(--text-2);font-family:var(--mono);font-size:11px">${fmtDate(e.submittedAt)}</td>
+      <td class="emp-ref">${esc(e.verificationRef||'—')}</td>
+      <td>${vBadge(e.verificationStatus)}</td>
+      <td><button class="btn btn-view" onclick="openEmployer('${esc(e.uid)}')">Review →</button></td>
+    </tr>`).join('')
+}
+
+// ── Render pending ─────────────────────────────────────────────────────────
+function renderPending() {
+  const list = ALL_EMPLOYERS.filter(e => e.verificationStatus === 'submitted')
+  const tbody = document.getElementById('pending-tbody')
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">No pending submissions — all clear ✓</td></tr>'
+    return
+  }
+  tbody.innerHTML = list.map(e => `
+    <tr data-search="${esc((e.companyName+' '+e.email+' '+e.industry).toLowerCase())}">
+      <td><div class="emp-name">${esc(e.companyName||'—')}</div><div class="emp-email">${esc(e.email||'')}</div></td>
+      <td style="font-size:12px;color:var(--text-2)">${esc(e.contactFirstName||'')} ${esc(e.contactLastName||'')}</td>
+      <td style="font-size:11px;color:var(--text-3);font-family:var(--mono)">${esc(e.industry||'—')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${fmtDate(e.submittedAt)}</td>
+      <td class="emp-ref">${esc(e.verificationRef||'—')}</td>
+      <td>
+        <div class="action-row">
+          <button class="btn btn-view" onclick="openEmployer('${esc(e.uid)}')">Review</button>
+          <button class="btn btn-approve" onclick="quickApprove('${esc(e.uid)}')">Approve</button>
+          <button class="btn btn-reject"  onclick="quickReject('${esc(e.uid)}')">Reject</button>
+        </div>
+      </td>
+    </tr>`).join('')
+}
+
+// ── Render approved ────────────────────────────────────────────────────────
+function renderApproved() {
+  const list = ALL_EMPLOYERS.filter(e => e.verificationStatus === 'approved')
+  const tbody = document.getElementById('approved-tbody')
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">No approved employers yet</td></tr>'
+    return
+  }
+  tbody.innerHTML = list.map(e => {
+    const liveCount = ALL_JOBS.filter(j => j.employerId === e.uid && j.status === 'live').length
+    return `
+    <tr data-search="${esc((e.companyName+' '+e.email+' '+(e.plan||'')).toLowerCase())}" data-plan="${esc(e.plan||'none')}">
+      <td><div class="emp-name">${esc(e.companyName||'—')}</div><div class="emp-email">${esc(e.email||'')}</div></td>
+      <td>${pBadge(e.plan, e.planStatus||'inactive')}</td>
+      <td><span class="badge ${e.planStatus==='active'?'badge-active':e.planStatus==='expiring'?'badge-expiring':e.planStatus==='expired'?'badge-expired':'badge-inactive'}">${esc((e.planStatus||'inactive').toUpperCase())}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${esc(e.planRenews||'—')}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--accent)">${liveCount}</td>
+      <td>
+        <div class="action-row">
+          <button class="btn btn-view" onclick="openEmployer('${esc(e.uid)}')">Manage</button>
+          <button class="btn btn-plan" onclick="openEmployer('${esc(e.uid)}','plan')">Set Plan</button>
+        </div>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+// ── Render all employers ───────────────────────────────────────────────────
+function renderAllEmployers() {
+  const tbody = document.getElementById('all-employers-tbody')
+  if (!ALL_EMPLOYERS.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">No employers found</td></tr>'
+    return
+  }
+  tbody.innerHTML = ALL_EMPLOYERS.map(e => `
+    <tr data-search="${esc((e.companyName+' '+e.email).toLowerCase())}" data-vstatus="${esc(e.verificationStatus||'pending')}">
+      <td><div class="emp-name">${esc(e.companyName||'—')}</div><div class="emp-email">${esc(e.email||'')}</div></td>
+      <td>${vBadge(e.verificationStatus||'pending')}</td>
+      <td>${pBadge(e.plan, e.planStatus||'inactive')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${fmtDate(e.createdAt)}</td>
+      <td><button class="btn btn-view" onclick="openEmployer('${esc(e.uid)}')">View</button></td>
+    </tr>`).join('')
+}
+
+// ── Render jobs ────────────────────────────────────────────────────────────
+function renderJobs() {
+  const tbody = document.getElementById('jobs-tbody')
+  if (!ALL_JOBS.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">No jobs found</td></tr>'
+    return
+  }
+  tbody.innerHTML = ALL_JOBS.map(j => `
+    <tr data-search="${esc((j.title+' '+j.employerName+' '+j.city).toLowerCase())}">
+      <td><div class="job-title-cell">${esc(j.title||'—')}</div></td>
+      <td><div class="job-emp-cell">${esc(j.employerName||'—')}</div></td>
+      <td style="font-size:11px;color:var(--text-2)">${esc(j.city||'')}${j.province?', '+esc(j.province):''}</td>
+      <td>${jobBadge(j.status)}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${j.closes||'—'}</td>
+      <td>
+        <div class="action-row">
+          <a class="btn btn-view" href="job-detail.html?id=${j.id}" target="_blank">View</a>
+          ${j.status !== 'expired' ? `<button class="btn btn-ghost" onclick="doExpireJob('${j.id}')">Expire</button>` : ''}
+          <button class="btn btn-reject" onclick="doDeleteJob('${j.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('')
+}
+
+// ── Render alerts ──────────────────────────────────────────────────────────
+function renderAlerts() {
+  const tbody = document.getElementById('alerts-tbody')
+  if (!ALL_ALERTS.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="3">No job alert subscriptions yet</td></tr>'
+    return
+  }
+  tbody.innerHTML = ALL_ALERTS.map(a => `
+    <tr data-search="${esc((a.email+' '+a.companyName).toLowerCase())}">
+      <td style="font-family:var(--mono);font-size:12px">${esc(a.email||'—')}</td>
+      <td style="font-size:12px;color:var(--text-2)">${esc(a.companyName||'—')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${fmtDate(a.createdAt)}</td>
+    </tr>`).join('')
+}
+
+// ── Render invites ────────────────────────────────────────────────────────
+function renderInvites() {
+  const tbody = document.getElementById('invites-tbody')
+  if (!ALL_INVITES.length) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="7">No expressions of interest yet</td></tr>'
+    return
+  }
+  tbody.innerHTML = ALL_INVITES.map(inv => `
+    <tr data-search="${esc((inv.companyName+' '+inv.email+' '+inv.industry).toLowerCase())}" data-istatus="${esc(inv.status||'pending')}">
+      <td>
+        <div class="emp-name">${esc(inv.companyName||'—')}</div>
+        <div class="inv-note">${esc(inv.ref||'')}</div>
+      </td>
+      <td>
+        <div style="font-size:12px;color:var(--text)">${esc(inv.firstName||'')} ${esc(inv.lastName||'')}</div>
+        <div class="inv-note">${esc(inv.email||'')}</div>
+      </td>
+      <td style="font-size:11px;color:var(--text-2)">${esc(inv.industry||'—')}</td>
+      <td style="font-size:11px;color:var(--text-2)">${esc(inv.province||'—')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${fmtDate(inv.createdAt)}</td>
+      <td>${invBadge(inv.status||'pending')}</td>
+      <td>
+        <div class="action-row">
+          <button class="btn btn-view" onclick="openInvite('${esc(inv.id)}')">Review</button>
+          ${inv.status === 'pending' || inv.status === 'approved' ? `<button class="btn btn-invite" onclick="sendInvite('${esc(inv.id)}')">Send Invite</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('')
+}
+
+function filterInvitesByStatus(val) {
+  document.querySelectorAll('#invites-tbody tr[data-istatus]').forEach(row => {
+    row.style.display = (val === 'all' || row.dataset.istatus === val) ? '' : 'none'
+  })
+}
+
+// ── Open invite drawer ────────────────────────────────────────────────────
+function openInvite(id) {
+  const inv = ALL_INVITES.find(x => x.id === id)
+  if (!inv) return
+  currentInviteId = id
+
+  document.getElementById('inv-company').textContent      = inv.companyName || '—'
+  document.getElementById('inv-email-display').textContent = inv.email || '—'
+
+  document.getElementById('invite-drawer-body').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-section-title">Expression of Interest</div>
+      <div class="field-grid">
+        <div class="field-item"><div class="field-label">Reference</div><div class="field-value mono">${esc(inv.ref||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Status</div><div class="field-value">${invBadge(inv.status||'pending')}</div></div>
+        <div class="field-item"><div class="field-label">Name</div><div class="field-value">${esc(inv.firstName||'')} ${esc(inv.lastName||'')}</div></div>
+        <div class="field-item"><div class="field-label">Company</div><div class="field-value">${esc(inv.companyName||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Email</div><div class="field-value mono">${esc(inv.email||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Phone</div><div class="field-value mono">${esc(inv.phone||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Industry</div><div class="field-value">${esc(inv.industry||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Province</div><div class="field-value">${esc(inv.province||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Company Size</div><div class="field-value">${esc(inv.companySize||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Received</div><div class="field-value">${fmtDate(inv.createdAt)}</div></div>
+        ${inv.message ? `<div class="field-item" style="grid-column:1/-1"><div class="field-label">Message</div><div class="field-value" style="line-height:1.6">${esc(inv.message)}</div></div>` : ''}
+      </div>
+    </div>
+
+    ${inv.status !== 'rejected' ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title" style="color:#a78bfa">▸ Send Account Invite</div>
+      <div class="invite-send-box">
+        <p>This will send <strong>${esc(inv.email)}</strong> a secure link to create their Cronos employer account. They will be taken to the verification form to submit their business documents.</p>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label">Personal message (optional)</label>
+          <textarea id="inv-personal-msg" class="form-input" rows="2"
+            placeholder="e.g. Hi ${esc(inv.firstName)}, we'd love to have you on Cronos…"
+            style="font-size:12px;resize:vertical;min-height:60px;"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-invite" id="send-invite-btn" onclick="sendInvite('${esc(id)}')">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M14 2L1 7l5 3 2 5 6-13z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Send Invite Email
+          </button>
+          <span style="font-size:11px;color:var(--text-3)">via Firebase Auth email link</span>
+        </div>
+      </div>
+    </div>` : ''}
+
+    ${inv.status !== 'rejected' ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title" style="color:var(--red)">▸ Reject Application</div>
+      <div class="reject-row">
+        <input class="reject-input" id="inv-reject-reason" placeholder="Reason (optional — not shown to applicant)"/>
+        <button class="btn btn-danger" onclick="rejectInvite('${esc(id)}')">Reject</button>
+      </div>
+    </div>` : `
+    <div class="drawer-section">
+      <div style="font-size:12px;color:var(--red)">This application was rejected.</div>
+      ${inv.rejectionReason ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px">${esc(inv.rejectionReason)}</div>` : ''}
+    </div>`}
+  `
+
+  document.getElementById('invite-overlay').classList.add('open')
+  document.getElementById('invite-drawer').classList.add('open')
+}
+
+function closeInviteDrawer() {
+  document.getElementById('invite-overlay').classList.remove('open')
+  document.getElementById('invite-drawer').classList.remove('open')
+  currentInviteId = null
+}
+
+// ── Send invite via Firebase email link ──────────────────────────────────
+async function sendInvite(id) {
+  const inv = ALL_INVITES.find(x => x.id === id)
+  if (!inv) return
+
+  const btn = document.getElementById('send-invite-btn') ||
+              document.querySelector('.btn-invite')
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…' }
+
+  try {
+    // Import Firebase Auth email link functions
+    const { sendSignInLinkToEmail } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js")
+
+    // Use the live hosting URL — must match an Authorized Domain in Firebase Console
+    const hostUrl = window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://jobs-42a5d.web.app'
+
+    const actionCodeSettings = {
+      url: hostUrl + '/employer-register.html?email=' + encodeURIComponent(inv.email) + '&invited=true',
+      handleCodeInApp: true,
+    }
+
+    await sendSignInLinkToEmail(auth, inv.email, actionCodeSettings)
+
+    // Mark invite as 'invited' in Firestore
+    await updateDoc(doc(db, 'invites', id), {
+      status:   'invited',
+      invitedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+
+    // Update local state
+    const localInv = ALL_INVITES.find(x => x.id === id)
+    if (localInv) localInv.status = 'invited'
+
+    toast('✓ Invite sent to ' + inv.email, 'success')
+    closeInviteDrawer()
+    renderInvites()
+    updateTopStats()
+
+  } catch (err) {
+    toast('Failed to send invite: ' + err.message, 'error')
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Invite Email' }
+    console.error(err)
+  }
+}
+
+// ── Reject invite ─────────────────────────────────────────────────────────
+async function rejectInvite(id) {
+  const reason = document.getElementById('inv-reject-reason')?.value.trim() || ''
+  const btn    = document.querySelector('#invite-drawer-body .btn-danger')
+  if (btn) { btn.disabled = true; btn.textContent = 'Rejecting…' }
+  try {
+    await updateDoc(doc(db, 'invites', id), {
+      status:          'rejected',
+      rejectionReason: reason,
+      updatedAt:       serverTimestamp(),
+    })
+    const inv = ALL_INVITES.find(x => x.id === id)
+    if (inv) { inv.status = 'rejected'; inv.rejectionReason = reason }
+    toast('Application rejected', 'error')
+    closeInviteDrawer()
+    renderInvites()
+    updateTopStats()
+  } catch (err) {
+    toast('Failed: ' + err.message, 'error')
+    if (btn) { btn.disabled = false; btn.textContent = 'Reject' }
+  }
+}
+
+// ── Open employer drawer ───────────────────────────────────────────────────
+function openEmployer(uid, tab) {
+  const e = ALL_EMPLOYERS.find(x => x.uid === uid)
+  if (!e) return
+  currentDrawerUid = uid
+
+  document.getElementById('dr-company').textContent = e.companyName || '—'
+  document.getElementById('dr-email').textContent   = e.email || '—'
+
+  // Build drawer body
+  const docs = e.documents || {}
+  const docLinks = Object.entries(docs).map(([key, path]) =>
+    path ? `<a class="doc-link" href="#" onclick="viewDoc('${esc(path)}');return false">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 1h8l2 2v11H2V3L4 1z" stroke="currentColor" stroke-width="1.2"/></svg>
+      ${esc(key.toUpperCase())} — ${esc(path.split('/').pop())}
+    </a>` : ''
+  ).filter(Boolean).join('')
+
+  document.getElementById('drawer-body').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-section-title">Company Info</div>
+      <div class="field-grid">
+        <div class="field-item"><div class="field-label">Company Name</div><div class="field-value">${esc(e.companyName||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Registration #</div><div class="field-value mono">${esc(e.registrationNumber||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Business Type</div><div class="field-value">${esc(e.businessType||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Industry</div><div class="field-value">${esc(e.industry||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Size</div><div class="field-value">${esc(e.companySize||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Province</div><div class="field-value">${esc(e.province||'—')}</div></div>
+        <div class="field-item"><div class="field-label">City</div><div class="field-value">${esc(e.city||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Founded</div><div class="field-value">${esc(e.founded||'—')}</div></div>
+        <div class="field-item field-value full"><div class="field-label">Website</div><div class="field-value">${e.website?`<a href="${esc(e.website)}" target="_blank" style="color:var(--accent)">${esc(e.website)}</a>`:'—'}</div></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Contact Person</div>
+      <div class="field-grid">
+        <div class="field-item"><div class="field-label">Name</div><div class="field-value">${esc(e.contactFirstName||'')} ${esc(e.contactLastName||'')}</div></div>
+        <div class="field-item"><div class="field-label">Title</div><div class="field-value">${esc(e.contactTitle||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Email</div><div class="field-value mono">${esc(e.contactEmail||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Phone</div><div class="field-value mono">${esc(e.contactPhone||'—')}</div></div>
+        <div class="field-item"><div class="field-label">SA ID</div><div class="field-value mono">${esc(e.contactIdNumber||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Tenure</div><div class="field-value">${esc(e.contactTenure||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Self-authorised</div><div class="field-value">${e.selfAuthorised?'Yes':'No'}</div></div>
+      </div>
+    </div>
+
+    ${docLinks ? `<div class="drawer-section">
+      <div class="drawer-section-title">Verification Documents</div>
+      <div class="doc-links">${docLinks}</div>
+    </div>` : ''}
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Preferences</div>
+      <div class="field-grid">
+        <div class="field-item"><div class="field-label">Posts / Month</div><div class="field-value mono">${esc(e.postsPerMonth||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Ref</div><div class="field-value mono">${esc(e.verificationRef||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Submitted</div><div class="field-value">${fmtDate(e.submittedAt)}</div></div>
+        <div class="field-item"><div class="field-label">Registered</div><div class="field-value">${fmtDate(e.createdAt)}</div></div>
+        <div class="field-item"><div class="field-label">Hiring Provinces</div><div class="field-value">${esc((e.hiringProvinces||[]).join(', ')||'—')}</div></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Current Status</div>
+      <div class="field-grid">
+        <div class="field-item"><div class="field-label">Verification</div><div class="field-value">${vBadge(e.verificationStatus||'pending')}</div></div>
+        <div class="field-item"><div class="field-label">Plan</div><div class="field-value">${pBadge(e.plan, e.planStatus)}</div></div>
+        <div class="field-item"><div class="field-label">Renews</div><div class="field-value mono">${esc(e.planRenews||'—')}</div></div>
+        <div class="field-item"><div class="field-label">Rejection Reason</div><div class="field-value" style="color:var(--red)">${esc(e.rejectionReason||'—')}</div></div>
+      </div>
+    </div>
+
+    ${e.verificationStatus === 'submitted' || e.verificationStatus === 'approved' ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title" style="color:var(--green)">▸ Approve + Assign Plan</div>
+      <div class="approve-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Plan</label>
+            <select class="form-select" id="dr-plan">
+              <option value="Starter">Starter</option>
+              <option value="Growth" selected>Growth</option>
+              <option value="Enterprise">Enterprise</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Renews</label>
+            <input class="form-input" id="dr-renews" placeholder="e.g. 1 Jun 2026" value="${getDefaultRenews()}"/>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="doApprove('${esc(uid)}')">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Approve & Activate
+          </button>
+        </div>
+      </div>
+    </div>` : ''}
+
+    ${e.verificationStatus !== 'rejected' ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title" style="color:var(--red)">▸ Reject Application</div>
+      <div class="reject-row">
+        <input class="reject-input" id="dr-reject-reason" placeholder="Reason (optional — shown to employer)"/>
+        <button class="btn btn-danger" onclick="doReject('${esc(uid)}')">Reject</button>
+      </div>
+    </div>` : ''}
+
+    ${e.verificationStatus === 'approved' ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title" style="color:var(--purple)">▸ Update Plan</div>
+      <div class="approve-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Plan</label>
+            <select class="form-select" id="dr-update-plan">
+              <option value="Starter" ${e.plan==='Starter'?'selected':''}>Starter</option>
+              <option value="Growth"  ${e.plan==='Growth'?'selected':''}>Growth</option>
+              <option value="Enterprise" ${e.plan==='Enterprise'?'selected':''}>Enterprise</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="dr-update-status">
+              <option value="active"   ${e.planStatus==='active'?'selected':''}>Active</option>
+              <option value="expiring" ${e.planStatus==='expiring'?'selected':''}>Expiring</option>
+              <option value="expired"  ${e.planStatus==='expired'?'selected':''}>Expired</option>
+              <option value="inactive" ${e.planStatus==='inactive'?'selected':''}>Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Renews Date</label>
+          <input class="form-input" id="dr-update-renews" placeholder="e.g. 1 Sep 2026" value="${esc(e.planRenews||'')}"/>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-plan" onclick="doSetPlan('${esc(uid)}')">Update Plan</button>
+        </div>
+      </div>
+    </div>` : ''}
+  `
+
+  document.getElementById('drawer-footer').innerHTML = ''
+  document.getElementById('drawer-overlay').classList.add('open')
+  document.getElementById('employer-drawer').classList.add('open')
+
+  if (tab === 'plan') {
+    setTimeout(() => {
+      document.getElementById('dr-update-plan')?.scrollIntoView({ behavior:'smooth', block:'center' })
+    }, 300)
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open')
+  document.getElementById('employer-drawer').classList.remove('open')
+  currentDrawerUid = null
+}
+
+function getDefaultRenews() {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 1)
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+}
+
+// ── View verification document ─────────────────────────────────────────────
+window.viewDoc = async function(path) {
+  try {
+    const { ref, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js")
+    const { storage } = await import('./firebase.js')
+    const url = await getDownloadURL(ref(storage, path))
+    window.open(url, '_blank')
+  } catch (err) {
+    toast('Could not load document. Check Firebase Storage rules.', 'error')
+  }
+}
+
+// ── Approve ────────────────────────────────────────────────────────────────
+async function doApprove(uid) {
+  const plan    = document.getElementById('dr-plan')?.value    || 'Growth'
+  const renews  = document.getElementById('dr-renews')?.value  || ''
+  const btn     = event.target
+  btn.disabled  = true; btn.textContent = 'Approving…'
+  try {
+    await approveEmployer(uid, plan, renews)
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    if (emp) {
+      emp.verificationStatus = 'approved'
+      emp.verified    = true
+      emp.plan        = plan
+      emp.planStatus  = 'active'
+      emp.planRenews  = renews
+    }
+    toast(`✓ ${emp?.companyName || 'Employer'} approved on ${plan} plan`, 'success')
+    closeDrawer()
+    renderPending(); renderApproved(); renderAllEmployers(); renderDashboard(); updateTopStats()
+  } catch (err) {
+    toast('Approval failed: ' + err.message, 'error')
+    btn.disabled = false; btn.textContent = 'Approve & Activate'
+  }
+}
+
+async function quickApprove(uid) {
+  const plan   = 'Growth'
+  const renews = getDefaultRenews()
+  try {
+    await approveEmployer(uid, plan, renews)
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    if (emp) { emp.verificationStatus='approved'; emp.verified=true; emp.plan=plan; emp.planStatus='active'; emp.planRenews=renews }
+    toast(`✓ ${emp?.companyName||'Employer'} approved on ${plan}`, 'success')
+    renderPending(); renderApproved(); renderAllEmployers(); renderDashboard(); updateTopStats()
+  } catch (err) {
+    toast('Failed: ' + err.message, 'error')
+  }
+}
+
+// ── Reject ─────────────────────────────────────────────────────────────────
+async function doReject(uid) {
+  const reason = document.getElementById('dr-reject-reason')?.value.trim() || ''
+  const btn    = event.target
+  btn.disabled = true; btn.textContent = 'Rejecting…'
+  try {
+    await rejectEmployer(uid, reason)
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    if (emp) { emp.verificationStatus = 'rejected'; emp.verified = false; emp.rejectionReason = reason }
+    toast(`✗ ${emp?.companyName||'Employer'} rejected`, 'error')
+    closeDrawer()
+    renderPending(); renderApproved(); renderAllEmployers(); renderDashboard(); updateTopStats()
+  } catch (err) {
+    toast('Rejection failed: ' + err.message, 'error')
+    btn.disabled = false; btn.textContent = 'Reject'
+  }
+}
+
+async function quickReject(uid) {
+  if (!confirm('Reject this employer?')) return
+  try {
+    await rejectEmployer(uid, '')
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    if (emp) { emp.verificationStatus = 'rejected'; emp.verified = false }
+    toast(`✗ ${emp?.companyName||'Employer'} rejected`, 'error')
+    renderPending(); renderApproved(); renderAllEmployers(); renderDashboard(); updateTopStats()
+  } catch (err) {
+    toast('Failed: ' + err.message, 'error')
+  }
+}
+
+// ── Set plan ───────────────────────────────────────────────────────────────
+async function doSetPlan(uid) {
+  const plan      = document.getElementById('dr-update-plan')?.value   || 'Growth'
+  const planStatus= document.getElementById('dr-update-status')?.value || 'active'
+  const planRenews= document.getElementById('dr-update-renews')?.value || ''
+  const btn       = event.target
+  btn.disabled = true; btn.textContent = 'Updating…'
+  try {
+    await setEmployerPlan(uid, plan, planStatus, planRenews)
+    const emp = ALL_EMPLOYERS.find(e => e.uid === uid)
+    if (emp) { emp.plan = plan; emp.planStatus = planStatus; emp.planRenews = planRenews }
+    toast(`✓ Plan updated to ${plan} (${planStatus})`, 'success')
+    closeDrawer()
+    renderApproved(); renderAllEmployers()
+  } catch (err) {
+    toast('Update failed: ' + err.message, 'error')
+    btn.disabled = false; btn.textContent = 'Update Plan'
+  }
+}
+
+// ── Job actions ────────────────────────────────────────────────────────────
+async function doExpireJob(id) {
+  if (!confirm('Expire this listing?')) return
+  try {
+    await updateDoc(doc(db, 'jobs', id), { status: 'expired', updatedAt: serverTimestamp() })
+    const j = ALL_JOBS.find(x => x.id === id)
+    if (j) j.status = 'expired'
+    renderJobs(); updateTopStats()
+    toast('Job expired', 'success')
+  } catch (err) { toast('Failed: ' + err.message, 'error') }
+}
+async function doDeleteJob(id) {
+  if (!confirm('Permanently delete this job listing?')) return
+  try {
+    await deleteDoc(doc(db, 'jobs', id))
+    ALL_JOBS = ALL_JOBS.filter(j => j.id !== id)
+    renderJobs(); updateTopStats()
+    toast('Job deleted', 'success')
+  } catch (err) { toast('Failed: ' + err.message, 'error') }
+}
+
+// ── Panel switching ────────────────────────────────────────────────────────
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+  document.getElementById('panel-' + name).classList.add('active')
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  if (el) el.classList.add('active')
+  document.getElementById('topbar-section').textContent = name.replace(/-/g,' ').toUpperCase()
+  if (name === 'jobs') loadJobs()
+  if (name === 'alerts'  && !ALL_ALERTS.length)  loadAlerts()
+  if (name === 'invites' && !ALL_INVITES.length)  loadInvites()
+}
+
+// ── Table search filter ────────────────────────────────────────────────────
+function filterTable(tbodyId, q) {
+  const tbody = document.getElementById(tbodyId)
+  tbody.querySelectorAll('tr[data-search]').forEach(row => {
+    row.style.display = row.dataset.search.includes(q.toLowerCase()) ? '' : 'none'
+  })
+}
+function filterByPlan(val) {
+  const tbody = document.getElementById('approved-tbody')
+  tbody.querySelectorAll('tr[data-plan]').forEach(row => {
+    row.style.display = (val === 'all' || row.dataset.plan === val) ? '' : 'none'
+  })
+}
+function filterByStatus(val) {
+  const tbody = document.getElementById('all-employers-tbody')
+  tbody.querySelectorAll('tr[data-vstatus]').forEach(row => {
+    row.style.display = (val === 'all' || row.dataset.vstatus === val) ? '' : 'none'
+  })
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, type) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className   = 'show' + (type ? ' ' + type : '')
+  clearTimeout(t._timer)
+  t._timer = setTimeout(() => { t.className = '' }, 3000)
+}
+</script>
+</body>
+</html>

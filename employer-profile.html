@@ -461,14 +461,15 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { auth, db, storage, requireAuth, signOutEmployer } from './firebase.js'
-import { doc, getDoc, updateDoc,
-         deleteDoc, serverTimestamp }                       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { auth, db, storage, requireAuth, signOutEmployer, getEmployerProfile } from './firebase.js'
+import { doc, getDoc, updateDoc, deleteDoc,
+         collection, query, where, getDocs,
+         writeBatch, serverTimestamp }                                           from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 import { ref, uploadBytesResumable,
-         getDownloadURL, deleteObject }                     from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
-import { deleteUser }                                       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"
+         getDownloadURL, deleteObject }                                          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
+import { deleteUser }                                                            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"
 
-// ── Expose to inline handlers ──────────────────────────────────
+// ── Expose to inline handlers ──────────────────────────────────────────────
 window.markDirty           = markDirty
 window.updatePreview       = updatePreview
 window.selectColour        = selectColour
@@ -487,18 +488,53 @@ window.deactivateAccount   = deactivateAccount
 window.toggleSidebar       = () => document.getElementById('sidebar').classList.toggle('open')
 window.signOut             = signOutEmployer
 
-// ── State ──────────────────────────────────────────────────────
-let brandColour  = '#0099fa'
-let isDirty      = false
-let currentUid   = null
-let profile      = {}
-let logoFile     = null   // new logo file selected by user
+// ── State ──────────────────────────────────────────────────────────────────
+let brandColour = '#0099fa'
+let isDirty     = false
+let currentUid  = null
+let profile     = {}
+let logoFile    = null
 
-// ── Boot ───────────────────────────────────────────────────────
+// ── Boot ───────────────────────────────────────────────────────────────────
 const user = await requireAuth()
 currentUid = user.uid
+
+// Verification gate
+const profileCheck = await getEmployerProfile(currentUid)
+if (profileCheck) {
+  const vStatus = profileCheck.verificationStatus || 'pending'
+  if (vStatus !== 'approved') {
+    showAccessBlock(
+      vStatus === 'submitted' ? 'Verification under review' : 'Access restricted',
+      vStatus === 'submitted'
+        ? 'Your verification is being reviewed. You will receive an email once approved.'
+        : 'Your account must be verified before accessing the profile editor.',
+      vStatus === 'pending' ? 'Complete verification' : null,
+      vStatus === 'pending' ? 'verify.html' : null
+    )
+    throw new Error('access_blocked')
+  }
+}
+
 await loadProfile()
 
+// ── Access block screen ────────────────────────────────────────────────────
+function showAccessBlock(title, message, btnText, btnHref) {
+  document.querySelector('.main') && (document.querySelector('.main').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;">
+      <div style="max-width:460px;width:100%;text-align:center;">
+        <div style="width:56px;height:56px;background:var(--amber-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:var(--amber);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 15v.5" stroke-linecap="round"/></svg>
+        </div>
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:10px;">${title}</h2>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">${message}</p>
+        ${btnText && btnHref ? `<a href="${btnHref}" style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#fff;background:var(--accent);padding:11px 24px;border-radius:50px;text-decoration:none;">${btnText} →</a>` : ''}
+        <div style="margin-top:16px;"><button onclick="signOut()" style="font-family:var(--font);font-size:13px;color:var(--text-muted);background:none;border:none;cursor:pointer;">Sign out</button></div>
+      </div>
+    </div>`)
+}
+
+// ── Load profile ───────────────────────────────────────────────────────────
 async function loadProfile() {
   const snap = await getDoc(doc(db, 'employers', currentUid))
   if (!snap.exists()) return
@@ -507,9 +543,11 @@ async function loadProfile() {
   const slug = profile.slug || generateSlug(profile.companyName || '')
 
   // Sidebar
-  document.getElementById('sb-co-name').textContent    = profile.companyName || '—'
-  document.getElementById('sb-plan-name').textContent  = profile.plan        || 'No plan'
-  document.getElementById('sb-plan-renews').textContent= profile.planRenews  ? 'Renews ' + profile.planRenews : ''
+  document.getElementById('sb-co-name').textContent     = profile.companyName || '—'
+  document.getElementById('sb-plan-name').textContent   = profile.plan        || 'No plan'
+  document.getElementById('sb-plan-renews').textContent = profile.planRenews  ? 'Renews ' + profile.planRenews : ''
+  const verifiedBadge = document.getElementById('sb-co-verified')
+  if (verifiedBadge) verifiedBadge.style.display = profile.verified ? 'inline-flex' : 'none'
 
   // Form fields
   setField('f-name',       profile.companyName  || '')
@@ -525,10 +563,9 @@ async function loadProfile() {
 
   // Brand colour
   brandColour = profile.brandColour || '#0099fa'
-  document.getElementById('colour-hex').value                    = brandColour
-  document.getElementById('colour-picker').value                 = brandColour
+  document.getElementById('colour-hex').value                       = brandColour
+  document.getElementById('colour-picker').value                    = brandColour
   document.getElementById('colour-preview-swatch').style.background = brandColour
-  // Highlight matching swatch if any
   document.querySelectorAll('.colour-swatch').forEach(s => {
     s.classList.toggle('selected', s.dataset.colour === brandColour)
   })
@@ -555,25 +592,23 @@ async function loadProfile() {
   })
 
   // Subdomain
-  document.getElementById('subdomain-url').textContent  = slug + '.cronos.co.za'
-  document.getElementById('view-page-btn').href          = 'https://' + slug + '.cronos.co.za'
+  document.getElementById('subdomain-url').textContent = slug + '.cronos.co.za'
+  document.getElementById('view-page-btn').href         = 'https://' + slug + '.cronos.co.za'
 
   countChars('f-about', 'about-count', 50, 800)
   updatePreview()
   markClean()
 }
 
+// ── Field helpers ──────────────────────────────────────────────────────────
 function setField(id, val) {
-  const el = document.getElementById(id)
-  if (!el) return
-  el.value = val
+  const el = document.getElementById(id); if (!el) return; el.value = val
 }
-
 function generateSlug(name) {
-  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, '')
 }
 
-// ── Dirty state ────────────────────────────────────────────────
+// ── Dirty state ────────────────────────────────────────────────────────────
 function markDirty() {
   isDirty = true
   document.getElementById('unsaved-dot').classList.add('show')
@@ -585,7 +620,7 @@ function markClean() {
   document.getElementById('save-btn').disabled = true
 }
 
-// ── Live preview ───────────────────────────────────────────────
+// ── Live preview ───────────────────────────────────────────────────────────
 function updatePreview() {
   const name  = document.getElementById('f-name').value.trim()  || profile.companyName || 'Your Company'
   const hq    = document.getElementById('f-hq').value.trim()
@@ -596,14 +631,16 @@ function updatePreview() {
   document.getElementById('prev-industry').textContent = ind
   document.getElementById('prev-about').textContent    = about
   const abbr = name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  document.getElementById('prev-logo-abbr') && (document.getElementById('prev-logo-abbr').textContent = abbr)
-  document.getElementById('logo-abbr')      && (document.getElementById('logo-abbr').textContent      = abbr)
+  const prevLogoAbbr = document.getElementById('prev-logo-abbr')
+  const logoAbbr     = document.getElementById('logo-abbr')
+  if (prevLogoAbbr) prevLogoAbbr.textContent = abbr
+  if (logoAbbr)     logoAbbr.textContent     = abbr
   document.getElementById('prev-cover').style.background = brandColour
   if (!profile.logoUrl && !logoFile) document.getElementById('prev-logo').style.background = brandColour
   document.getElementById('sb-co-name').textContent = name
 }
 
-// ── Colour picker ──────────────────────────────────────────────
+// ── Colour picker ──────────────────────────────────────────────────────────
 function selectColour(hex, el) {
   brandColour = hex
   document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'))
@@ -630,7 +667,7 @@ function applyHexInput(val) {
   }
 }
 
-// ── Char counter ───────────────────────────────────────────────
+// ── Char counter ───────────────────────────────────────────────────────────
 function countChars(fId, cId, min, max) {
   const v  = document.getElementById(fId).value
   const el = document.getElementById(cId)
@@ -638,10 +675,11 @@ function countChars(fId, cId, min, max) {
   el.className   = 'char-counter' + (v.length > max ? ' over' : v.length > max * 0.85 ? ' warn' : '')
 }
 
-// ── Logo upload ────────────────────────────────────────────────
+// ── Logo upload ────────────────────────────────────────────────────────────
 function handleLogoUpload(input) {
   const file = input.files[0]; if (!file) return
-  if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB'); return }
+  if (!file.type.startsWith('image/')) { showToast('Please upload an image file.', true); return }
+  if (file.size > 2 * 1024 * 1024)    { showToast('Logo must be under 2MB.', true); return }
   logoFile = file
   const reader = new FileReader()
   reader.onload = e => {
@@ -653,6 +691,7 @@ function handleLogoUpload(input) {
   }
   reader.readAsDataURL(file)
 }
+
 function removeLogo() {
   logoFile = null
   profile.logoUrl = null
@@ -665,14 +704,14 @@ function removeLogo() {
   markDirty()
 }
 
-// ── Provinces ──────────────────────────────────────────────────
+// ── Provinces ──────────────────────────────────────────────────────────────
 function toggleProv(el) {
   el.classList.toggle('checked')
   el.querySelector('input').checked = el.classList.contains('checked')
   markDirty()
 }
 
-// ── Subdomain copy ─────────────────────────────────────────────
+// ── Subdomain copy ─────────────────────────────────────────────────────────
 function copySubdomain() {
   const slug = profile.slug || generateSlug(document.getElementById('f-name').value.trim())
   const url  = 'https://' + slug + '.cronos.co.za'
@@ -683,24 +722,31 @@ function copySubdomain() {
   })
 }
 
-// ── Save profile to Firestore ──────────────────────────────────
+// ── Save profile ───────────────────────────────────────────────────────────
 async function saveProfile() {
   const btn = document.getElementById('save-btn')
   btn.disabled = true
-  btn.textContent = 'Saving…'
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Saving…'
 
   try {
     // 1. Upload new logo if selected
     let logoUrl = profile.logoUrl || null
     if (logoFile) {
+      // Delete old logo from Storage if exists
+      if (profile.logoUrl) {
+        try {
+          const oldPath = decodeURIComponent(profile.logoUrl.split('/o/')[1].split('?')[0])
+          await deleteObject(ref(storage, oldPath))
+        } catch (e) { /* old logo may not exist — continue */ }
+      }
       const logoPath = `logos/${currentUid}/logo_${Date.now()}_${logoFile.name.replace(/\s+/g,'_')}`
-      const uploadTask = uploadBytesResumable(ref(storage, logoPath), logoFile)
       await new Promise((resolve, reject) => {
-        uploadTask.on('state_changed', null, reject, resolve)
+        uploadBytesResumable(ref(storage, logoPath), logoFile).on('state_changed', null, reject, resolve)
       })
       logoUrl = await getDownloadURL(ref(storage, logoPath))
       logoFile = null
-    } else if (!profile.logoUrl) {
+    } else if (profile.logoUrl === null) {
+      // Logo was explicitly removed
       logoUrl = null
     }
 
@@ -708,56 +754,84 @@ async function saveProfile() {
     const hiringProvinces = [...document.querySelectorAll('.prov-item.checked .prov-label')]
       .map(el => el.textContent)
 
-    // 3. Build update object
+    // 3. Always regenerate slug from current company name
+    const companyName = document.getElementById('f-name').value.trim()
+    const newSlug     = generateSlug(companyName)
+
+    // 4. Build update object
     const updates = {
-      companyName:      document.getElementById('f-name').value.trim(),
-      industry:         document.getElementById('f-industry').value,
-      companySize:      document.getElementById('f-size').value,
-      province:         document.getElementById('f-hq').value.trim(),
-      founded:          document.getElementById('f-founded').value.trim()   || null,
-      website:          document.getElementById('f-website').value.trim()   || null,
-      linkedin:         document.getElementById('f-linkedin').value.trim()  || null,
-      about:            document.getElementById('f-about').value.trim(),
-      appEmail:         document.getElementById('f-app-email').value.trim(),
-      replyName:        document.getElementById('f-reply-name').value.trim()|| null,
+      companyName,
+      slug:        newSlug,
+      industry:    document.getElementById('f-industry').value,
+      companySize: document.getElementById('f-size').value,
+      province:    document.getElementById('f-hq').value.trim(),
+      founded:     document.getElementById('f-founded').value.trim()   || null,
+      website:     document.getElementById('f-website').value.trim()   || null,
+      linkedin:    document.getElementById('f-linkedin').value.trim()  || null,
+      about:       document.getElementById('f-about').value.trim(),
+      appEmail:    document.getElementById('f-app-email').value.trim(),
+      replyName:   document.getElementById('f-reply-name').value.trim() || null,
       brandColour,
       hiringProvinces,
       logoUrl,
-      updatedAt:        serverTimestamp(),
+      updatedAt:   serverTimestamp(),
     }
 
-    // Also generate slug if not already set
-    if (!profile.slug) {
-      updates.slug = generateSlug(updates.companyName)
-    }
-
-    // 4. Save to Firestore
+    // 5. Save employer profile
     await updateDoc(doc(db, 'employers', currentUid), updates)
     Object.assign(profile, updates)
 
-    markClean()
-    showToast('Profile saved successfully')
+    // 6. Propagate branding changes to all active job listings
+    // So index.html, company.html, job-detail.html show updated logo/name/colour
+    try {
+      const jobsSnap = await getDocs(
+        query(collection(db, 'jobs'),
+          where('employerId', '==', currentUid),
+          where('status', 'in', ['live', 'draft', 'paused']))
+      )
+      if (!jobsSnap.empty) {
+        const batch = writeBatch(db)
+        jobsSnap.docs.forEach(d => {
+          batch.update(d.ref, {
+            employerName: companyName,
+            slug:         newSlug,
+            logoUrl:      logoUrl,
+            brandColour:  brandColour,
+            updatedAt:    serverTimestamp(),
+          })
+        })
+        await batch.commit()
+      }
+    } catch (e) { /* non-critical — jobs will update on next post */ }
 
-    // Update sidebar
-    document.getElementById('sb-co-name').textContent = updates.companyName
+    // 7. Update subdomain display
+    document.getElementById('subdomain-url').textContent = newSlug + '.cronos.co.za'
+    document.getElementById('view-page-btn').href         = 'https://' + newSlug + '.cronos.co.za'
+    document.getElementById('sb-co-name').textContent     = companyName
+
+    markClean()
+    showToast('Profile saved successfully ✓')
 
   } catch (err) {
-    showToast('Save failed. Please try again.')
+    showToast('Save failed. Please try again.', true)
     btn.disabled = false
   } finally {
-    btn.textContent = 'Save changes'
+    btn.innerHTML = 'Save changes'
     if (!isDirty) btn.disabled = true
   }
 }
 
-// ── Toast ──────────────────────────────────────────────────────
-function showToast(msg) {
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
   const t = document.getElementById('toast')
-  t.textContent = msg; t.classList.add('show')
-  setTimeout(() => t.classList.remove('show'), 2800)
+  t.textContent = msg
+  t.style.background = isError ? 'var(--red)' : ''
+  t.classList.add('show')
+  clearTimeout(t._timer)
+  t._timer = setTimeout(() => { t.classList.remove('show'); t.style.background = ''; }, 2800)
 }
 
-// ── Deactivate account ─────────────────────────────────────────
+// ── Deactivate account ─────────────────────────────────────────────────────
 function openDeactivateModal() {
   document.getElementById('deactivate-modal').classList.add('open')
 }
@@ -765,24 +839,39 @@ function closeModal(e) {
   if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open')
 }
 async function deactivateAccount() {
+  const btn = document.querySelector('.modal-confirm-danger')
+  if (btn) { btn.disabled = true; btn.textContent = 'Deactivating…' }
   try {
-    // Delete Firestore employer doc
-    await deleteDoc(doc(db, 'employers', currentUid))
-    // Delete Firebase Auth user
-    await deleteUser(auth.currentUser)
-    showToast('Account deactivated. Redirecting…')
-    setTimeout(() => window.location.href = 'employer-login.html', 2000)
-  } catch (err) {
-    // Firebase requires recent login for deleteUser — prompt re-login if needed
-    if (err.code === 'auth/requires-recent-login') {
-      showToast('Please sign out and sign back in before deactivating.')
-    } else {
-      showToast('Could not deactivate. Please contact support.')
+    // 1. Delete all job listings for this employer
+    const jobsSnap = await getDocs(
+      query(collection(db, 'jobs'), where('employerId', '==', currentUid))
+    )
+    if (!jobsSnap.empty) {
+      const batch = writeBatch(db)
+      jobsSnap.docs.forEach(d => batch.delete(d.ref))
+      await batch.commit()
     }
+
+    // 2. Delete Firestore employer document
+    await deleteDoc(doc(db, 'employers', currentUid))
+
+    // 3. Delete Firebase Auth user
+    await deleteUser(auth.currentUser)
+
+    showToast('Account deactivated. Redirecting…')
+    setTimeout(() => window.location.replace('index.html'), 2000)
+
+  } catch (err) {
+    if (err.code === 'auth/requires-recent-login') {
+      showToast('Please sign out and sign back in before deactivating.', true)
+    } else {
+      showToast('Could not deactivate. Please contact support@cronos.co.za', true)
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Yes, deactivate' }
   }
 }
 
-// ── Keyboard shortcuts ─────────────────────────────────────────
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (isDirty) saveProfile() }
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'))
@@ -793,5 +882,6 @@ document.addEventListener('click', e => {
     document.getElementById('sidebar').classList.remove('open')
 })
 </script>
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 </body>
 </html>

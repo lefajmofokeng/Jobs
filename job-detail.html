@@ -391,14 +391,14 @@ body{font-family:'Circular',-apple-system,sans-serif;background:var(--bg);color:
 </footer>
 
 <script type="module">
-import { db }                    from './firebase.js'
-import { doc, getDoc }           from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { db }           from './firebase.js'
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-// ── Expose to inline handlers ──────────────────────
+// ── Expose to inline handlers ──────────────────────────────────────────────
 window.toggleSave = toggleSave
 window.copyLink   = copyLink
 
-// ── Helpers ────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 function getJobId() {
   const p = new URLSearchParams(window.location.search)
   return p.get('id') || p.get('job') || null
@@ -410,6 +410,7 @@ function fmtDate(iso) {
 function fmtTimestamp(val) {
   if (!val) return '—'
   const d = val?.toDate ? val.toDate() : new Date(val)
+  if (isNaN(d)) return '—'
   return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
 }
 function daysUntil(iso, time) {
@@ -419,12 +420,14 @@ function daysUntil(iso, time) {
 function typeLabel(t) {
   return t === 'full-time' ? 'Full-time' : t === 'part-time' ? 'Part-time' : 'Contract'
 }
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
 
-// ── Saved state (localStorage) ─────────────────────
+// ── Saved state ────────────────────────────────────────────────────────────
 let currentJobId = null
 function isSaved(id) {
-  const saved = JSON.parse(localStorage.getItem('cronos_saved') || '[]')
-  return saved.includes(id)
+  return JSON.parse(localStorage.getItem('cronos_saved') || '[]').includes(id)
 }
 function toggleSave() {
   const saved = new Set(JSON.parse(localStorage.getItem('cronos_saved') || '[]'))
@@ -433,7 +436,7 @@ function toggleSave() {
   updateSaveButtons()
 }
 function updateSaveButtons() {
-  const saved = isSaved(currentJobId)
+  const saved     = isSaved(currentJobId)
   const headerBtn = document.getElementById('header-save-btn')
   const sbBtn     = document.getElementById('sb-save-btn')
   if (headerBtn) {
@@ -446,7 +449,7 @@ function updateSaveButtons() {
   }
 }
 
-// ── Copy link ──────────────────────────────────────
+// ── Copy link ──────────────────────────────────────────────────────────────
 function copyLink() {
   navigator.clipboard.writeText(window.location.href).then(() => {
     const btn     = document.getElementById('header-share-btn')
@@ -466,92 +469,132 @@ function copyLink() {
   })
 }
 
-// ── Boot: load job from Firestore ──────────────────
+// ── Boot ───────────────────────────────────────────────────────────────────
 async function boot() {
   const jobId = getJobId()
-  if (!jobId) { document.getElementById('not-found').style.display = 'block'; return }
-
+  if (!jobId) { showNotFound(); return }
   currentJobId = jobId
 
   try {
     const snap = await getDoc(doc(db, 'jobs', jobId))
-    if (!snap.exists()) { document.getElementById('not-found').style.display = 'block'; return }
+    if (!snap.exists()) { showNotFound(); return }
 
     const j    = { id: snap.id, ...snap.data() }
     const days = daysUntil(j.closes, j.closesTime)
 
-    // If job is expired, show a notice but still display the content
-    if (j.status === 'expired' || days < 0) {
-      const notice = document.createElement('div')
-      notice.style.cssText = 'background:#fef2f2;border:1px solid #fca9a9;color:#b91c1c;padding:12px 20px;font-size:13px;font-weight:600;text-align:center;'
-      notice.textContent   = 'This job listing has closed and is no longer accepting applications.'
-      document.body.insertBefore(notice, document.body.firstChild)
+    // Block draft and paused jobs from public view
+    if (j.status === 'draft' || j.status === 'paused') {
+      showNotFound(); return
     }
 
-    const abbr  = (j.employerName || 'CO').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
-    const color = j.brandColour || '#0099fa'
-    const applyUrl = `apply.html?id=${j.id}`
+    const isClosed = j.status === 'expired' || days < 0
+    const abbr     = (j.employerName || 'CO').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    const color    = j.brandColour || '#0099fa'
+    const applyUrl = isClosed ? null : `apply.html?id=${j.id}`
 
-    // Page meta
+    // ── Page meta ──────────────────────────────────────────────
     document.title = `${j.title} at ${j.employerName || ''} — Cronos Jobs`
     document.getElementById('og-title')?.setAttribute('content', `${j.title} at ${j.employerName || ''}`)
     document.getElementById('og-desc')?.setAttribute('content',  (j.description || '').slice(0, 160))
     document.getElementById('meta-desc')?.setAttribute('content', (j.description || '').slice(0, 160))
     document.getElementById('bc-title').textContent = j.title
 
-    // Logo
-    const logoWrap = document.getElementById('co-logo-wrap')
-    if (j.logoUrl) {
-      logoWrap.innerHTML = `<img src="${j.logoUrl}" alt="${j.employerName}" onerror="this.outerHTML='<span class=co-logo-fallback>${abbr}</span>'">`
-    } else {
-      const abbrEl = document.getElementById('co-logo-abbr')
-      if (abbrEl) abbrEl.textContent = abbr
+    // ── Expired notice ─────────────────────────────────────────
+    if (isClosed) {
+      const notice = document.createElement('div')
+      notice.style.cssText = 'background:#fef2f2;border-bottom:1px solid #fca9a9;color:#b91c1c;padding:12px 20px;font-size:13px;font-weight:600;text-align:center;position:sticky;top:0;z-index:200;'
+      notice.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="display:inline;vertical-align:middle;margin-right:6px;"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5M8 11v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>This listing has closed and is no longer accepting applications.`
+      document.body.insertBefore(notice, document.body.firstChild)
     }
 
-    // Header
-    document.getElementById('jd-title').textContent         = j.title
-    document.getElementById('jd-company-link').textContent  = j.employerName || '—'
-    document.getElementById('jd-company-link').href         = j.slug ? `https://${j.slug}.cronos.co.za` : '#'
-    document.getElementById('jd-location').textContent      = [j.city, j.province].filter(Boolean).join(', ')
-    document.getElementById('jd-type').textContent          = typeLabel(j.type)
-    document.getElementById('jd-dept').textContent          = j.department || '—'
-    document.getElementById('jd-posted').textContent        = fmtTimestamp(j.createdAt)
+    // ── Logo ───────────────────────────────────────────────────
+    const logoWrap = document.getElementById('co-logo-wrap')
+    if (j.logoUrl) {
+      logoWrap.innerHTML = `<img src="${j.logoUrl}" alt="${esc(j.employerName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span style="display:none;font-size:20px;font-weight:700;color:${color}">${esc(abbr)}</span>`
+    } else {
+      logoWrap.style.background = color + '20'
+      const abbrEl = document.getElementById('co-logo-abbr')
+      if (abbrEl) { abbrEl.textContent = abbr; abbrEl.style.color = color }
+    }
 
+    // ── Header fields ──────────────────────────────────────────
+    document.getElementById('jd-title').textContent        = j.title
+    const companyLink = document.getElementById('jd-company-link')
+    companyLink.textContent = j.employerName || '—'
+    companyLink.href        = j.slug ? `https://${j.slug}.cronos.co.za` : `company.html?company=${j.slug || ''}`
+
+    document.getElementById('jd-location').textContent = [j.city, j.province].filter(Boolean).join(', ')
+    document.getElementById('jd-type').textContent     = typeLabel(j.type)
+    document.getElementById('jd-dept').textContent     = j.department || '—'
+    document.getElementById('jd-posted').textContent   = fmtTimestamp(j.createdAt)
+
+    // Closing date
     const closesEl = document.getElementById('jd-closes')
     closesEl.textContent = `${fmtDate(j.closes)} at ${j.closesTime || '17:00'}`
     if (days <= 5 && days >= 0) closesEl.classList.add('closing-soon')
 
+    // Urgency badge
     const urgency = document.getElementById('jd-urgency')
-    if (days < 0)       { urgency.style.display = 'inline-block'; urgency.textContent = 'Closed' }
-    else if (days === 0){ urgency.style.display = 'inline-block'; urgency.textContent = 'Closes today' }
-    else if (days <= 3) { urgency.style.display = 'inline-block'; urgency.textContent = `Closing in ${days} day${days !== 1 ? 's' : ''}` }
+    if (isClosed)        { urgency.style.display = 'inline-block'; urgency.textContent = 'Closed' }
+    else if (days === 0) { urgency.style.display = 'inline-block'; urgency.textContent = 'Closes today' }
+    else if (days <= 3)  { urgency.style.display = 'inline-block'; urgency.textContent = `Closing in ${days} day${days !== 1 ? 's' : ''}` }
 
-    // Apply bar
-    document.getElementById('ab-company').textContent = j.employerName || '—'
-    document.getElementById('ab-city').textContent    = j.city || '—'
-    document.getElementById('apply-btn').href         = applyUrl
-
-    // Body content
-    document.getElementById('jd-desc').textContent = j.description || ''
-    document.getElementById('jd-responsibilities').innerHTML = (j.responsibilities || []).map(r => `<li>${r}</li>`).join('')
-    document.getElementById('jd-requirements').innerHTML     = (j.requirements    || []).map(r => `<li>${r}</li>`).join('')
-
-    // Sidebar
-    const sbLogoWrap = document.getElementById('sb-logo-wrap')
-    if (j.logoUrl) {
-      sbLogoWrap.innerHTML = `<img src="${j.logoUrl}" alt="${j.employerName}" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.outerHTML='<span style=font-size:16px;font-weight:700;color:${color}>${abbr}</span>'">`
-    } else {
-      const sbAbbr = document.getElementById('sb-logo-abbr')
-      if (sbAbbr) sbAbbr.textContent = abbr
+    // Remote work (if set)
+    if (j.remote && j.remote !== 'no') {
+      const remoteLabel = j.remote === 'yes' ? 'Remote' : j.remote === 'hybrid' ? 'Hybrid' : j.remote
+      const metaList = document.querySelector('.job-meta-list')
+      if (metaList) {
+        const remoteItem = document.createElement('div')
+        remoteItem.className = 'job-meta-item'
+        remoteItem.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M6 6V5a4 4 0 018 0v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="12" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+          <div><span class="job-meta-label">Remote work</span><span class="job-meta-value">${esc(remoteLabel)}</span></div>`
+        metaList.appendChild(remoteItem)
+      }
     }
 
-    document.getElementById('sb-company').textContent  = j.employerName || '—'
-    document.getElementById('sb-apply-btn').href        = applyUrl
-    document.getElementById('sb-location').textContent  = [j.city, j.province].filter(Boolean).join(', ')
-    document.getElementById('sb-type').textContent      = typeLabel(j.type)
-    document.getElementById('sb-dept').textContent      = j.department || '—'
+    // ── Apply bar ──────────────────────────────────────────────
+    document.getElementById('ab-company').textContent = j.employerName || '—'
+    document.getElementById('ab-city').textContent    = j.city || '—'
+    const applyBtn = document.getElementById('apply-btn')
+    if (isClosed) {
+      applyBtn.textContent  = 'Applications closed'
+      applyBtn.style.cssText = 'opacity:0.5;cursor:not-allowed;pointer-events:none;'
+    } else {
+      applyBtn.href = applyUrl
+    }
 
-    const sbOpenings = document.getElementById('sb-openings')
+    // ── Body content ───────────────────────────────────────────
+    document.getElementById('jd-desc').textContent = j.description || ''
+    document.getElementById('jd-responsibilities').innerHTML = (j.responsibilities || []).map(r => `<li>${esc(r)}</li>`).join('')
+    document.getElementById('jd-requirements').innerHTML     = (j.requirements    || []).map(r => `<li>${esc(r)}</li>`).join('')
+
+    // ── Sidebar ────────────────────────────────────────────────
+    const sbLogoWrap = document.getElementById('sb-logo-wrap')
+    if (j.logoUrl) {
+      sbLogoWrap.innerHTML = `<img src="${j.logoUrl}" alt="${esc(j.employerName)}" style="width:100%;height:100%;object-fit:contain;padding:6px;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span style="display:none;font-size:16px;font-weight:700;color:${color}">${esc(abbr)}</span>`
+    } else {
+      sbLogoWrap.style.background = color + '20'
+      const sbAbbr = document.getElementById('sb-logo-abbr')
+      if (sbAbbr) { sbAbbr.textContent = abbr; sbAbbr.style.color = color }
+    }
+
+    document.getElementById('sb-company').textContent = j.employerName || '—'
+    document.getElementById('sb-location').textContent = [j.city, j.province].filter(Boolean).join(', ')
+    document.getElementById('sb-type').textContent     = typeLabel(j.type)
+    document.getElementById('sb-dept').textContent     = j.department || '—'
+
+    const sbApplyBtn = document.getElementById('sb-apply-btn')
+    if (isClosed) {
+      sbApplyBtn.textContent  = 'Applications closed'
+      sbApplyBtn.style.cssText = 'opacity:0.5;cursor:not-allowed;pointer-events:none;background:var(--border-strong);'
+    } else {
+      sbApplyBtn.href = applyUrl
+    }
+
+    // Openings
+    const sbOpenings     = document.getElementById('sb-openings')
     const sbOpeningsWrap = document.getElementById('sb-openings-wrap')
     if (sbOpenings && sbOpeningsWrap) {
       if (j.slots > 1) { sbOpenings.textContent = j.slots + ' positions' }
@@ -562,25 +605,31 @@ async function boot() {
     const shareInput = document.getElementById('share-url-input')
     if (shareInput) shareInput.value = window.location.origin + window.location.pathname + '?id=' + j.id
 
-    // Save button initial state
     updateSaveButtons()
-
-    // Show page
     document.getElementById('page-content').style.display = 'block'
 
   } catch (err) {
-    document.getElementById('not-found').style.display = 'block'
     console.error('Error loading job:', err)
+    showNotFound()
   }
+}
+
+function showNotFound() {
+  document.getElementById('not-found').style.display = 'block'
+  document.getElementById('bc-title').textContent = 'Not found'
 }
 
 boot()
 
-// ── Nav hamburger ──────────────────────────────────
+// ── Nav hamburger ──────────────────────────────────────────────────────────
 const hamburger = document.getElementById('nav-hamburger')
 const drawer    = document.getElementById('nav-drawer')
 hamburger.addEventListener('click', () => { const o = drawer.classList.toggle('open'); hamburger.classList.toggle('open', o) })
-document.addEventListener('click', e => { if (!e.target.closest('.nav') && !e.target.closest('.nav-drawer')) { drawer.classList.remove('open'); hamburger.classList.remove('open') } })
+document.addEventListener('click', e => {
+  if (!e.target.closest('.nav') && !e.target.closest('.nav-drawer')) {
+    drawer.classList.remove('open'); hamburger.classList.remove('open')
+  }
+})
 </script>
 </body>
 </html>

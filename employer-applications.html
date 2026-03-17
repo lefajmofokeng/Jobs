@@ -699,13 +699,13 @@ td:first-child{padding-left:16px;}
 
 <!-- ── SCRIPT ─────────────────────────────────── -->
 <script type="module">
-import { auth, db, storage, requireAuth, signOutEmployer } from './firebase.js'
+import { auth, db, storage, requireAuth, signOutEmployer, getEmployerProfile } from './firebase.js'
 import { collection, doc, getDoc, getDocs,
          query, where, orderBy,
-         updateDoc, serverTimestamp }                       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
-import { ref, getDownloadURL }                             from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
+         updateDoc, serverTimestamp }                                             from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { ref, getDownloadURL }                                                   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
 
-// ── Expose functions to inline handlers ───────────────────────
+// ── Expose to inline handlers ──────────────────────────────────────────────
 window.setStatusTab    = setStatusTab
 window.handleSearch    = handleSearch
 window.openDrawerById  = openDrawerById
@@ -722,52 +722,102 @@ window.exportCSV       = exportCSV
 window.signOut         = signOutEmployer
 window.toggleSidebar   = () => document.getElementById('sidebar').classList.toggle('open')
 
-// ── State ──────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
 let APPS        = []
-let ALL_APPS    = []   // unfiltered master list
+let ALL_APPS    = []
 let selectedIds = new Set()
 let activeStatus = 'all'
 let searchTimer  = null
 let currentApp   = null
-let cvCache      = {}  // appId → { url, mime, filename, expiresAt }
+let cvCache      = {}
 let currentUid   = null
 
-// ── Boot ───────────────────────────────────────────────────────
+// ── Boot ───────────────────────────────────────────────────────────────────
 const user = await requireAuth()
 currentUid = user.uid
 
-// Load sidebar profile
-const profileSnap = await getDoc(doc(db, 'employers', currentUid))
-if (profileSnap.exists()) {
-  const p = profileSnap.data()
-  document.getElementById('sb-co-name').textContent   = p.companyName || p.displayName || '—'
-  document.getElementById('sb-plan-name').textContent  = p.plan || 'No plan'
-  document.getElementById('sb-plan-renews').textContent = p.planRenews ? 'Renews ' + p.planRenews : ''
+// Load + check employer profile
+const profile = await getEmployerProfile(currentUid)
+if (profile) {
+  // Sidebar
+  document.getElementById('sb-co-name').textContent    = profile.companyName || profile.displayName || '—'
+  document.getElementById('sb-plan-name').textContent  = profile.plan        || 'No plan'
+  const renewsEl = document.getElementById('sb-plan-renews')
+  if (renewsEl) renewsEl.textContent = profile.planRenews ? 'Renews ' + profile.planRenews : ''
+
+  // Verified badge
+  const verifiedBadge = document.getElementById('sb-co-verified')
+  if (verifiedBadge) verifiedBadge.style.display = profile.verified ? 'inline-flex' : 'none'
+
+  // Verification gate — must be approved to access
+  const vStatus = profile.verificationStatus || 'pending'
+  if (vStatus !== 'approved') {
+    showAccessBlock(
+      vStatus === 'submitted' ? 'Verification under review' : 'Access restricted',
+      vStatus === 'submitted'
+        ? 'Your verification is being reviewed. You will receive an email once approved.'
+        : 'Your account must be verified before you can access applications.',
+      vStatus === 'pending' ? 'Complete verification' : null,
+      vStatus === 'pending' ? 'verify.html' : null
+    )
+    throw new Error('access_blocked')
+  }
 }
 
 await loadApplications()
 
-// Auto-open drawer if linked with ?highlight=appId
+// Auto-open drawer if linked via ?highlight=appId
 const highlightId = new URLSearchParams(location.search).get('highlight')
 if (highlightId) openDrawerById(highlightId)
 
-// ── Load applications from Firestore ──────────────────────────
+// ── Access block screen ────────────────────────────────────────────────────
+function showAccessBlock(title, message, btnText, btnHref) {
+  document.querySelector('.main-content') && (document.querySelector('.main-content').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;min-height:60vh;padding:40px 24px;">
+      <div style="max-width:460px;width:100%;text-align:center;">
+        <div style="width:56px;height:56px;background:var(--amber-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:var(--amber);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 15v.5" stroke-linecap="round"/></svg>
+        </div>
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:10px;">${title}</h2>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">${message}</p>
+        ${btnText && btnHref ? `<a href="${btnHref}" style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#fff;background:var(--accent);padding:11px 24px;border-radius:50px;text-decoration:none;">${btnText} →</a>` : ''}
+      </div>
+    </div>`)
+}
+
+// ── Load applications from Firestore ───────────────────────────────────────
 async function loadApplications() {
   document.getElementById('loading-state').style.display = 'block'
   document.getElementById('empty-state').style.display   = 'none'
   document.getElementById('apps-tbody').innerHTML        = ''
 
-  // Fetch all applications for this employer
-  const snap = await getDocs(
-    query(collection(db, 'applications'),
-      where('employerId', '==', currentUid),
-      orderBy('createdAt', 'desc'))
-  )
-  ALL_APPS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  try {
+    const snap = await getDocs(
+      query(collection(db, 'applications'),
+        where('employerId', '==', currentUid),
+        orderBy('createdAt', 'desc'))
+    )
+    ALL_APPS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } catch (err) {
+    // Fallback: load without ordering if index doesn't exist yet
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'applications'), where('employerId', '==', currentUid))
+      )
+      ALL_APPS = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
+          const db_ = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
+          return db_ - da
+        })
+    } catch (e) {
+      ALL_APPS = []
+      showToast('Could not load applications. Please refresh.', true)
+    }
+  }
 
-  // Populate job filter dropdown (de-dupe)
+  // Populate job filter dropdown
   const jobSel = document.getElementById('job-filter')
-  // Clear existing options except first
   while (jobSel.options.length > 1) jobSel.remove(1)
   ALL_APPS.forEach(a => {
     if (a.jobId && !jobSel.querySelector(`option[value="${a.jobId}"]`)) {
@@ -782,7 +832,7 @@ async function loadApplications() {
   document.getElementById('loading-state').style.display = 'none'
 }
 
-// ── Apply filters + search client-side ────────────────────────
+// ── Apply filters ──────────────────────────────────────────────────────────
 function applyFilters() {
   const jobFilter = document.getElementById('job-filter').value
   const q = document.getElementById('search-input').value.trim().toLowerCase()
@@ -791,7 +841,7 @@ function applyFilters() {
     if (activeStatus !== 'all' && a.status !== activeStatus) return false
     if (jobFilter !== 'all' && a.jobId !== jobFilter) return false
     if (q) {
-      const haystack = `${a.firstName} ${a.lastName} ${a.email} ${a.jobTitle}`.toLowerCase()
+      const haystack = `${a.firstName} ${a.lastName} ${a.email} ${a.jobTitle} ${a.city}`.toLowerCase()
       if (!haystack.includes(q)) return false
     }
     return true
@@ -801,7 +851,7 @@ function applyFilters() {
   updateStats()
 }
 
-// ── Render table ───────────────────────────────────────────────
+// ── Render table ───────────────────────────────────────────────────────────
 function renderTable() {
   const tbody = document.getElementById('apps-tbody')
   const empty = document.getElementById('empty-state')
@@ -826,11 +876,7 @@ function renderTable() {
       <td>${statusBadge(a.status)}</td>
       <td>
         ${a.cvPath
-          ? `<span class="has-cv">
-               <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                 <path d="M4 1h8l2 2v11H2V3L4 1z" stroke="currentColor" stroke-width="1.2"/>
-                 <path d="M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-               </svg>CV attached</span>`
+          ? `<span class="has-cv"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 1h8l2 2v11H2V3L4 1z" stroke="currentColor" stroke-width="1.2"/><path d="M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>CV attached</span>`
           : '<span class="no-cv">No CV</span>'}
       </td>
       <td onclick="event.stopPropagation()">
@@ -850,20 +896,20 @@ function renderTable() {
     APPS.length > 0 && APPS.every(a => selectedIds.has(a.id))
 }
 
-// ── Stats ──────────────────────────────────────────────────────
+// ── Stats ──────────────────────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('s-total').textContent       = ALL_APPS.length
   document.getElementById('s-new').textContent         = ALL_APPS.filter(a => a.status === 'new').length
   document.getElementById('s-shortlisted').textContent = ALL_APPS.filter(a => a.status === 'shortlisted').length
   document.getElementById('s-hired').textContent       = ALL_APPS.filter(a => a.status === 'hired').length
-  document.getElementById('nav-new-count').textContent = ALL_APPS.filter(a => a.status === 'new').length;
-  ['all','new','reviewed','shortlisted','hired','rejected'].forEach(s => {
+  document.getElementById('nav-new-count').textContent = ALL_APPS.filter(a => a.status === 'new').length
+  ;['all','new','reviewed','shortlisted','hired','rejected'].forEach(s => {
     const el = document.getElementById('tc-' + s)
     if (el) el.textContent = s === 'all' ? ALL_APPS.length : ALL_APPS.filter(a => a.status === s).length
   })
 }
 
-// ── Drawer open/close ──────────────────────────────────────────
+// ── Drawer ─────────────────────────────────────────────────────────────────
 function openDrawerById(id) {
   const app = APPS.find(a => a.id === id) || ALL_APPS.find(a => a.id === id)
   if (!app) return
@@ -875,22 +921,22 @@ async function openDrawer(app) {
 
   // Auto-mark new → reviewed
   if (app.status === 'new') {
-    app.status = 'reviewed'
-    await updateDoc(doc(db, 'applications', app.id), {
-      status: 'reviewed',
-      reviewedAt: serverTimestamp(),
-      updatedAt:  serverTimestamp(),
-    })
-    renderTable()
-    updateStats()
+    try {
+      await updateDoc(doc(db, 'applications', app.id), {
+        status: 'reviewed', reviewedAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      })
+      app.status = 'reviewed'
+      app.reviewedAt = new Date()
+      renderTable(); updateStats()
+    } catch (err) { /* non-critical — continue opening drawer */ }
   }
 
-  // Populate header
-  document.getElementById('dr-name').textContent       = `${app.firstName} ${app.lastName}`
-  document.getElementById('dr-meta').textContent       = `${app.email}  ·  ${app.phone}`
-  document.getElementById('dr-status-select').value    = app.status
+  // Header
+  document.getElementById('dr-name').textContent    = `${app.firstName} ${app.lastName}`
+  document.getElementById('dr-meta').textContent    = `${app.email}  ·  ${app.phone}`
+  document.getElementById('dr-status-select').value = app.status
 
-  // Populate details
+  // Details
   document.getElementById('dr-job').textContent        = app.jobTitle      || '—'
   document.getElementById('dr-date').textContent       = fmtDate(app.createdAt)
   document.getElementById('dr-email').textContent      = app.email
@@ -903,26 +949,21 @@ async function openDrawer(app) {
   if (app.salaryExpectation) {
     salaryRow.style.display = ''
     document.getElementById('dr-salary').textContent = app.salaryExpectation
-  } else {
-    salaryRow.style.display = 'none'
-  }
+  } else { salaryRow.style.display = 'none' }
 
   const coverWrap = document.getElementById('dr-cover-wrap')
   if (app.coverNote) {
     coverWrap.style.display = ''
     document.getElementById('dr-cover').textContent = app.coverNote
-  } else {
-    coverWrap.style.display = 'none'
-  }
+  } else { coverWrap.style.display = 'none' }
 
   document.getElementById('dr-notes').value = app.notes || ''
   document.getElementById('note-saved').classList.remove('show')
 
   renderTimeline(app)
 
-  const subject = `Your application for ${app.jobTitle || 'the position'}`
   document.getElementById('dr-email-btn').href =
-    `mailto:${app.email}?subject=${encodeURIComponent(subject)}`
+    `mailto:${app.email}?subject=${encodeURIComponent('Your application for ' + (app.jobTitle || 'the position'))}`
 
   switchTabByName('details')
   resetCvViewer(app)
@@ -937,7 +978,7 @@ function closeDrawer() {
   currentApp = null
 }
 
-// ── Tab switching ──────────────────────────────────────────────
+// ── Tabs ───────────────────────────────────────────────────────────────────
 function switchTab(name) {
   switchTabByName(name)
   if (name === 'cv' && currentApp) loadCvViewer(currentApp)
@@ -950,7 +991,7 @@ function switchTabByName(name) {
   document.getElementById('tab-' + name).classList.add('active')
 }
 
-// ── CV viewer (Firebase Storage) ───────────────────────────────
+// ── CV viewer ──────────────────────────────────────────────────────────────
 function resetCvViewer(app) {
   const viewer  = document.getElementById('cv-viewer')
   const toolbar = document.getElementById('cv-toolbar')
@@ -967,99 +1008,83 @@ async function loadCvViewer(app) {
   const loader  = document.getElementById('cv-loader')
 
   if (!app.cvPath) {
-    loader.style.display = 'none'
-    toolbar.style.display = 'none'
-    viewer.innerHTML = `
-      <div class="cv-no-cv-msg">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-        <div><strong>No CV attached</strong><p>The candidate did not upload a CV with this application.</p></div>
-      </div>`
+    loader.style.display = 'none'; toolbar.style.display = 'none'
+    viewer.innerHTML = `<div class="cv-no-cv-msg">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div><strong>No CV attached</strong><p>The candidate did not upload a CV with this application.</p></div>
+    </div>`
     return
   }
 
-  // Use cached URL if still valid (Firebase Storage URLs last ~1 hour)
-  const now    = Date.now()
-  const cached = cvCache[app.id]
+  const now = Date.now(), cached = cvCache[app.id]
   if (cached && cached.expiresAt > now) { renderCvContent(cached, viewer, toolbar, loader); return }
 
-  viewer.innerHTML = ''
-  viewer.appendChild(loader)
-  loader.style.display = 'flex'
-  toolbar.style.display = 'none'
+  viewer.innerHTML = ''; viewer.appendChild(loader)
+  loader.style.display = 'flex'; toolbar.style.display = 'none'
 
   try {
-    // Get a fresh download URL from Firebase Storage
     const url      = await getDownloadURL(ref(storage, app.cvPath))
     const mime     = app.cvMime     || 'application/pdf'
     const filename = app.cvFilename || 'cv.pdf'
-    const entry    = { url, mime, filename, expiresAt: now + 50 * 60 * 1000 } // cache 50 min
+    const entry    = { url, mime, filename, expiresAt: now + 50 * 60 * 1000 }
     cvCache[app.id] = entry
     renderCvContent(entry, viewer, toolbar, loader)
   } catch (err) {
     loader.style.display = 'none'
-    viewer.innerHTML = `
-      <div class="cv-word-fallback">
-        <div><strong>Could not load CV</strong><p>Try refreshing the page. If the problem persists, contact support.</p></div>
-      </div>`
+    viewer.innerHTML = `<div class="cv-word-fallback"><div><strong>Could not load CV</strong><p>Try refreshing. If the problem persists, contact support.</p></div></div>`
   }
 }
 
-function renderCvContent(entry, viewer, toolbar, loader) {
-  const { url, mime, filename } = entry
+function renderCvContent({ url, mime, filename }, viewer, toolbar, loader) {
   toolbar.style.display = 'flex'
   document.getElementById('cv-filename').textContent = filename
   document.getElementById('cv-open-btn').href        = url
   document.getElementById('cv-dl-btn').href          = url
   document.getElementById('cv-dl-btn').setAttribute('download', filename)
-  loader.style.display = 'none'
-  viewer.innerHTML = ''
+  loader.style.display = 'none'; viewer.innerHTML = ''
 
   if (mime === 'application/pdf') {
     const iframe = document.createElement('iframe')
-    iframe.className = 'cv-iframe'
-    iframe.title = filename
+    iframe.className = 'cv-iframe'; iframe.title = filename
     iframe.src = `${url}#toolbar=1&navpanes=1&scrollbar=1`
     viewer.appendChild(iframe)
   } else if (mime.startsWith('image/')) {
     viewer.style.background = '#525659'
-    const wrap = document.createElement('div')
-    wrap.className = 'cv-image-wrap'
-    const img = document.createElement('img')
-    img.src = url; img.alt = filename
+    const wrap = document.createElement('div'); wrap.className = 'cv-image-wrap'
+    const img = document.createElement('img'); img.src = url; img.alt = filename
     wrap.appendChild(img); viewer.appendChild(wrap)
   } else if (mime.includes('word') || mime.includes('officedocument')) {
     viewer.style.background = 'var(--bg)'
-    viewer.innerHTML = `
-      <div class="cv-word-fallback">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0099fa" stroke-width="1.2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-        <div><strong>${esc(filename)}</strong><p>Word documents can't be displayed inline. Use the Download button above.</p></div>
-      </div>`
+    viewer.innerHTML = `<div class="cv-word-fallback">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0099fa" stroke-width="1.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div><strong>${esc(filename)}</strong><p>Word documents can't be displayed inline. Use the Download button above.</p></div>
+    </div>`
   } else {
     viewer.innerHTML = `<div class="cv-word-fallback"><div><strong>${esc(filename)}</strong><p>This file type can't be previewed. Use the Download button.</p></div></div>`
   }
 }
 
-// ── Status updates ─────────────────────────────────────────────
+// ── Status updates ─────────────────────────────────────────────────────────
 async function setStatus(id, status) {
   const updates = { status, updatedAt: serverTimestamp() }
-  if (status === 'hired')    updates.hiredAt    = serverTimestamp()
-  if (status === 'reviewed') updates.reviewedAt = serverTimestamp()
-  await updateDoc(doc(db, 'applications', id), updates)
-  const app = ALL_APPS.find(a => a.id === id)
-  if (app) Object.assign(app, updates)
-  if (currentApp?.id === id) {
-    Object.assign(currentApp, updates)
-    document.getElementById('dr-status-select').value = status
+  if (status === 'hired')       updates.hiredAt       = serverTimestamp()
+  if (status === 'reviewed')    updates.reviewedAt    = serverTimestamp()
+  if (status === 'shortlisted') updates.shortlistedAt = serverTimestamp()
+
+  try {
+    await updateDoc(doc(db, 'applications', id), updates)
+    const app = ALL_APPS.find(a => a.id === id)
+    if (app) Object.assign(app, { ...updates, updatedAt: new Date(), hiredAt: updates.hiredAt ? new Date() : app.hiredAt, reviewedAt: updates.reviewedAt ? new Date() : app.reviewedAt, shortlistedAt: updates.shortlistedAt ? new Date() : app.shortlistedAt })
+    if (currentApp?.id === id) {
+      currentApp.status = status
+      document.getElementById('dr-status-select').value = status
+      renderTimeline(currentApp)
+    }
+    renderTable(); updateStats()
+    showToast('Status updated to ' + status)
+  } catch (err) {
+    showToast('Could not update status. Please try again.', true)
   }
-  renderTable()
-  updateStats()
-  showToast('Status updated')
 }
 
 async function updateStatus() {
@@ -1072,18 +1097,21 @@ async function rejectCurrent() {
   await setStatus(currentApp.id, 'rejected')
 }
 
-// ── Notes ──────────────────────────────────────────────────────
+// ── Notes ──────────────────────────────────────────────────────────────────
 async function saveNote() {
   if (!currentApp) return
   const notes = document.getElementById('dr-notes').value
-  await updateDoc(doc(db, 'applications', currentApp.id), { notes, updatedAt: serverTimestamp() })
-  currentApp.notes = notes
-  const saved = document.getElementById('note-saved')
-  saved.classList.add('show')
-  setTimeout(() => saved.classList.remove('show'), 2500)
+  try {
+    await updateDoc(doc(db, 'applications', currentApp.id), { notes, updatedAt: serverTimestamp() })
+    currentApp.notes = notes
+    document.getElementById('note-saved').classList.add('show')
+    setTimeout(() => document.getElementById('note-saved').classList.remove('show'), 2500)
+  } catch (err) {
+    showToast('Could not save note. Please try again.', true)
+  }
 }
 
-// ── Bulk actions ───────────────────────────────────────────────
+// ── Bulk actions ───────────────────────────────────────────────────────────
 function toggleSelect(id, cb) {
   cb.checked ? selectedIds.add(id) : selectedIds.delete(id)
   updateBulkBar(); renderTable()
@@ -1099,19 +1127,26 @@ function updateBulkBar() {
 }
 async function bulkStatus(status) {
   const count = selectedIds.size
+  const now   = new Date()
   const promises = [...selectedIds].map(id => {
     const updates = { status, updatedAt: serverTimestamp() }
+    if (status === 'hired')       updates.hiredAt       = serverTimestamp()
+    if (status === 'shortlisted') updates.shortlistedAt = serverTimestamp()
     const a = ALL_APPS.find(x => x.id === id)
     if (a) Object.assign(a, updates)
     return updateDoc(doc(db, 'applications', id), updates)
   })
-  await Promise.all(promises)
-  selectedIds.clear()
-  updateBulkBar(); renderTable(); updateStats()
-  showToast(`${count} application${count !== 1 ? 's' : ''} updated`)
+  try {
+    await Promise.all(promises)
+    selectedIds.clear()
+    updateBulkBar(); renderTable(); updateStats()
+    showToast(`${count} application${count !== 1 ? 's' : ''} updated to ${status}`)
+  } catch (err) {
+    showToast('Some updates failed. Please try again.', true)
+  }
 }
 
-// ── Filter helpers ─────────────────────────────────────────────
+// ── Filter helpers ─────────────────────────────────────────────────────────
 function setStatusTab(s, el) {
   activeStatus = s
   document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'))
@@ -1123,12 +1158,13 @@ function handleSearch() {
   searchTimer = setTimeout(applyFilters, 320)
 }
 
-// ── Timeline ───────────────────────────────────────────────────
+// ── Timeline ───────────────────────────────────────────────────────────────
 function renderTimeline(app) {
   const events = []
-  if (app.hiredAt)    events.push({ text: 'Candidate hired',          time: fmtDate(app.hiredAt),    accent: true })
-  if (app.reviewedAt) events.push({ text: 'Marked as reviewed',       time: fmtDate(app.reviewedAt), accent: true })
-  events.push(        { text: 'Application received via Cronos Jobs', time: fmtDate(app.createdAt),  accent: false })
+  if (app.hiredAt)       events.push({ text: 'Candidate hired',      time: fmtDate(app.hiredAt),       accent: true  })
+  if (app.shortlistedAt) events.push({ text: 'Shortlisted',          time: fmtDate(app.shortlistedAt), accent: true  })
+  if (app.reviewedAt)    events.push({ text: 'Marked as reviewed',   time: fmtDate(app.reviewedAt),    accent: true  })
+  events.push(           { text: 'Application received via Cronos Jobs', time: fmtDate(app.createdAt), accent: false })
 
   document.getElementById('dr-timeline').innerHTML = events.map(e => `
     <div class="tl-item">
@@ -1145,28 +1181,32 @@ function renderTimeline(app) {
     </div>`).join('')
 }
 
-// ── CSV export ─────────────────────────────────────────────────
+// ── CSV export ─────────────────────────────────────────────────────────────
 function exportCSV() {
-  const header = ['Name','Email','Phone','Location','Job','Status','Date Applied','Notice','Experience','Has CV']
-  const rows   = APPS.map(a => [
+  // Export current filtered view
+  const source = APPS
+  const header = ['Name','Email','Phone','Location','Job','Department','Status','Date Applied','Notice','Experience','Salary Expectation','Has CV','Cover Note']
+  const rows   = source.map(a => [
     `${a.firstName} ${a.lastName}`, a.email, a.phone, a.city,
-    a.jobTitle || '', a.status,
-    fmtDate(a.createdAt), a.notice, a.experience,
-    a.cvPath ? 'Yes' : 'No',
+    a.jobTitle || '', a.jobDepartment || '', a.status,
+    fmtDate(a.createdAt), a.notice || '', a.experience || '',
+    a.salaryExpectation || '', a.cvPath ? 'Yes' : 'No',
+    a.coverNote ? a.coverNote.replace(/\n/g, ' ') : '',
   ])
   const csv  = [header, ...rows].map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n')
-  const blob = new Blob([csv], { type: 'text/csv' })
-  Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'applications.csv' }).click()
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const filename = `applications_${new Date().toISOString().slice(0,10)}.csv`
+  Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: filename }).click()
 }
 
-// ── Utilities ──────────────────────────────────────────────────
+// ── Utilities ──────────────────────────────────────────────────────────────
 function esc(str) {
   return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
 }
 function fmtDate(val) {
   if (!val) return '—'
-  // Handle Firestore Timestamp objects and ISO strings
   const d = val?.toDate ? val.toDate() : new Date(val)
+  if (isNaN(d)) return '—'
   return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
 }
 function statusBadge(s) {
@@ -1174,14 +1214,16 @@ function statusBadge(s) {
   const label = { new:'New', reviewed:'Reviewed', shortlisted:'Shortlisted', rejected:'Rejected', hired:'Hired' }
   return `<span class="app-status ${cls[s] || 's-new'}">${label[s] || s}</span>`
 }
-function showToast(msg) {
+function showToast(msg, isError = false) {
   const t = document.getElementById('toast')
   t.textContent = msg
+  t.style.background = isError ? 'var(--red)' : ''
   t.classList.add('show')
-  setTimeout(() => t.classList.remove('show'), 2400)
+  clearTimeout(t._timer)
+  t._timer = setTimeout(() => { t.classList.remove('show'); t.style.background = ''; }, 2400)
 }
 
-// ── Global keyboard + click handlers ──────────────────────────
+// ── Global handlers ────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer() })
 document.addEventListener('click', e => {
   if (window.innerWidth <= 900

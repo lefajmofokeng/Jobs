@@ -1098,10 +1098,10 @@ select { background-image: url("data:image/svg+xml,%3Csvg width='16' height='16'
             <div class="form-group col-span-2">
               <label>How many job postings do you anticipate per month? <span class="label-required">*</span></label>
               <div class="radio-grid">
-                <label class="radio-item" onclick="selectRadio(this,'posts-1')"><input type="radio" name="posts-per-month" value="1-3" id="posts-1"><div class="radio-dot"></div><span class="radio-label">1–3 per month</span></label>
-                <label class="radio-item" onclick="selectRadio(this,'posts-2')"><input type="radio" name="posts-per-month" value="4-10" id="posts-2"><div class="radio-dot"></div><span class="radio-label">4–10 per month</span></label>
-                <label class="radio-item" onclick="selectRadio(this,'posts-3')"><input type="radio" name="posts-per-month" value="11-30" id="posts-3"><div class="radio-dot"></div><span class="radio-label">11–30 per month</span></label>
-                <label class="radio-item" onclick="selectRadio(this,'posts-4')"><input type="radio" name="posts-per-month" value="30+" id="posts-4"><div class="radio-dot"></div><span class="radio-label">30+ per month</span></label>
+                <label class="radio-item"><input type="radio" name="posts-per-month" value="1-3" id="posts-1"><div class="radio-dot"></div><span class="radio-label">1–3 per month</span></label>
+                <label class="radio-item"><input type="radio" name="posts-per-month" value="4-10" id="posts-2"><div class="radio-dot"></div><span class="radio-label">4–10 per month</span></label>
+                <label class="radio-item"><input type="radio" name="posts-per-month" value="11-30" id="posts-3"><div class="radio-dot"></div><span class="radio-label">11–30 per month</span></label>
+                <label class="radio-item"><input type="radio" name="posts-per-month" value="30+" id="posts-4"><div class="radio-dot"></div><span class="radio-label">30+ per month</span></label>
               </div>
               <span class="field-error" id="err-posts"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Please select an option</span>
             </div>
@@ -1109,15 +1109,15 @@ select { background-image: url("data:image/svg+xml,%3Csvg width='16' height='16'
             <div class="form-group col-span-2">
               <label>Which provinces will you primarily hire in? <span class="label-required">*</span></label>
               <div class="check-group" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="province-checks">
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Gauteng"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Gauteng</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="KwaZulu-Natal"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">KwaZulu-Natal</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Western Cape"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Western Cape</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Eastern Cape"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Eastern Cape</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Limpopo"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Limpopo</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Mpumalanga"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Mpumalanga</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Free State"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Free State</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="North West"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">North West</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" value="Northern Cape"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Northern Cape</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Gauteng"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Gauteng</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="KwaZulu-Natal"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">KwaZulu-Natal</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Western Cape"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Western Cape</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Eastern Cape"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Eastern Cape</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Limpopo"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Limpopo</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Mpumalanga"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Mpumalanga</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Free State"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Free State</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="North West"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">North West</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox" value="Northern Cape"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Northern Cape</span></label>
               </div>
               <span class="field-error" id="err-provinces"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>Select at least one province</span>
             </div>
@@ -1125,10 +1125,10 @@ select { background-image: url("data:image/svg+xml,%3Csvg width='16' height='16'
             <div class="form-group col-span-2">
               <label>Email notification preferences</label>
               <div class="check-group" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <label class="check-item selected" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" checked><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">New application alerts</span></label>
-                <label class="check-item selected" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox" checked><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Job listing expiry reminders</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Cronos platform updates</span></label>
-                <label class="check-item" style="padding:8px 10px" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Monthly hiring insights report</span></label>
+                <label class="check-item selected" style="padding:8px 10px"><input type="checkbox" checked><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">New application alerts</span></label>
+                <label class="check-item selected" style="padding:8px 10px"><input type="checkbox" checked><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Job listing expiry reminders</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Cronos platform updates</span></label>
+                <label class="check-item" style="padding:8px 10px"><input type="checkbox"><div class="check-box"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="check-label" style="font-size:12px">Monthly hiring insights report</span></label>
               </div>
             </div>
 
@@ -1248,6 +1248,17 @@ select { background-image: url("data:image/svg+xml,%3Csvg width='16' height='16'
           </div>
           <div style="display:flex;align-items:center;gap:12px">
             <span class="step-indicator">Step 5 / 5</span>
+            <!-- Upload progress bar — shown during submission -->
+            <div id="upload-progress-wrap" style="display:none;margin-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:12px;font-weight:600;color:var(--text-secondary)" id="upload-progress-label">Uploading…</span>
+                <span style="font-size:12px;font-family:var(--mono);color:var(--accent)" id="upload-progress-pct">0%</span>
+              </div>
+              <div style="background:var(--border);border-radius:50px;height:6px;overflow:hidden;">
+                <div id="upload-progress-bar" style="height:100%;background:var(--accent);border-radius:50px;width:0%;transition:width 0.3s ease;"></div>
+              </div>
+            </div>
+            <div id="submit-error"></div>
             <button class="btn-submit" onclick="submitApplication()">
               <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 2a5 5 0 100 10A5 5 0 0010 2zM4 18a6 6 0 0112 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
               Submit Verification Application
@@ -1283,63 +1294,296 @@ select { background-image: url("data:image/svg+xml,%3Csvg width='16' height='16'
             <div class="success-step-text"><strong>Start posting jobs</strong>Once approved, log in to your employer dashboard and post your first vacancy immediately.</div>
           </div>
         </div>
-        <a href="index.html" class="btn-next-step" style="display:inline-flex;text-decoration:none;margin-top:8px">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Back to Cronos Jobs
-        </a>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px;">
+          <p style="font-size:13px;color:var(--text-muted);">You will receive an email at <strong id="success-email"></strong> when your application is reviewed.</p>
+          <a href="employer-login.html" class="btn-next-step" style="display:inline-flex;text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Go to employer sign in
+          </a>
+          <a href="index.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;">← Back to Cronos Jobs</a>
+        </div>
       </div>
 
     </div><!-- /form-card -->
   </main>
 </div><!-- /page-wrap -->
 
+<script>
+// ── All UI functions in plain script — available immediately on page load ──
+// This prevents the module async-load timing issue where onclick handlers
+// fire before window.xxx assignments complete.
+
+// ── Step navigation ────────────────────────────────────────────────────────
+var _currentStep = 1;
+var _totalSteps  = 5;
+
+function goToStep(n) {
+  if (n < 1 || n > _totalSteps) return;
+  document.querySelectorAll('.step-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('step-' + n).classList.add('active');
+  document.querySelectorAll('.step-item').forEach(function(item) {
+    var s = parseInt(item.dataset.step);
+    item.classList.remove('active','completed');
+    if (s === n)    item.classList.add('active');
+    else if (s < n) item.classList.add('completed');
+  });
+  document.querySelectorAll('.step-item').forEach(function(item) {
+    var numSpan = item.querySelector('.num-text');
+    var svg     = item.querySelector('.step-num svg');
+    if (item.classList.contains('completed')) {
+      if (numSpan) numSpan.style.display = 'none';
+      if (svg)     svg.style.display     = 'block';
+    } else {
+      if (numSpan) numSpan.style.display = '';
+      if (svg)     svg.style.display     = 'none';
+    }
+  });
+  var pb = document.getElementById('progress-bar');
+  if (pb) pb.style.width = (n / _totalSteps * 100) + '%';
+  _currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Attach listeners now that the panel is visible
+  initStepListeners(n);
+  if (n === 5 && window._buildReview) window._buildReview();
+}
+
+function initStepListeners(stepNum) {
+  var panel = document.getElementById('step-' + stepNum);
+  if (!panel) return;
+
+  // Checkboxes — sync .selected class to actual checked state
+  panel.querySelectorAll('.check-item input[type="checkbox"]').forEach(function(input) {
+    // Sync initial visual state
+    var label = input.closest('.check-item');
+    if (label) label.classList.toggle('selected', input.checked);
+    // Remove old listener to avoid duplicates, then add fresh one
+    var newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    var freshLabel = newInput.closest('.check-item');
+    newInput.addEventListener('change', function() {
+      if (freshLabel) freshLabel.classList.toggle('selected', newInput.checked);
+    });
+  });
+
+  // Radios — sync .selected class to actual checked state
+  panel.querySelectorAll('.radio-item input[type="radio"]').forEach(function(input) {
+    var newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    newInput.addEventListener('change', function() {
+      if (!newInput.checked) return;
+      var name = newInput.name;
+      document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
+        var item = r.closest('.radio-item');
+        if (item) item.classList.toggle('selected', r.checked);
+      });
+    });
+  });
+
+  // Agree declarations — sync .checked class to actual checkbox state
+  panel.querySelectorAll('.agree-check input[type="checkbox"]').forEach(function(input) {
+    var label = input.closest('.agree-check');
+    if (label && input.checked) label.classList.add('checked');
+    var newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    newInput.addEventListener('change', function() {
+      var lbl = newInput.closest('.agree-check');
+      if (lbl) lbl.classList.toggle('checked', newInput.checked);
+    });
+  });
+}
+
+function nextStep(from) {
+  if (window._validateStep && !window._validateStep(from)) return;
+  goToStep(from + 1);
+}
+function prevStep(from) { goToStep(from - 1); }
+
+// ── Validation helpers ─────────────────────────────────────────────────────
+function showError(id) { var el = document.getElementById(id); if (el) el.classList.add('show'); }
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(function(e) { e.classList.remove('show'); });
+  document.querySelectorAll('input.error, select.error, textarea.error').forEach(function(e) { e.classList.remove('error'); });
+}
+
+// ── Authority toggle ───────────────────────────────────────────────────────
+function toggleAuthority(val) {
+  var needsLetter = (val === 'no');
+  var grp = document.getElementById('auth-letter-group');
+  if (grp) grp.style.display = needsLetter ? 'block' : 'none';
+  window._needsAuthLetter = needsLetter;
+  ['auth-yes-label','auth-no-label'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('selected');
+  });
+  var sel = document.getElementById('auth-' + val + '-label');
+  if (sel) sel.classList.add('selected');
+}
+
+// ── Check / radio / agree toggles ─────────────────────────────────────────
+function toggleCheck(el) {
+  // Use a small delay to let the browser settle the native checkbox state first
+  // then sync the visual .selected class to the actual checked state
+  setTimeout(function() {
+    var input = el.querySelector('input[type="checkbox"]');
+    if (!input) return;
+    if (input.checked) {
+      el.classList.add('selected');
+    } else {
+      el.classList.remove('selected');
+    }
+  }, 0);
+}
+function selectRadio(el, inputId) {
+  setTimeout(function() {
+    var inp = document.getElementById(inputId);
+    if (!inp) return;
+    // Sync all radio items in the group to their actual checked state
+    var grid = el.closest('.radio-grid');
+    if (grid) {
+      grid.querySelectorAll('.radio-item').forEach(function(r) {
+        var rInp = r.querySelector('input[type="radio"]');
+        if (rInp && rInp.checked) {
+          r.classList.add('selected');
+        } else {
+          r.classList.remove('selected');
+        }
+      });
+    }
+  }, 0);
+}
+function toggleAgree(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  // Use setTimeout to let browser settle the native checkbox state first
+  setTimeout(function() {
+    var input = el.querySelector('input');
+    if (!input) return;
+    el.classList.toggle('checked', input.checked);
+  }, 0);
+}
+function togglePw(inputId) {
+  var input = document.getElementById(inputId);
+  if (input) input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// ── File handling ──────────────────────────────────────────────────────────
+function handleFile(input, key) {
+  var file = input.files[0]; if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('File is too large. Maximum size is 5MB.'); return; }
+  if (!window._uploadedFiles) window._uploadedFiles = {};
+  window._uploadedFiles[key] = file;
+  renderFileItem(key, file);
+}
+function dropFile(e, key) {
+  e.preventDefault();
+  var dropMap = { cipc:'drop-cipc', id:'drop-id', addr:'drop-addr', auth:'drop-auth' };
+  var dropId = dropMap[key];
+  if (dropId) { var d = document.getElementById(dropId); if (d) d.classList.remove('drag-over'); }
+  var file = e.dataTransfer.files[0]; if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('File is too large. Maximum size is 5MB.'); return; }
+  if (!window._uploadedFiles) window._uploadedFiles = {};
+  window._uploadedFiles[key] = file;
+  renderFileItem(key, file);
+}
+function dragOver(e, id) { e.preventDefault(); var el = document.getElementById(id); if (el) el.classList.add('drag-over'); }
+function dragLeave(id)   { var el = document.getElementById(id); if (el) el.classList.remove('drag-over'); }
+
+function renderFileItem(key, file) {
+  var list = document.getElementById('files-' + key); if (!list) return;
+  var kb = (file.size / 1024).toFixed(0);
+  list.innerHTML = '<div class="file-item">' +
+    '<div class="file-item-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6l-3-4z" stroke="currentColor" stroke-width="1.5"/><path d="M13 2v4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>' +
+    '<div class="file-item-info"><div class="file-item-name">' + file.name + '</div><div class="file-item-size">' + kb + ' KB</div></div>' +
+    '<button class="file-item-remove" onclick="removeFile(\'' + key + '\',\'files-' + key + '\')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>' +
+    '</div>';
+}
+function removeFile(key, listId) {
+  if (!window._uploadedFiles) window._uploadedFiles = {};
+  window._uploadedFiles[key] = null;
+  var list = document.getElementById(listId); if (list) list.innerHTML = '';
+  var inputMap = { cipc:'file-cipc', id:'file-id', addr:'file-addr', auth:'file-auth' };
+  var input = document.getElementById(inputMap[key]); if (input) input.value = '';
+}
+
+// ── Submit (delegates to module) ───────────────────────────────────────────
+function submitApplication() {
+  if (window._submitApplication) {
+    window._submitApplication();
+  } else {
+    // Module not ready yet — wait and retry once
+    setTimeout(function() {
+      if (window._submitApplication) window._submitApplication();
+    }, 500);
+  }
+}
+
+// ── Clear field errors on input ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input, select, textarea').forEach(function(el) {
+    el.addEventListener('input',  function() { el.classList.remove('error'); });
+    el.addEventListener('change', function() { el.classList.remove('error'); });
+  });
+
+  // ── Sync check-item + radio listeners — attached via initStepListeners ──
+  // Called from goToStep so listeners attach AFTER the panel is visible
+});
+</script>
+
 <script type="module">
-import { auth, db, storage, requireAuth }  from './firebase.js'
-import { doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
-import { ref, uploadBytesResumable }       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
+import { auth, db, storage, requireAuth, getEmployerProfile } from './firebase.js'
+import { doc, updateDoc, setDoc, serverTimestamp }             from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { ref, uploadBytesResumable }                           from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
 
-// ── Expose to inline handlers ──────────────────────
-window.goToStep         = goToStep
-window.nextStep         = nextStep
-window.prevStep         = prevStep
-window.toggleAuthority  = toggleAuthority
-window.handleFile       = handleFile
-window.dropFile         = dropFile
-window.dragOver         = dragOver
-window.dragLeave        = dragLeave
-window.removeFile       = removeFile
-window.toggleCheck      = toggleCheck
-window.selectRadio      = selectRadio
-window.toggleAgree      = toggleAgree
-window.togglePw         = togglePw
-window.submitApplication= submitApplication
+// ── Expose to inline handlers ──────────────────────────────────────────────
 
-// ── State ──────────────────────────────────────────
-let currentStep    = 1
-const totalSteps   = 5
-const uploadedFiles = { cipc: null, id: null, addr: null, auth: null }
-let needsAuthLetter = false
+// ── State ──────────────────────────────────────────────────────────────────
+let currentStep     = 1
+const totalSteps    = 5
+// _uploadedFiles shared with plain script file handlers
+if (!window._uploadedFiles) window._uploadedFiles = { cipc: null, id: null, addr: null, auth: null }
+window._needsAuthLetter = false
 let currentUid      = null
+let verRef          = null  // single ref generated once, used in Firestore + success screen
 
-// ── Boot: require auth, pre-fill account email ─────
+// ── Boot ───────────────────────────────────────────────────────────────────
 const user = await requireAuth('employer-register.html')
 currentUid = user.uid
 
-// Pre-fill account email on step 4 and disable it
-// (they already have an account — email is fixed)
-const emailEl = document.getElementById('acc-email')
-if (emailEl) {
-  emailEl.value    = user.email
-  emailEl.readOnly = true
-  emailEl.style.background = 'var(--bg)'
-  emailEl.style.color      = 'var(--text-muted)'
+// Check if already submitted or approved — redirect appropriately
+const profile = await getEmployerProfile(currentUid)
+if (profile) {
+  const vStatus = profile.verificationStatus || 'pending'
+  if (vStatus === 'submitted') {
+    // Already submitted — show a holding screen instead of the form
+    document.querySelector('.page-wrap') && showAlreadySubmitted(profile)
+    throw new Error('already_submitted') // stop further execution
+  }
+  if (vStatus === 'approved') {
+    window.location.replace('employer-dashboard.html')
+    throw new Error('already_approved')
+  }
+  if (vStatus === 'rejected') {
+    // Allow resubmission — show a notice at the top
+    showRejectionNotice(profile.rejectionReason)
+  }
+
+  // Pre-fill step 1 fields from register data
+  prefillFromProfile(profile)
 }
 
-// Hide password fields on step 4 — account already exists
-const passGroup = document.getElementById('acc-pass')?.closest('.form-group')
-const pass2Group = document.getElementById('acc-pass2')?.closest('.form-group')
-if (passGroup)  passGroup.style.display  = 'none'
-if (pass2Group) pass2Group.style.display = 'none'
+// Step 4: Account already exists from registration — hide credentials section entirely
+// The employer already set their email and password when registering
+;['acc-email','acc-pass','acc-pass2'].forEach(id => {
+  const el = document.getElementById(id)
+  if (el) {
+    const grp = el.closest('.form-group')
+    if (grp) grp.style.display = 'none'
+  }
+})
+// Also hide the "Login Credentials" section title
+const credTitle = document.querySelector('#step-4 .form-section-title')
+if (credTitle) credTitle.style.display = 'none'
+
 
 // Init
 goToStep(1)
@@ -1348,80 +1592,96 @@ document.querySelectorAll('input, select, textarea').forEach(el => {
   el.addEventListener('change', () => el.classList.remove('error'))
 })
 
-// ── Step navigation ────────────────────────────────
-function goToStep(n) {
-  if (n < 1 || n > totalSteps) return
-  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'))
-  document.getElementById('step-' + n).classList.add('active')
-  document.querySelectorAll('.step-item').forEach(item => {
-    const s = parseInt(item.dataset.step)
-    item.classList.remove('active','completed')
-    if (s === n)      item.classList.add('active')
-    else if (s < n)   item.classList.add('completed')
-  })
-  document.querySelectorAll('.step-item').forEach(item => {
-    const numSpan = item.querySelector('.num-text')
-    const svg     = item.querySelector('.step-num svg')
-    if (item.classList.contains('completed')) {
-      if (numSpan) numSpan.style.display = 'none'
-      if (svg)     svg.style.display     = 'block'
-    } else {
-      if (numSpan) numSpan.style.display = ''
-      if (svg)     svg.style.display     = 'none'
-    }
-  })
-  document.getElementById('progress-bar').style.width = (n / totalSteps * 100) + '%'
-  currentStep = n
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-  if (n === 5) buildReview()
+// ── Pre-fill from registration data ────────────────────────────────────────
+function prefillFromProfile(p) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val }
+  set('co-name',    p.companyName  || '')
+  set('co-industry',p.industry     || '')
+  set('co-size',    p.companySize  || '')
+  set('co-province',p.province     || '')
+  set('co-website', p.website      || '')
+  // Contact person from registration
+  set('ct-first',   p.firstName    || '')
+  set('ct-last',    p.lastName     || '')
+  set('ct-email',   p.email        || user.email)
+  set('ct-phone',   p.phone        || '')
 }
 
-function nextStep(from) { if (!validateStep(from)) return; goToStep(from + 1) }
-function prevStep(from)  { goToStep(from - 1) }
+// ── Already submitted screen ───────────────────────────────────────────────
+function showAlreadySubmitted(p) {
+  document.querySelector('main').innerHTML = `
+    <div style="max-width:520px;margin:80px auto;padding:24px;text-align:center;">
+      <div style="width:64px;height:64px;background:#e8f4ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:var(--accent);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 15v.5" stroke-linecap="round"/></svg>
+      </div>
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:10px;">Verification under review</h2>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;">Your verification application has already been submitted and is being reviewed by the Cronos team.</p>
+      ${p.verificationRef ? `<p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Reference: <strong>${p.verificationRef}</strong></p>` : ''}
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">You will receive an email at <strong>${user.email}</strong> once a decision has been made — usually within 1–2 business days.</p>
+      <a href="employer-login.html" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#fff;background:var(--accent);padding:12px 28px;border-radius:50px;text-decoration:none;">
+        Go to sign in
+      </a>
+    </div>`
+}
 
-// ── Validation ─────────────────────────────────────
+// ── Rejection notice ───────────────────────────────────────────────────────
+function showRejectionNotice(reason) {
+  const notice = document.createElement('div')
+  notice.style.cssText = 'background:#fef2f2;border:1px solid #fca9a9;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#b91c1c;line-height:1.6;'
+  notice.innerHTML = `<strong>Previous application not approved.</strong> You can resubmit with corrected information.${reason ? ' Reason: ' + reason : ''}`
+  document.querySelector('.form-card') && document.querySelector('.form-card').prepend(notice)
+}
+
+// ── Expose to plain script bridge ────────────────────────────────────────────
+// goToStep, nextStep etc are now in plain script above
+// We expose validate + build + submit for them to call
+
+// goToStep/nextStep/prevStep live in plain script above
+// Expose validate and buildReview for plain script to call
+window._validateStep = validateStep
+window._buildReview  = buildReview
+
+// ── Validation ─────────────────────────────────────────────────────────────
 function validateStep(step) {
   clearErrors()
   let ok = true
 
   if (step === 1) {
-    ok = requireField('co-name','err-co-name')         && ok
-    ok = requireField('co-reg','err-co-reg')           && ok
-    ok = requireSelect('co-type','err-co-type')        && ok
-    ok = requireSelect('co-industry','err-co-industry')&& ok
-    ok = requireField('co-street','err-co-street')     && ok
-    ok = requireField('co-city','err-co-city')         && ok
-    ok = requireSelect('co-province','err-co-province')&& ok
-    ok = requireField('co-postal','err-co-postal')     && ok
-    ok = requireSelect('co-size','err-co-size')        && ok
+    ok = requireField('co-name',     'err-co-name')      && ok
+    ok = requireField('co-reg',      'err-co-reg')       && ok
+    ok = requireSelect('co-type',    'err-co-type')      && ok
+    ok = requireSelect('co-industry','err-co-industry')  && ok
+    ok = requireField('co-street',   'err-co-street')    && ok
+    ok = requireField('co-city',     'err-co-city')      && ok
+    ok = requireSelect('co-province','err-co-province')  && ok
+    ok = requireField('co-postal',   'err-co-postal')    && ok
+    ok = requireSelect('co-size',    'err-co-size')      && ok
     const desc = document.getElementById('co-desc').value.trim()
     if (desc.length < 50) { showError('err-co-desc'); document.getElementById('co-desc').classList.add('error'); ok = false }
   }
 
   if (step === 2) {
-    ok = requireField('ct-first','err-ct-first')   && ok
-    ok = requireField('ct-last','err-ct-last')     && ok
-    ok = requireField('ct-title','err-ct-title')   && ok
-    const id = document.getElementById('ct-id').value.replace(/\s/g,'')
-    if (id.length !== 13 || isNaN(id)) { showError('err-ct-id'); document.getElementById('ct-id').classList.add('error'); ok = false }
-    ok = requireEmail('ct-email','err-ct-email')   && ok
-    ok = requireField('ct-phone','err-ct-phone')   && ok
+    ok = requireField('ct-first', 'err-ct-first')  && ok
+    ok = requireField('ct-last',  'err-ct-last')   && ok
+    ok = requireField('ct-title', 'err-ct-title')  && ok
+    const idNum = document.getElementById('ct-id').value.replace(/\s/g, '')
+    if (idNum.length !== 13 || isNaN(idNum)) { showError('err-ct-id'); document.getElementById('ct-id').classList.add('error'); ok = false }
+    ok = requireEmail('ct-email', 'err-ct-email')  && ok
+    ok = requireField('ct-phone', 'err-ct-phone')  && ok
     ok = requireSelect('ct-tenure','err-ct-tenure')&& ok
     if (!document.querySelector('input[name="authority"]:checked')) { showError('err-auth'); ok = false }
   }
 
   if (step === 3) {
-    if (!uploadedFiles.cipc) { showError('err-cipc'); ok = false }
-    if (!uploadedFiles.id)   { showError('err-id-doc'); ok = false }
-    if (!uploadedFiles.addr) { showError('err-addr'); ok = false }
+    if (!window._uploadedFiles.cipc) { showError('err-cipc');    ok = false }
+    if (!window._uploadedFiles.id)   { showError('err-id-doc');  ok = false }
+    if (!window._uploadedFiles.addr) { showError('err-addr');    ok = false }
+    if (window._needsAuthLetter && !window._uploadedFiles.auth) { showError('err-auth-letter'); ok = false }
   }
 
   if (step === 4) {
-    // Email is pre-filled + readonly — skip email validation
-    // Password fields are hidden — skip password validation
     if (!document.querySelector('input[name="posts-per-month"]:checked')) { showError('err-posts'); ok = false }
-    const checkedProvinces = document.querySelectorAll('#province-checks input[type="checkbox"]:checked')
-    if (checkedProvinces.length === 0) { showError('err-provinces'); ok = false }
+    if (document.querySelectorAll('#province-checks input:checked').length === 0) { showError('err-provinces'); ok = false }
   }
 
   return ok
@@ -1429,17 +1689,17 @@ function validateStep(step) {
 
 function requireField(id, errId) {
   const el = document.getElementById(id)
-  if (!el.value.trim()) { showError(errId); el.classList.add('error'); return false }
+  if (!el || !el.value.trim()) { showError(errId); if (el) el.classList.add('error'); return false }
   return true
 }
 function requireSelect(id, errId) {
   const el = document.getElementById(id)
-  if (!el.value) { showError(errId); el.classList.add('error'); return false }
+  if (!el || !el.value) { showError(errId); if (el) el.classList.add('error'); return false }
   return true
 }
 function requireEmail(id, errId) {
   const el = document.getElementById(id)
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) { showError(errId); el.classList.add('error'); return false }
+  if (!el || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) { showError(errId); if (el) el.classList.add('error'); return false }
   return true
 }
 function showError(id)  { const el = document.getElementById(id); if (el) el.classList.add('show') }
@@ -1448,28 +1708,20 @@ function clearErrors()  {
   document.querySelectorAll('input.error, select.error, textarea.error').forEach(e => e.classList.remove('error'))
 }
 
-// ── Authority toggle ───────────────────────────────
-function toggleAuthority(val) {
-  needsAuthLetter = (val === 'no')
-  document.getElementById('auth-letter-group').style.display = needsAuthLetter ? 'block' : 'none'
-  ;['auth-yes-label','auth-no-label'].forEach(id => {
-    const el = document.getElementById(id)
-    if (el) el.classList.remove('selected')
-  })
-  document.getElementById('auth-' + val + '-label').classList.add('selected')
-}
+// toggleAuthority handled in plain script above
 
-// ── File handling ──────────────────────────────────
+// ── File handling ──────────────────────────────────────────────────────────
 function handleFile(input, key) {
   const file = input.files[0]; if (!file) return
   if (file.size > 5 * 1024 * 1024) { alert('File is too large. Maximum size is 5MB.'); return }
-  uploadedFiles[key] = file
+  window._uploadedFiles[key] = file
   renderFileItem(key, file)
 }
 function dropFile(e, key) {
   e.preventDefault()
   const file = e.dataTransfer.files[0]; if (!file) return
-  uploadedFiles[key] = file
+  if (file.size > 5 * 1024 * 1024) { alert('File is too large. Maximum size is 5MB.'); return }
+  window._uploadedFiles[key] = file
   renderFileItem(key, file)
   const dropMap = { cipc:'drop-cipc', id:'drop-id', addr:'drop-addr', auth:'drop-auth' }
   document.getElementById(dropMap[key])?.classList.remove('drag-over')
@@ -1477,46 +1729,28 @@ function dropFile(e, key) {
 function dragOver(e, id)  { e.preventDefault(); document.getElementById(id)?.classList.add('drag-over') }
 function dragLeave(id)    { document.getElementById(id)?.classList.remove('drag-over') }
 function renderFileItem(key, file) {
-  const listId = 'files-' + key
-  const list   = document.getElementById(listId); if (!list) return
-  const kb = (file.size / 1024).toFixed(0)
+  const list = document.getElementById('files-' + key); if (!list) return
+  const kb   = (file.size / 1024).toFixed(0)
   list.innerHTML = `<div class="file-item">
     <div class="file-item-icon"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M13 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6l-3-4z" stroke="currentColor" stroke-width="1.5"/><path d="M13 2v4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
     <div class="file-item-info"><div class="file-item-name">${file.name}</div><div class="file-item-size">${kb} KB</div></div>
-    <button class="file-item-remove" onclick="removeFile('${key}','${listId}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <button class="file-item-remove" onclick="removeFile('${key}','files-${key}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
   </div>`
 }
 function removeFile(key, listId) {
-  uploadedFiles[key] = null
-  document.getElementById(listId).innerHTML = ''
+  window._uploadedFiles[key] = null
+  const list = document.getElementById(listId); if (list) list.innerHTML = ''
   const inputMap = { cipc:'file-cipc', id:'file-id', addr:'file-addr', auth:'file-auth' }
-  const input = document.getElementById(inputMap[key])
-  if (input) input.value = ''
+  const input = document.getElementById(inputMap[key]); if (input) input.value = ''
 }
 
-// ── Check / radio toggles ──────────────────────────
-function toggleCheck(el) {
-  el.classList.toggle('selected')
-  const input = el.querySelector('input[type="checkbox"]')
-  if (input) input.checked = el.classList.contains('selected')
-}
-function selectRadio(el, inputId) {
-  el.closest('.radio-grid').querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'))
-  el.classList.add('selected')
-  document.getElementById(inputId).checked = true
-}
-function toggleAgree(id) {
-  const el = document.getElementById(id)
-  el.classList.toggle('checked')
-  const input = el.querySelector('input')
-  if (input) input.checked = el.classList.contains('checked')
-}
-function togglePw(inputId) {
-  const input = document.getElementById(inputId)
-  input.type = input.type === 'password' ? 'text' : 'password'
-}
+// ── Check / radio toggles ──────────────────────────────────────────────────
+// toggleCheck handled in plain script above
+// selectRadio handled in plain script above
+// toggleAgree handled in plain script above
+// togglePw handled in plain script above
 
-// ── Review screen ──────────────────────────────────
+// ── Build review screen ────────────────────────────────────────────────────
 function rv(label, value, full) {
   const v = value || ''
   return `<div class="review-field${full ? ' full' : ''}">
@@ -1535,25 +1769,25 @@ function buildReview() {
     rv('City',                    document.getElementById('co-city').value) +
     rv('Province',                document.getElementById('co-province').value) +
     rv('Postal Code',             document.getElementById('co-postal').value) +
-    rv('Website',                 document.getElementById('co-website').value) +
+    rv('Website',                 document.getElementById('co-website')?.value) +
     rv('Company Description',     document.getElementById('co-desc').value, true)
 
   const authRadio = document.querySelector('input[name="authority"]:checked')
   document.getElementById('review-contact').innerHTML =
-    rv('Full Name',           (document.getElementById('ct-first').value + ' ' + document.getElementById('ct-last').value).trim()) +
+    rv('Full Name',          (document.getElementById('ct-first').value + ' ' + document.getElementById('ct-last').value).trim()) +
     rv('Job Title',           document.getElementById('ct-title').value) +
     rv('SA ID Number',        document.getElementById('ct-id').value.replace(/(\d{6})(\d{4})(\d{3})/, '$1 $2 $3')) +
     rv('Work Email',          document.getElementById('ct-email').value) +
-    rv('Phone Number',        (document.getElementById('ct-phone-code')?.value || '') + ' ' + document.getElementById('ct-phone').value) +
-    rv('LinkedIn',            document.getElementById('ct-linkedin').value) +
+    rv('Phone Number',       (document.getElementById('ct-phone-code')?.value || '') + ' ' + document.getElementById('ct-phone').value) +
+    rv('LinkedIn',            document.getElementById('ct-linkedin')?.value) +
     rv('Tenure at Company',   document.getElementById('ct-tenure').value) +
     rv('Authorised to Post',  authRadio ? (authRadio.value === 'yes' ? 'Yes — self-authorised' : 'No — letter provided') : '—')
 
   document.getElementById('review-docs').innerHTML =
-    rv('CIPC Certificate',     uploadedFiles.cipc ? '✓ ' + uploadedFiles.cipc.name : null) +
-    rv('ID Document',          uploadedFiles.id   ? '✓ ' + uploadedFiles.id.name   : null) +
-    rv('Proof of Address',     uploadedFiles.addr ? '✓ ' + uploadedFiles.addr.name : null) +
-    rv('Authorisation Letter', uploadedFiles.auth ? '✓ ' + uploadedFiles.auth.name : 'Not required')
+    rv('CIPC Certificate',     window._uploadedFiles.cipc ? '✓ ' + window._uploadedFiles.cipc.name : null) +
+    rv('ID Document',          window._uploadedFiles.id   ? '✓ ' + window._uploadedFiles.id.name   : null) +
+    rv('Proof of Address',     window._uploadedFiles.addr ? '✓ ' + window._uploadedFiles.addr.name : null) +
+    rv('Authorisation Letter', window._uploadedFiles.auth ? '✓ ' + window._uploadedFiles.auth.name : 'Not required')
 
   const posts     = document.querySelector('input[name="posts-per-month"]:checked')
   const provinces = [...document.querySelectorAll('#province-checks input:checked')].map(i => i.value).join(', ')
@@ -1563,15 +1797,36 @@ function buildReview() {
     rv('Hiring Provinces', provinces, true)
 }
 
-// ── Upload a single file to Storage ───────────────
-function uploadFile(file, path) {
+// ── File upload with progress ──────────────────────────────────────────────
+function uploadFile(file, path, onProgressMsg) {
   return new Promise((resolve, reject) => {
-    uploadBytesResumable(ref(storage, path), file)
-      .on('state_changed', null, reject, resolve)
+    const task = uploadBytesResumable(ref(storage, path), file)
+
+    // Stall detection — if no progress for 30 seconds, cancel
+    let stallTimer = null
+    function resetStall() {
+      clearTimeout(stallTimer)
+      stallTimer = setTimeout(() => {
+        task.cancel()
+        reject(new Error('Upload stalled. Please check your internet connection and try again.'))
+      }, 30000)
+    }
+    resetStall()
+
+    task.on('state_changed',
+      snap => {
+        resetStall() // reset stall timer on every progress update
+        const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100)
+        if (onProgressMsg) onProgressMsg(pct)
+      },
+      err => { clearTimeout(stallTimer); reject(err) },
+      ()  => { clearTimeout(stallTimer); resolve() }
+    )
   })
 }
 
-// ── Submit verification to Firestore ──────────────
+// ── Submit ─────────────────────────────────────────────────────────────────
+window._submitApplication = submitApplication
 async function submitApplication() {
   clearErrors()
   const a1 = document.getElementById('chk-agree1').checked
@@ -1579,35 +1834,65 @@ async function submitApplication() {
   const a3 = document.getElementById('chk-agree3').checked
   if (!a1 || !a2 || !a3) { showError('err-agree'); return }
 
-  const btn = document.querySelector('.step-panel.active .btn-submit') ||
-              document.querySelector('[onclick="submitApplication()"]')
-  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…' }
+  // Generate the reference number ONCE here — used in Firestore and success screen
+  verRef = 'CRN-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
+  const btn = document.getElementById('submit-btn') ||
+              document.querySelector('.btn-submit')
+  if (btn) {
+    btn.disabled  = true
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Uploading documents…'
+  }
 
   try {
-    const verRef = `verifications/${currentUid}`
+    const storageBase = `verifications/${currentUid}`
+    const docPaths    = {}
+    const fileKeys    = Object.entries(window._uploadedFiles).filter(([, f]) => f !== null)
+    
+    // Upload files with real-time progress feedback
+    for (let i = 0; i < fileKeys.length; i++) {
+      const [key, file] = fileKeys[i]
+      const path = `${storageBase}/${key}_${file.name.replace(/\s+/g, '_')}`
+      const spinner = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'
+      if (btn) btn.innerHTML = `${spinner} Uploading file ${i + 1} of ${fileKeys.length} — 0%`
+      const bar   = document.getElementById('upload-progress-bar')
+      const pctEl = document.getElementById('upload-progress-pct')
+      const lbl   = document.getElementById('upload-progress-label')
+      const wrap  = document.getElementById('upload-progress-wrap')
+      if (wrap) wrap.style.display = 'block'
+      await uploadFile(file, path, pct => {
+        if (btn) btn.innerHTML = `${spinner} Uploading file ${i + 1} of ${fileKeys.length} — ${pct}%`
+        if (bar)   bar.style.width   = pct + '%'
+        if (pctEl) pctEl.textContent = pct + '%'
+        if (lbl)   lbl.textContent   = `File ${i + 1} of ${fileKeys.length}: ${file.name}`
+      })
+      if (bar)   bar.style.width   = '100%'
+      if (pctEl) pctEl.textContent = '100%'
 
-    // 1. Upload documents to Firebase Storage
-    const docPaths = {}
-    for (const [key, file] of Object.entries(uploadedFiles)) {
-      if (!file) continue
-      const path = `${verRef}/${key}_${file.name.replace(/\s+/g, '_')}`
-      await uploadFile(file, path)
       docPaths[key] = path
     }
 
-    // 2. Collect form data
+    const progressWrap = document.getElementById('upload-progress-wrap')
+    if (progressWrap) progressWrap.style.display = 'none'
+    if (btn) btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Saving application…'
+
+    // Collect form data
     const authRadio = document.querySelector('input[name="authority"]:checked')
     const posts     = document.querySelector('input[name="posts-per-month"]:checked')
     const provinces = [...document.querySelectorAll('#province-checks input:checked')].map(i => i.value)
+    const companyName = document.getElementById('co-name').value.trim()
 
-    // 3. Update employer doc with verification submission
-    await updateDoc(doc(db, 'employers', currentUid), {
+    // setDoc with merge:true — creates doc if missing, updates if exists
+    await setDoc(doc(db, 'employers', currentUid), {
+      // ── Verification status (Cronos internal control will change this to 'approved') ──
       verificationStatus: 'submitted',
-      verificationRef:    'CRN-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      verificationRef:    verRef,
       submittedAt:        serverTimestamp(),
       updatedAt:          serverTimestamp(),
-      // Company info
-      companyName:        document.getElementById('co-name').value.trim(),
+
+      // ── Company info (also updates what was saved during register) ──
+      companyName:        companyName,
+      slug:               companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
       registrationNumber: document.getElementById('co-reg').value.trim(),
       businessType:       document.getElementById('co-type').value,
       industry:           document.getElementById('co-industry').value,
@@ -1618,27 +1903,31 @@ async function submitApplication() {
       postalCode:         document.getElementById('co-postal').value.trim(),
       website:            document.getElementById('co-website')?.value.trim() || null,
       about:              document.getElementById('co-desc').value.trim(),
-      // Contact person
+
+      // ── Contact person ──
       contactFirstName:   document.getElementById('ct-first').value.trim(),
       contactLastName:    document.getElementById('ct-last').value.trim(),
       contactTitle:       document.getElementById('ct-title').value.trim(),
       contactIdNumber:    document.getElementById('ct-id').value.replace(/\s/g, ''),
       contactEmail:       document.getElementById('ct-email').value.trim(),
-      contactPhone:       (document.getElementById('ct-phone-code')?.value || '') + ' ' + document.getElementById('ct-phone').value.trim(),
+      contactPhone:      (document.getElementById('ct-phone-code')?.value || '') + ' ' + document.getElementById('ct-phone').value.trim(),
       contactLinkedIn:    document.getElementById('ct-linkedin')?.value.trim() || null,
       contactTenure:      document.getElementById('ct-tenure').value,
       selfAuthorised:     authRadio?.value === 'yes',
-      // Preferences
+
+      // ── Preferences (used by internal control to set plan limits) ──
       postsPerMonth:      posts?.value || null,
       hiringProvinces:    provinces,
-      // Document storage paths
-      documents:          docPaths,
-    })
 
-    // 4. Show success
-    const verRefEl = document.getElementById('success-ref')
-    if (verRefEl) verRefEl.textContent = document.querySelector('[data-ref]')?.dataset.ref ||
-      'CRN-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+      // ── Document storage paths (used by internal control to review docs) ──
+      documents:          docPaths,
+    }, { merge: true })
+
+    // Show success screen with the correct ref
+    const refEl   = document.getElementById('success-ref')
+    const emailEl = document.getElementById('success-email')
+    if (refEl)   refEl.textContent   = verRef
+    if (emailEl) emailEl.textContent = user.email
 
     document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'))
     document.getElementById('success-panel').classList.add('show')
@@ -1653,8 +1942,42 @@ async function submitApplication() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
   } catch (err) {
-    alert('Submission failed. Please check your connection and try again. (' + err.message + ')')
-    if (btn) { btn.disabled = false; btn.textContent = 'Submit application' }
+    // Log the real error — always visible in F12 console
+    console.error('submitApplication failed:', err.code, err.message, err)
+
+    // Reset button and hide progress bar
+    if (btn) {
+      btn.disabled  = false
+      btn.innerHTML = 'Submit application'
+    }
+    const pw = document.getElementById('upload-progress-wrap')
+    if (pw) pw.style.display = 'none'
+    const pb = document.getElementById('upload-progress-bar')
+    if (pb) pb.style.width = '0%'
+
+
+    // Show inline error above the submit button
+    let errBox = document.getElementById('submit-error')
+    if (!errBox) {
+      errBox = document.createElement('div')
+      errBox.id = 'submit-error'
+      errBox.style.cssText = 'background:#fef2f2;border:1px solid #fca9a9;border-radius:10px;padding:12px 16px;font-size:13px;color:#b91c1c;line-height:1.6;margin-bottom:16px;'
+      if (btn && btn.parentNode) btn.parentNode.insertBefore(errBox, btn)
+    }
+
+    // Map common errors to friendly messages
+    const errorMessages = {
+      'storage/unauthorized':   'File upload failed — storage permission denied. Please contact support.',
+      'storage/canceled':       'Upload was cancelled. Please try again.',
+      'storage/unknown':        'An unknown storage error occurred. Please try again.',
+      'unavailable':            'Service temporarily unavailable. Please try again shortly.',
+      'permission-denied':      'Permission denied. Please make sure you are logged in.',
+      'network-request-failed': 'Network error — please check your internet connection.',
+    }
+    const friendlyMsg = errorMessages[err.code] || ('Submission failed: ' + (err.code || err.message || 'unknown error') + '. Please check your connection and try again.')
+    errBox.innerHTML = '<strong>Something went wrong.</strong> ' + friendlyMsg +
+      '<br><small style="opacity:0.7;margin-top:4px;display:block;">If this continues, email support@cronos.co.za with reference: ' + (verRef || 'N/A') + '</small>'
+    errBox.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
 </script>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Jobs on Cronos — Employer Application</title>
+<meta name="description" content="Apply to list your vacancies on Cronos Jobs. Reach thousands of verified job seekers across South Africa.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#080d1b;--navy-2:#0f1628;
+  --accent:#0099fa;--accent-hover:#007fd4;--accent-light:#e8f4ff;
+  --green:#16a34a;--green-light:#f0fdf4;
+  --red:#ef4444;--red-light:#fef2f2;
+  --bg:#f5f6f8;--surface:#fff;
+  --border:#e4e6ed;--border-strong:#c8ccd8;
+  --text-primary:#0f1628;--text-secondary:#4a5068;--text-muted:#8890a8;
+  --radius-md:10px;--radius-lg:16px;--radius-xl:22px;
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:0 16px 48px rgba(0,0,0,0.12);
+  --font:'DM Sans',-apple-system,sans-serif;
+  --nav-height:64px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg);color:var(--text-primary);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* ── NAV ──────────────────────────────────────────── */
+.nav{position:fixed;top:0;left:0;width:100%;z-index:100;height:var(--nav-height);background:var(--navy);border-bottom:1px solid rgba(255,255,255,0.07);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo img{height:32px;width:auto;}
+.nav-logo-sep{width:1px;height:18px;background:rgba(255,255,255,0.2);}
+.nav-logo-label{font-size:12px;font-weight:500;color:rgba(255,255,255,0.45);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-link{font-size:13px;color:rgba(255,255,255,0.6);text-decoration:none;transition:color .15s;}
+.nav-link:hover{color:#fff;}
+.nav-btn{font-family:var(--font);font-size:13px;font-weight:600;color:#fff;background:var(--accent);border:none;padding:7px 18px;border-radius:50px;cursor:pointer;text-decoration:none;transition:background .15s;}
+.nav-btn:hover{background:var(--accent-hover);}
+
+/* ── HERO ─────────────────────────────────────────── */
+.hero{
+  padding:calc(var(--nav-height) + 64px) 24px 72px;
+  background:var(--navy);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,153,250,0.15) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,153,250,0.12);border:1px solid rgba(0,153,250,0.25);
+  border-radius:50px;padding:5px 14px;
+  font-size:12px;font-weight:600;color:var(--accent);
+  letter-spacing:.04em;text-transform:uppercase;
+  margin-bottom:24px;
+}
+.hero h1{
+  font-size:clamp(32px,5vw,52px);font-weight:700;
+  letter-spacing:-.03em;line-height:1.1;
+  color:#fff;margin-bottom:18px;
+}
+.hero h1 em{font-style:normal;color:var(--accent);}
+.hero p{
+  font-size:17px;color:rgba(255,255,255,0.6);
+  max-width:520px;margin:0 auto 40px;line-height:1.7;
+}
+.hero-trust{
+  display:flex;align-items:center;justify-content:center;
+  gap:24px;flex-wrap:wrap;
+}
+.trust-item{
+  display:flex;align-items:center;gap:7px;
+  font-size:13px;color:rgba(255,255,255,0.45);
+}
+.trust-item svg{color:var(--accent);flex-shrink:0;}
+
+/* ── LAYOUT ───────────────────────────────────────── */
+.page-wrap{max-width:1100px;margin:0 auto;padding:56px 24px 80px;display:grid;grid-template-columns:1fr 420px;gap:48px;align-items:start;}
+
+/* ── LEFT: WHY JOIN ───────────────────────────────── */
+.why-section{}
+.why-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;}
+.why-title{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:16px;}
+.why-sub{font-size:15px;color:var(--text-secondary);line-height:1.7;margin-bottom:36px;max-width:440px;}
+.why-points{display:flex;flex-direction:column;gap:20px;margin-bottom:40px;}
+.why-point{display:flex;align-items:flex-start;gap:14px;}
+.why-point-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--accent-light);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--accent);
+}
+.why-point-text{padding-top:2px;}
+.why-point-title{font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:3px;}
+.why-point-desc{font-size:13px;color:var(--text-secondary);line-height:1.55;}
+.steps-mini{display:flex;flex-direction:column;gap:0;}
+.step-mini{display:flex;align-items:flex-start;gap:12px;padding-bottom:20px;position:relative;}
+.step-mini:not(:last-child)::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:1px;background:var(--border);}
+.step-mini-num{width:32px;height:32px;border-radius:50%;background:var(--navy);border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-muted);flex-shrink:0;}
+.step-mini-text{padding-top:4px;}
+.step-mini-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px;}
+.step-mini-desc{font-size:12px;color:var(--text-muted);}
+
+/* ── RIGHT: FORM ──────────────────────────────────── */
+.form-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-xl);padding:32px;
+  box-shadow:var(--shadow-lg);
+  position:sticky;top:calc(var(--nav-height) + 24px);
+}
+.form-card-title{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;}
+.form-card-sub{font-size:13px;color:var(--text-secondary);margin-bottom:24px;line-height:1.5;}
+.field-group{margin-bottom:16px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field-label{display:block;font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:5px;letter-spacing:.01em;}
+.field-req{color:var(--accent);margin-left:2px;}
+.field-input,.field-select{
+  width:100%;font-family:var(--font);font-size:14px;
+  color:var(--text-primary);background:var(--bg);
+  border:1.5px solid var(--border);border-radius:var(--radius-md);
+  padding:10px 14px;outline:none;
+  transition:border-color .15s,background .15s;
+}
+.field-input:focus,.field-select:focus{border-color:var(--accent);background:#fff;}
+.field-input.error,.field-select.error{border-color:var(--red);}
+.field-input::placeholder{color:var(--text-muted);}
+.field-select{cursor:pointer;}
+.field-error{font-size:12px;color:var(--red);margin-top:4px;display:none;}
+.field-error.show{display:block;}
+.field-hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+
+/* ── SUBMIT ───────────────────────────────────────── */
+.submit-btn{
+  width:100%;font-family:var(--font);font-size:15px;font-weight:700;
+  color:#fff;background:var(--accent);border:none;
+  padding:13px;border-radius:50px;cursor:pointer;
+  transition:background .15s,box-shadow .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:6px;
+}
+.submit-btn:hover{background:var(--accent-hover);box-shadow:0 4px 14px rgba(0,153,250,.35);}
+.submit-btn:disabled{background:var(--border-strong);cursor:not-allowed;box-shadow:none;}
+.form-note{font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px;line-height:1.6;}
+
+/* ── SUCCESS ──────────────────────────────────────── */
+.success-state{display:none;text-align:center;padding:8px 0;}
+.success-state.show{display:block;}
+.success-icon{
+  width:64px;height:64px;background:var(--green-light);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;color:var(--green);
+}
+.success-title{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+.success-ref{
+  font-family:'DM Mono',monospace;font-size:13px;
+  background:var(--accent-light);color:var(--accent);
+  border-radius:8px;padding:6px 14px;
+  display:inline-block;margin:10px 0 16px;
+  border:1px solid rgba(0,153,250,.2);
+}
+.success-sub{font-size:14px;color:var(--text-secondary);line-height:1.6;max-width:300px;margin:0 auto 24px;}
+.success-steps{display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:20px;}
+.success-step{display:flex;align-items:flex-start;gap:10px;}
+.success-step-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.success-step-text{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+
+/* ── ALERT ────────────────────────────────────────── */
+.alert{
+  display:none;padding:12px 14px;border-radius:var(--radius-md);
+  font-size:13px;margin-bottom:14px;
+  align-items:center;gap:8px;
+}
+.alert.show{display:flex;}
+.alert-error{background:var(--red-light);border:1px solid #fca9a9;color:#b91c1c;}
+
+/* ── MOBILE ───────────────────────────────────────── */
+@media(max-width:860px){
+  .page-wrap{grid-template-columns:1fr;gap:36px;}
+  .form-card{position:static;}
+  .hero h1{font-size:28px;}
+  .hero-trust{gap:16px;}
+}
+@media(max-width:560px){
+  .field-row{grid-template-columns:1fr;}
+  .form-card{padding:22px 18px;}
+  .page-wrap{padding:36px 16px 60px;}
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Cronos Jobs"/>
+      <div class="nav-logo-sep"></div>
+      <span class="nav-logo-label">For Employers</span>
+    </a>
+    <div class="nav-right">
+      <a href="index.html" class="nav-link">Browse jobs</a>
+      <a href="employer-login.html" class="nav-btn">Employer sign in</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 1l2.5 5 5.5.8-4 3.9.9 5.5L8 13.5l-4.9 2.7.9-5.5L0 6.8l5.5-.8L8 1z" fill="currentColor"/></svg>
+    Verified Employers Only
+  </div>
+  <h1>Hire smarter with<br><em>Cronos Jobs</em></h1>
+  <p>South Africa's verified job board. Submit your interest and our team will review your business before granting access.</p>
+  <div class="hero-trust">
+    <div class="trust-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a6 6 0 100 12A6 6 0 008 1zm-1 8.5L4.5 7l1-.9 1.5 1.5 3.5-3.5 1 1L7 9.5z" fill="currentColor"/></svg>
+      CIPC verified employers
+    </div>
+    <div class="trust-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a6 6 0 100 12A6 6 0 008 1zm-1 8.5L4.5 7l1-.9 1.5 1.5 3.5-3.5 1 1L7 9.5z" fill="currentColor"/></svg>
+      No fraudulent listings
+    </div>
+    <div class="trust-item">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a6 6 0 100 12A6 6 0 008 1zm-1 8.5L4.5 7l1-.9 1.5 1.5 3.5-3.5 1 1L7 9.5z" fill="currentColor"/></svg>
+      1–2 day review turnaround
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="page-wrap">
+
+  <!-- LEFT -->
+  <div class="why-section">
+    <div class="why-label">Why Cronos</div>
+    <h2 class="why-title">Reach the right candidates, faster</h2>
+    <p class="why-sub">Cronos Jobs connects South African businesses with qualified job seekers across all nine provinces. Every employer on our platform is verified — so candidates trust your listings.</p>
+
+    <div class="why-points">
+      <div class="why-point">
+        <div class="why-point-icon">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.6"/></svg>
+        </div>
+        <div class="why-point-text">
+          <div class="why-point-title">National reach</div>
+          <div class="why-point-desc">Advertise across all nine provinces. Target candidates in the cities and regions you hire from.</div>
+        </div>
+      </div>
+      <div class="why-point">
+        <div class="why-point-icon">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="why-point-text">
+          <div class="why-point-title">Your own branded company page</div>
+          <div class="why-point-desc">Every verified employer gets a dedicated page at yourcompany.cronos.co.za to attract direct applications.</div>
+        </div>
+      </div>
+      <div class="why-point">
+        <div class="why-point-icon">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="why-point-text">
+          <div class="why-point-title">Fast, simple hiring</div>
+          <div class="why-point-desc">Post jobs in minutes, manage applications in one place, and download CVs directly from your dashboard.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="why-label">How it works</div>
+    <div class="steps-mini">
+      <div class="step-mini">
+        <div class="step-mini-num">1</div>
+        <div class="step-mini-text">
+          <div class="step-mini-title">Submit your interest</div>
+          <div class="step-mini-desc">Fill in the form — takes under 2 minutes.</div>
+        </div>
+      </div>
+      <div class="step-mini">
+        <div class="step-mini-num">2</div>
+        <div class="step-mini-text">
+          <div class="step-mini-title">We review your business</div>
+          <div class="step-mini-desc">Our team verifies your details within 1–2 business days.</div>
+        </div>
+      </div>
+      <div class="step-mini">
+        <div class="step-mini-num">3</div>
+        <div class="step-mini-text">
+          <div class="step-mini-title">You receive an invite</div>
+          <div class="step-mini-desc">If approved, we send you a secure link to complete registration.</div>
+        </div>
+      </div>
+      <div class="step-mini">
+        <div class="step-mini-num">4</div>
+        <div class="step-mini-text">
+          <div class="step-mini-title">Start posting jobs</div>
+          <div class="step-mini-desc">Log in to your dashboard and post your first vacancy immediately.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM -->
+  <div class="form-card">
+
+    <!-- Form state -->
+    <div id="form-state">
+      <div class="form-card-title">Apply to list jobs</div>
+      <div class="form-card-sub">No account needed — just tell us about your business. We'll be in touch within 1–2 business days.</div>
+
+      <div class="alert alert-error" id="alert-error">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.75 3.5h1.5v5h-1.5v-5zm0 6.25h1.5v1.5h-1.5v-1.5z"/></svg>
+        <span id="alert-msg">Something went wrong. Please try again.</span>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="f-first">First name<span class="field-req">*</span></label>
+          <input class="field-input" id="f-first" type="text" placeholder="Jane" autocomplete="given-name"/>
+          <div class="field-error" id="err-first">Required</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-last">Last name<span class="field-req">*</span></label>
+          <input class="field-input" id="f-last" type="text" placeholder="Smith" autocomplete="family-name"/>
+          <div class="field-error" id="err-last">Required</div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="f-company">Company / trading name<span class="field-req">*</span></label>
+        <input class="field-input" id="f-company" type="text" placeholder="e.g. Acme Logistics (Pty) Ltd"/>
+        <div class="field-error" id="err-company">Required</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="f-email">Work email address<span class="field-req">*</span></label>
+        <input class="field-input" id="f-email" type="email" placeholder="jane@company.co.za" autocomplete="email"/>
+        <div class="field-error" id="err-email">Please enter a valid email address</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="f-phone">Contact number<span class="field-req">*</span></label>
+        <input class="field-input" id="f-phone" type="tel" placeholder="+27 82 000 0000" autocomplete="tel"/>
+        <div class="field-error" id="err-phone">Required</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label" for="f-industry">Industry<span class="field-req">*</span></label>
+          <select class="field-select" id="f-industry">
+            <option value="">— Select —</option>
+            <option>Agriculture</option>
+            <option>Construction & Property</option>
+            <option>Education & Training</option>
+            <option>Finance & Insurance</option>
+            <option>Healthcare & Medical</option>
+            <option>Hospitality & Tourism</option>
+            <option>IT & Technology</option>
+            <option>Legal & Compliance</option>
+            <option>Logistics & Transport</option>
+            <option>Manufacturing</option>
+            <option>Media & Marketing</option>
+            <option>Mining & Energy</option>
+            <option>NGO & Non-profit</option>
+            <option>Retail & FMCG</option>
+            <option>Security</option>
+            <option>Other</option>
+          </select>
+          <div class="field-error" id="err-industry">Required</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-province">Province<span class="field-req">*</span></label>
+          <select class="field-select" id="f-province">
+            <option value="">— Select —</option>
+            <option>Eastern Cape</option>
+            <option>Free State</option>
+            <option>Gauteng</option>
+            <option>KwaZulu-Natal</option>
+            <option>Limpopo</option>
+            <option>Mpumalanga</option>
+            <option>North West</option>
+            <option>Northern Cape</option>
+            <option>Western Cape</option>
+          </select>
+          <div class="field-error" id="err-province">Required</div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="f-size">Company size</label>
+        <select class="field-select" id="f-size">
+          <option value="">— Select (optional) —</option>
+          <option>1–10 employees</option>
+          <option>11–50 employees</option>
+          <option>51–200 employees</option>
+          <option>201–500 employees</option>
+          <option>500+ employees</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="f-message">Anything else you'd like us to know? <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+        <textarea class="field-input" id="f-message" rows="3" placeholder="e.g. We hire monthly across 3 branches in KZN…" style="resize:vertical;min-height:80px;"></textarea>
+      </div>
+
+      <button class="submit-btn" id="submit-btn" onclick="submitInterest()">
+        Submit application
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 10h10M11 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <p class="form-note">By submitting you agree to Cronos's terms. We do not share your information with third parties.</p>
+    </div>
+
+    <!-- Success state -->
+    <div class="success-state" id="success-state">
+      <div class="success-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke-linecap="round"/><path d="M22 4L12 14.01l-3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="success-title">Application received!</div>
+      <div class="success-ref" id="s-ref">INV-XXXXXX</div>
+      <p class="success-sub">Thank you for your interest in Cronos Jobs. Our team will review your application and be in touch shortly.</p>
+      <div class="success-steps">
+        <div class="success-step">
+          <div class="success-step-num">1</div>
+          <div class="success-step-text"><strong>Check your inbox</strong> — we'll send a confirmation to <span id="s-email" style="font-weight:600;color:var(--text-primary)"></span></div>
+        </div>
+        <div class="success-step">
+          <div class="success-step-num">2</div>
+          <div class="success-step-text"><strong>Review (1–2 business days)</strong> — our team verifies your business details</div>
+        </div>
+        <div class="success-step">
+          <div class="success-step-num">3</div>
+          <div class="success-step-text"><strong>Invite sent</strong> — if approved, you'll receive a secure link to complete your account</div>
+        </div>
+      </div>
+      <a href="index.html" style="font-size:13px;color:var(--accent);text-decoration:none;">← Back to Cronos Jobs</a>
+    </div>
+
+  </div><!-- /form-card -->
+</div><!-- /page-wrap -->
+
+<script type="module">
+import { db } from './firebase.js'
+import { collection, addDoc,
+         serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+
+window.submitInterest = submitInterest
+
+async function submitInterest() {
+  // Clear errors
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'))
+  document.querySelectorAll('.field-input.error,.field-select.error').forEach(e => e.classList.remove('error'))
+  document.getElementById('alert-error').classList.remove('show')
+
+  // Collect values
+  const first    = document.getElementById('f-first').value.trim()
+  const last     = document.getElementById('f-last').value.trim()
+  const company  = document.getElementById('f-company').value.trim()
+  const email    = document.getElementById('f-email').value.trim()
+  const phone    = document.getElementById('f-phone').value.trim()
+  const industry = document.getElementById('f-industry').value
+  const province = document.getElementById('f-province').value
+  const size     = document.getElementById('f-size').value
+  const message  = document.getElementById('f-message').value.trim()
+
+  // Validate
+  let ok = true
+  function err(id, errId) {
+    document.getElementById(errId).classList.add('show')
+    document.getElementById(id).classList.add('error')
+    ok = false
+  }
+  if (!first)    err('f-first',    'err-first')
+  if (!last)     err('f-last',     'err-last')
+  if (!company)  err('f-company',  'err-company')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err('f-email', 'err-email')
+  if (!phone)    err('f-phone',    'err-phone')
+  if (!industry) err('f-industry', 'err-industry')
+  if (!province) err('f-province', 'err-province')
+  if (!ok) {
+    document.querySelector('.field-input.error,.field-select.error')
+      ?.scrollIntoView({ behavior:'smooth', block:'center' })
+    return
+  }
+
+  const btn = document.getElementById('submit-btn')
+  btn.disabled = true
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Submitting…'
+
+  try {
+    // Generate reference
+    const ref = 'INV-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
+    // Save to Firestore invites collection
+    await addDoc(collection(db, 'invites'), {
+      ref,
+      firstName:   first,
+      lastName:    last,
+      companyName: company,
+      email,
+      phone,
+      industry,
+      province,
+      companySize: size   || null,
+      message:     message || null,
+      status:      'pending',   // 'pending' | 'approved' | 'rejected' | 'invited'
+      createdAt:   serverTimestamp(),
+    })
+
+    // Show success
+    document.getElementById('s-ref').textContent   = ref
+    document.getElementById('s-email').textContent = email
+    document.getElementById('form-state').style.display  = 'none'
+    document.getElementById('success-state').classList.add('show')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  } catch (err) {
+    document.getElementById('alert-msg').textContent =
+      'Something went wrong. Please check your connection and try again.'
+    document.getElementById('alert-error').classList.add('show')
+    btn.disabled = false
+    btn.innerHTML = 'Submit application <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 10h10M11 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    console.error(err)
+  }
+}
+
+// Clear errors on input
+document.querySelectorAll('.field-input,.field-select').forEach(el => {
+  el.addEventListener('input',  () => el.classList.remove('error'))
+  el.addEventListener('change', () => el.classList.remove('error'))
+})
+</script>
+</body>
+</html>

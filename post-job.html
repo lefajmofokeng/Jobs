@@ -420,184 +420,236 @@ select.field{background-image:url("data:image/svg+xml,%3Csvg width='16' height='
   </div>
 </div>
 
-<script type="module">
-import { auth, db, requireAuth }          from './firebase.js';
-import { collection, doc, addDoc,
-         getDoc, updateDoc,
-         serverTimestamp }                 from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+<script>
+// ── ALL UI functions — plain script, available immediately ────────────────
 
-// ── Expose UI functions to inline handlers ─────────────────────────────────
-window.addItem        = addItem;
-window.removeItem     = removeItem;
-window.autoResize     = autoResize;
-window.countChars     = countChars;
-window.updatePreview  = updatePreview;
-window.updateChecklist= updateChecklist;
-window.publishListing = publishListing;
-window.saveDraft      = saveDraft;
-window.resetForm      = resetForm;
-
-// ── Auth + load ────────────────────────────────────────────────────────────
-const user    = await requireAuth();
-const editId  = new URLSearchParams(location.search).get('edit'); // edit mode if ?edit=jobId
-let   EMPLOYER = {};
-
-// Load employer profile
-const snap = await getDoc(doc(db, 'employers', user.uid));
-if (snap.exists()) {
-  EMPLOYER = snap.data();
-} else {
-  EMPLOYER = { companyName: user.displayName || 'Your Company', plan: 'none', planStatus: 'inactive' };
+// ── List editor ────────────────────────────────────────────────────────────
+function addItem(containerId, value) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  var div = document.createElement('div');
+  div.className = 'list-editor-item';
+  div.innerHTML =
+    '<div class="list-bullet"></div>' +
+    '<textarea class="list-item-input" rows="1" placeholder="Add a bullet point…"></textarea>' +
+    '<button type="button" class="list-item-remove" onclick="removeItem(this)">' +
+    '<svg width="13" height="13" viewBox="0 0 14 14" fill="none">' +
+    '<path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '</svg></button>';
+  container.appendChild(div);
+  var ta = div.querySelector('textarea');
+  if (value) ta.value = value;
+  ta.addEventListener('input', function() { autoResize(ta); updateChecklist(); updatePreview(); });
+  ta.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addItem(containerId);
+      setTimeout(function() {
+        var items = container.querySelectorAll('textarea');
+        items[items.length - 1].focus();
+      }, 50);
+    }
+  });
+  autoResize(ta);
+  if (!value) ta.focus();
+  updateChecklist();
 }
 
-// ── Subscription gate ──────────────────────────────────────────────────────
-const hasActivePlan = EMPLOYER.planStatus === 'active' || EMPLOYER.planStatus === 'expiring';
-if (!hasActivePlan) {
-  document.getElementById('sub-gate').classList.add('show');
+function removeItem(btn) {
+  var container = btn.closest('.list-editor');
+  var items = container ? container.querySelectorAll('.list-editor-item') : [];
+  if (items.length > 1) btn.closest('.list-editor-item').remove();
+  updateChecklist();
+}
+
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+function getListValues(containerId) {
+  return Array.from(document.querySelectorAll('#' + containerId + ' .list-item-input'))
+    .map(function(i) { return i.value.trim(); })
+    .filter(Boolean);
+}
+
+// ── Char counter ────────────────────────────────────────────────────────────
+function countChars(fieldId, counterId, min, max) {
+  var val = (document.getElementById(fieldId) || {}).value || '';
+  var el  = document.getElementById(counterId);
+  if (!el) return;
+  el.textContent = val.length + ' / ' + max;
+  el.className = 'char-counter' + (val.length > max ? ' over' : val.length > max * 0.85 ? ' warn' : '');
+}
+
+// ── Checklist ───────────────────────────────────────────────────────────────
+function setCheck(id, done) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('done', done);
+}
+function updateChecklist() {
+  setCheck('chk-title',    !!(document.getElementById('f-title') || {}).value);
+  setCheck('chk-location', !!((document.getElementById('f-city') || {}).value && (document.getElementById('f-province') || {}).value));
+  setCheck('chk-type',     !!(document.getElementById('f-type') || {}).value);
+  var desc = ((document.getElementById('f-desc') || {}).value || '').trim();
+  setCheck('chk-desc',   desc.length >= 50);
+  setCheck('chk-resp',   getListValues('resp-list').length >= 2);
+  setCheck('chk-req',    getListValues('req-list').length >= 2);
+  setCheck('chk-closes', !!(document.getElementById('f-closes') || {}).value);
+}
+
+// ── Live preview ────────────────────────────────────────────────────────────
+function typeClass(t) { return t==='full-time'?'blue':t==='part-time'?'amber':'purple'; }
+function typeLabel(t) { return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract'; }
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+}
+function updatePreview() {
+  var title  = ((document.getElementById('f-title')  || {}).value || '').trim();
+  var type   = (document.getElementById('f-type')    || {}).value || '';
+  var city   = ((document.getElementById('f-city')   || {}).value || '').trim();
+  var prov   = (document.getElementById('f-province')|| {}).value || '';
+  var dept   = (document.getElementById('f-dept')    || {}).value || '';
+  var desc   = ((document.getElementById('f-desc')   || {}).value || '').trim();
+  var closes = (document.getElementById('f-closes')  || {}).value || '';
+  var time   = (document.getElementById('f-closes-time') || {}).value || '17:00';
+
+  var titleEl = document.getElementById('prev-title');
+  if (titleEl) {
+    if (title) { titleEl.textContent = title; titleEl.style.color = ''; titleEl.style.fontStyle = ''; titleEl.style.fontWeight = ''; }
+    else { titleEl.textContent = 'Job title will appear here'; titleEl.style.color = 'var(--text-muted)'; titleEl.style.fontStyle = 'italic'; titleEl.style.fontWeight = '400'; }
+  }
+
+  var tags = '';
+  if (city || prov) tags += '<span class="prev-tag"><svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>' + [city,prov].filter(Boolean).join(', ') + '</span>';
+  if (type) tags += '<span class="prev-tag ' + typeClass(type) + '">' + typeLabel(type) + '</span>';
+  if (dept) tags += '<span class="prev-tag">' + dept + '</span>';
+  var tagsEl = document.getElementById('prev-tags');
+  if (tagsEl) tagsEl.innerHTML = tags;
+
+  var descEl = document.getElementById('prev-desc');
+  if (descEl) {
+    if (desc) { descEl.textContent = desc; descEl.style.fontStyle = ''; descEl.style.color = ''; }
+    else { descEl.textContent = 'Description will appear here as you type…'; descEl.style.fontStyle = 'italic'; descEl.style.color = 'var(--text-muted)'; }
+  }
+
+  var datesEl = document.getElementById('prev-dates');
+  if (datesEl) datesEl.innerHTML = closes ? '<span>Closes ' + fmtDate(closes) + ' at ' + time + '</span>' : '';
+  updateChecklist();
+}
+
+// ── Delegate Firebase actions to module ─────────────────────────────────────
+function publishListing() { if (window._publishListing) window._publishListing(); }
+function saveDraft()       { if (window._saveDraft)      window._saveDraft();      }
+function resetForm()       { if (window._resetForm)      window._resetForm();      }
+</script>
+
+<script type="module">
+import { auth, db, requireAuth, signOutEmployer } from './firebase.js';
+import { collection, doc, addDoc,
+         getDoc, updateDoc, getDocs,
+         query, where,
+         serverTimestamp }                         from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+window.signOut       = signOutEmployer;
+window.toggleSidebar = () => document.getElementById('sidebar')?.classList.toggle('open');
+
+// ── Auth + load ────────────────────────────────────────────────────────────
+const user   = await requireAuth();
+const editId = new URLSearchParams(location.search).get('edit');
+let   EMPLOYER    = {};
+let   draftDocId  = null;
+
+const snap = await getDoc(doc(db, 'employers', user.uid));
+EMPLOYER = snap.exists() ? snap.data() : { companyName: user.displayName || 'Your Company', plan: 'none', planStatus: 'inactive', verificationStatus: 'pending' };
+
+// ── Access gate ────────────────────────────────────────────────────────────
+const vStatus       = EMPLOYER.verificationStatus || 'pending';
+const pStatus       = EMPLOYER.planStatus         || 'inactive';
+const isApproved    = vStatus === 'approved';
+const hasActivePlan = pStatus === 'active' || pStatus === 'expiring';
+
+if (!isApproved || !hasActivePlan) {
+  const gate     = document.getElementById('sub-gate');
+  const gateH2   = gate.querySelector('h2');
+  const gateP    = gate.querySelector('p');
+  const gateBtns = gate.querySelector('.sub-gate-btns');
+
+  if (!isApproved) {
+    gateH2.textContent = vStatus === 'submitted' ? 'Verification under review' : 'Verification required';
+    gateP.textContent  = vStatus === 'submitted'
+      ? 'Your verification is being reviewed. You will be notified by email once approved.'
+      : 'Your business must be verified by Cronos before you can post jobs.';
+    gateBtns.innerHTML = vStatus === 'submitted'
+      ? '<a href="employer-dashboard.html" class="btn-gate-outline">Back to dashboard</a>'
+      : '<a href="verify.html" class="btn-gate-primary">Complete verification →</a><a href="employer-dashboard.html" class="btn-gate-outline">Back to dashboard</a>';
+  } else {
+    gateH2.textContent = 'Active subscription required';
+    gateP.textContent  = 'You need an active Cronos subscription to post jobs.';
+    gateBtns.innerHTML = '<a href="pricing.html" class="btn-gate-primary">View plans →</a><a href="employer-dashboard.html" class="btn-gate-outline">Back to dashboard</a>';
+  }
+
+  gate.classList.add('show');
   document.getElementById('form-page').style.display   = 'none';
   document.getElementById('form-footer').style.display = 'none';
 }
 
-// ── Populate company name in preview ──────────────────────────────────────
-// coName removed — use EMPLOYER.companyName directly
-  document.getElementById('prev-co-name').textContent   = EMPLOYER.companyName || 'Your Company';
-  document.getElementById('prev-co-bottom').textContent = EMPLOYER.companyName || 'Your Company';
+// ── Populate defaults ──────────────────────────────────────────────────────
+document.getElementById('prev-co-name').textContent   = EMPLOYER.companyName || 'Your Company';
+document.getElementById('prev-co-bottom').textContent = EMPLOYER.companyName || 'Your Company';
+document.getElementById('f-apply-email').value        = EMPLOYER.appEmail || EMPLOYER.email || user.email || '';
 
-// ── Default closing date (14 days from today) ──────────────────────────────
 const defDate = new Date(); defDate.setDate(defDate.getDate() + 14);
 document.getElementById('f-closes').value = defDate.toISOString().split('T')[0];
 document.getElementById('f-closes').min   = new Date(Date.now() + 3*86400000).toISOString().split('T')[0];
 
-// ── Default apply email from profile ──────────────────────────────────────
-document.getElementById('f-apply-email').value = EMPLOYER.email || user.email || '';
-
-// ── If edit mode: load existing job and pre-fill form ─────────────────────
+// ── Edit mode ──────────────────────────────────────────────────────────────
 if (editId) {
   document.getElementById('publish-btn').innerHTML =
     '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 13.5h12M8 2v9M4 7l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Save changes';
-  document.querySelector('.topbar-page-title') &&
-    (document.querySelector('.topbar-page-title').textContent = 'Edit Listing');
+  const titleEl = document.querySelector('.topbar-page-title');
+  if (titleEl) titleEl.textContent = 'Edit Listing';
 
   const jobSnap = await getDoc(doc(db, 'jobs', editId));
   if (jobSnap.exists()) {
     const j = jobSnap.data();
-    document.getElementById('f-title').value        = j.title        || '';
-    document.getElementById('f-dept').value         = j.department   || '';
-    document.getElementById('f-type').value         = j.type         || '';
-    document.getElementById('f-province').value     = j.province     || '';
-    document.getElementById('f-city').value         = j.city         || '';
-    document.getElementById('f-desc').value         = j.description  || '';
-    document.getElementById('f-closes').value       = j.closes       || '';
-    document.getElementById('f-closes-time').value  = j.closesTime   || '17:00';
-    document.getElementById('f-apply-email').value  = j.applyEmail   || user.email || '';
-    if (j.salary)   document.getElementById('f-salary') && (document.getElementById('f-salary').value = j.salary);
-    if (j.remote)   document.getElementById('f-remote') && (document.getElementById('f-remote').value = j.remote);
+    if (j.employerId !== user.uid) {
+      showInlineError('You do not have permission to edit this listing.');
+      document.getElementById('form-page').style.display   = 'none';
+      document.getElementById('form-footer').style.display = 'none';
+    } else {
+      document.getElementById('f-title').value       = j.title        || '';
+      document.getElementById('f-dept').value        = j.department   || '';
+      document.getElementById('f-type').value        = j.type         || '';
+      document.getElementById('f-province').value    = j.province     || '';
+      document.getElementById('f-city').value        = j.city         || '';
+      document.getElementById('f-desc').value        = j.description  || '';
+      document.getElementById('f-closes').value      = j.closes       || '';
+      document.getElementById('f-closes-time').value = j.closesTime   || '17:00';
+      document.getElementById('f-apply-email').value = j.applyEmail   || user.email || '';
+      const salaryEl = document.getElementById('f-salary');
+      const remoteEl = document.getElementById('f-remote');
+      if (salaryEl && j.salary) salaryEl.value = j.salary;
+      if (remoteEl && j.remote) remoteEl.value = j.remote;
 
-    // Pre-fill bullet lists
-    document.getElementById('resp-list').innerHTML = '';
-    document.getElementById('req-list').innerHTML  = '';
-    const respItems = j.responsibilities?.length ? j.responsibilities : ['','',''];
-    const reqItems  = j.requirements?.length     ? j.requirements     : ['','',''];
-    respItems.forEach(v => addItem('resp-list', v));
-    reqItems.forEach(v  => addItem('req-list',  v));
+      document.getElementById('resp-list').innerHTML = '';
+      document.getElementById('req-list').innerHTML  = '';
+      const respItems = j.responsibilities?.length ? j.responsibilities : ['', '', ''];
+      const reqItems  = j.requirements?.length     ? j.requirements     : ['', '', ''];
+      respItems.forEach(v => addItem('resp-list', v));
+      reqItems.forEach(v  => addItem('req-list',  v));
+    }
+  } else {
+    showInlineError('Listing not found.');
   }
 } else {
-  // New job — add empty bullet rows
+  // New job — add 3 blank rows each
   addItem('resp-list'); addItem('resp-list'); addItem('resp-list');
   addItem('req-list');  addItem('req-list');  addItem('req-list');
 }
 
 updatePreview();
-
-// ── Bullet list editor ─────────────────────────────────────────────────────
-function addItem(containerId, value) {
-  const container = document.getElementById(containerId);
-  const div = document.createElement('div');
-  div.className = 'list-editor-item';
-  div.innerHTML = `<div class="list-bullet"></div><textarea class="list-item-input" rows="1" placeholder="Add a bullet point…" oninput="autoResize(this);updateChecklist()">${value || ''}</textarea><button type="button" class="list-item-remove" onclick="removeItem(this)"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>`;
-  container.appendChild(div);
-  const ta = div.querySelector('textarea');
-  ta.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addItem(containerId);
-      setTimeout(() => { const items = container.querySelectorAll('textarea'); items[items.length - 1].focus(); }, 50);
-    }
-  });
-  if (!value) ta.focus();
-  autoResize(ta);
-}
-function removeItem(btn) {
-  const container = btn.closest('.list-editor');
-  if (container.children.length > 1) btn.closest('.list-editor-item').remove();
-  updateChecklist();
-}
-function autoResize(ta) {
-  ta.style.height = 'auto';
-  ta.style.height = ta.scrollHeight + 'px';
-}
-function getListValues(containerId) {
-  return [...document.querySelectorAll(`#${containerId} .list-item-input`)].map(i => i.value.trim()).filter(Boolean);
-}
-
-// ── Char counter ───────────────────────────────────────────────────────────
-function countChars(fieldId, counterId, min, max) {
-  const val = document.getElementById(fieldId).value;
-  const el  = document.getElementById(counterId);
-  el.textContent = val.length + ' / ' + max;
-  el.className = 'char-counter' + (val.length > max ? ' over' : val.length > max * 0.85 ? ' warn' : '');
-}
-
-// ── Live preview ───────────────────────────────────────────────────────────
-function typeClass(t) { return t==='full-time'?'blue':t==='part-time'?'amber':'purple'; }
-function typeLabel(t) { return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract'; }
-function fmtDate(iso) {
-  if (!iso) return '';
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-}
-
-function updatePreview() {
-  const title  = document.getElementById('f-title').value.trim();
-  const type   = document.getElementById('f-type').value;
-  const city   = document.getElementById('f-city').value.trim();
-  const prov   = document.getElementById('f-province').value;
-  const dept   = document.getElementById('f-dept').value;
-  const desc   = document.getElementById('f-desc').value.trim();
-  const closes = document.getElementById('f-closes').value;
-  const time   = document.getElementById('f-closes-time').value;
-
-  const titleEl = document.getElementById('prev-title');
-  if (title) { titleEl.textContent = title; titleEl.style.color = ''; titleEl.style.fontStyle = ''; titleEl.style.fontWeight = ''; }
-  else { titleEl.textContent = 'Job title will appear here'; titleEl.style.color = 'var(--text-muted)'; titleEl.style.fontStyle = 'italic'; titleEl.style.fontWeight = '400'; }
-
-  let tags = '';
-  if (city || prov) tags += `<span class="prev-tag"><svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>${[city,prov].filter(Boolean).join(', ')}</span>`;
-  if (type) tags += `<span class="prev-tag ${typeClass(type)}">${typeLabel(type)}</span>`;
-  if (dept) tags += `<span class="prev-tag">${dept}</span>`;
-  document.getElementById('prev-tags').innerHTML = tags;
-
-  const descEl = document.getElementById('prev-desc');
-  if (desc) { descEl.textContent = desc; descEl.style.fontStyle = ''; descEl.style.color = ''; }
-  else { descEl.textContent = 'Description will appear here as you type…'; descEl.style.fontStyle = 'italic'; descEl.style.color = 'var(--text-muted)'; }
-
-  document.getElementById('prev-dates').innerHTML = closes ? `<span>Closes ${fmtDate(closes)} at ${time}</span>` : '';
-  updateChecklist();
-}
-
-// ── Checklist ──────────────────────────────────────────────────────────────
-function setCheck(id, done) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('done', done);
-}
-function updateChecklist() {
-  setCheck('chk-title',    !!document.getElementById('f-title').value.trim());
-  setCheck('chk-location', !!(document.getElementById('f-city').value.trim() && document.getElementById('f-province').value));
-  setCheck('chk-type',     !!document.getElementById('f-type').value);
-  setCheck('chk-desc',     document.getElementById('f-desc').value.trim().length >= 50);
-  setCheck('chk-resp',     getListValues('resp-list').length >= 2);
-  setCheck('chk-req',      getListValues('req-list').length >= 2);
-  setCheck('chk-closes',   !!document.getElementById('f-closes').value);
-}
 
 // ── Validation ─────────────────────────────────────────────────────────────
 function validateForm() {
@@ -614,11 +666,11 @@ function validateForm() {
     if (!v) { e.classList.add('show'); document.getElementById(id).classList.add('error'); ok = false; }
     else    { e.classList.remove('show'); document.getElementById(id).classList.remove('error'); }
   }
-  reqField('f-title','err-title');
-  reqSelect('f-dept','err-dept');
-  reqSelect('f-type','err-type');
-  reqSelect('f-province','err-province');
-  reqField('f-city','err-city');
+  reqField('f-title',     'err-title');
+  reqSelect('f-dept',     'err-dept');
+  reqSelect('f-type',     'err-type');
+  reqSelect('f-province', 'err-province');
+  reqField('f-city',      'err-city');
   const desc = document.getElementById('f-desc').value.trim();
   if (desc.length < 50) { document.getElementById('err-desc').classList.add('show'); document.getElementById('f-desc').classList.add('error'); ok = false; }
   else                  { document.getElementById('err-desc').classList.remove('show'); document.getElementById('f-desc').classList.remove('error'); }
@@ -635,89 +687,121 @@ function validateForm() {
   const email = document.getElementById('f-apply-email').value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-apply-email').classList.add('show'); document.getElementById('f-apply-email').classList.add('error'); ok = false; }
   else                                             { document.getElementById('err-apply-email').classList.remove('show'); document.getElementById('f-apply-email').classList.remove('error'); }
+  if (!ok) document.querySelector('.inp.error, select.error, textarea.error')?.scrollIntoView({ behavior:'smooth', block:'center' });
   return ok;
 }
 
-// ── Build job data object from form ───────────────────────────────────────
-function getFormData() {
+// ── Build job data ─────────────────────────────────────────────────────────
+function getFormData(status) {
   return {
-    employerId:      user.uid,
-    employerName:    EMPLOYER.companyName || 'Your Company',
-    title:           document.getElementById('f-title').value.trim(),
-    department:      document.getElementById('f-dept').value,
-    type:            document.getElementById('f-type').value,
-    province:        document.getElementById('f-province').value,
-    city:            document.getElementById('f-city').value.trim(),
-    description:     document.getElementById('f-desc').value.trim(),
-    responsibilities:getListValues('resp-list'),
-    requirements:    getListValues('req-list'),
-    closes:          document.getElementById('f-closes').value,
-    closesTime:      document.getElementById('f-closes-time').value,
-    applyEmail:      document.getElementById('f-apply-email').value.trim(),
-    salary:          document.getElementById('f-salary')?.value.trim() || null,
-    remote:          document.getElementById('f-remote')?.value || null,
-    status:          'live',
-    updatedAt:       serverTimestamp(),
+    employerId:       user.uid,
+    employerName:     EMPLOYER.companyName || 'Your Company',
+    slug:             EMPLOYER.slug || (EMPLOYER.companyName || '').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''),
+    logoUrl:          EMPLOYER.logoUrl     || null,
+    brandColour:      EMPLOYER.brandColour || '#0099fa',
+    applyEmail:       document.getElementById('f-apply-email').value.trim(),
+    title:            document.getElementById('f-title').value.trim(),
+    department:       document.getElementById('f-dept').value,
+    type:             document.getElementById('f-type').value,
+    province:         document.getElementById('f-province').value,
+    city:             document.getElementById('f-city').value.trim(),
+    description:      document.getElementById('f-desc').value.trim(),
+    responsibilities: getListValues('resp-list'),
+    requirements:     getListValues('req-list'),
+    closes:           document.getElementById('f-closes').value,
+    closesTime:       document.getElementById('f-closes-time').value,
+    salary:           document.getElementById('f-salary')?.value.trim() || null,
+    remote:           document.getElementById('f-remote')?.value        || null,
+    status,
+    updatedAt:        serverTimestamp(),
   };
 }
 
-// ── Publish (create or update) ─────────────────────────────────────────────
-async function publishListing() {
-  if (!validateForm()) {
-    document.querySelector('.inp.error, .field-input.error, select.error, textarea.error')
-      ?.scrollIntoView({ behavior:'smooth', block:'center' });
-    return;
+// ── Inline error ───────────────────────────────────────────────────────────
+function showInlineError(msg) {
+  let errBox = document.getElementById('post-job-error');
+  if (!errBox) {
+    errBox = document.createElement('div');
+    errBox.id = 'post-job-error';
+    errBox.style.cssText = 'background:var(--red-light);border:1px solid #fca9a9;border-radius:10px;padding:12px 16px;font-size:13px;color:var(--red);line-height:1.6;margin-bottom:16px;';
+    const firstCard = document.querySelector('.form-card');
+    if (firstCard) firstCard.prepend(errBox);
   }
+  errBox.textContent = msg;
+  errBox.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+// ── Check listing limit ────────────────────────────────────────────────────
+async function checkListingLimit() {
+  if (editId) return true;
+  if (EMPLOYER.plan !== 'Starter') return true;
+  try {
+    const s = await getDocs(query(collection(db,'jobs'), where('employerId','==',user.uid), where('status','==','live')));
+    if (s.size >= 2) { showInlineError('Your Starter plan allows a maximum of 2 active listings.'); return false; }
+  } catch (e) {}
+  return true;
+}
+
+// ── Publish ────────────────────────────────────────────────────────────────
+async function publishListing() {
+  if (!validateForm()) return;
+  if (!await checkListingLimit()) return;
+
   const btn = document.getElementById('publish-btn');
   btn.disabled = true;
-  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>' + (editId ? 'Saving…' : 'Publishing…');
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> ' + (editId ? 'Saving…' : 'Publishing…');
 
   try {
-    const data = getFormData();
-
+    const data = getFormData('live');
     if (editId) {
-      // Update existing job
       await updateDoc(doc(db, 'jobs', editId), data);
     } else {
-      // Create new job
       data.createdAt = serverTimestamp();
-      await addDoc(collection(db, 'jobs'), data);
+      const newDoc = await addDoc(collection(db, 'jobs'), data);
+      draftDocId = newDoc.id;
     }
-
     document.getElementById('success-overlay').classList.add('show');
   } catch (err) {
-    alert('Could not save listing. Please try again. (' + err.message + ')');
+    console.error('publishListing error:', err);
+    showInlineError('Could not save listing: ' + (err.message || err.code));
   } finally {
     btn.disabled = false;
     btn.innerHTML = editId
       ? '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 13.5h12M8 2v9M4 7l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Save changes'
-      : '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l6 4.5v5L8 15l-6-4.5v-5L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>Publish listing';
+      : '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l6 4.5v5L8 15l-6-4.5v-5L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg> Publish listing';
   }
 }
+window._publishListing = publishListing;
 
 // ── Save draft ─────────────────────────────────────────────────────────────
 async function saveDraft() {
   const autosave = document.getElementById('autosave-text');
-  autosave.textContent = 'Saving…';
+  if (autosave) autosave.textContent = 'Saving…';
   try {
-    const data = { ...getFormData(), status: 'draft' };
+    const data = getFormData('draft');
     if (editId) {
       await updateDoc(doc(db, 'jobs', editId), data);
+    } else if (draftDocId) {
+      await updateDoc(doc(db, 'jobs', draftDocId), data);
     } else {
       data.createdAt = serverTimestamp();
-      await addDoc(collection(db, 'jobs'), data);
+      const newDoc = await addDoc(collection(db, 'jobs'), data);
+      draftDocId = newDoc.id;
     }
-    autosave.textContent = 'Draft saved';
+    const now = new Date();
+    const hhmm = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    if (autosave) autosave.textContent = 'Saved at ' + hhmm + ' ✓';
   } catch (err) {
-    autosave.textContent = 'Save failed';
+    console.error('saveDraft error:', err);
+    if (autosave) autosave.textContent = 'Save failed';
   }
-  setTimeout(() => autosave.textContent = 'Draft not saved', 3000);
 }
+window._saveDraft = saveDraft;
 
-// ── Reset form after successful publish ───────────────────────────────────
+// ── Reset form ─────────────────────────────────────────────────────────────
 function resetForm() {
-  // If we just edited, go back to dashboard
   if (editId) { window.location.href = 'employer-dashboard.html'; return; }
+  draftDocId = null;
   document.getElementById('success-overlay').classList.remove('show');
   document.getElementById('f-title').value = '';
   document.getElementById('f-desc').value  = '';
@@ -727,7 +811,9 @@ function resetForm() {
   addItem('req-list');  addItem('req-list');  addItem('req-list');
   updatePreview();
 }
+window._resetForm = resetForm;
 </script>
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 </body>
 </html>

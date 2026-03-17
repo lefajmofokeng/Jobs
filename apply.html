@@ -839,7 +839,7 @@ select {
         <h2 style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px">Application submitted!</h2>
         <p style="font-size:14px;color:var(--text-secondary);max-width:380px;margin:0 auto">Your application has been sent directly to <strong id="s-company">the employer</strong>. Here is your reference:</p>
         <div class="success-ref" id="s-ref">APP-XXXXXX</div>
-        <p style="font-size:13px;color:var(--text-muted);max-width:340px;margin:0 auto">A confirmation email has been sent to <strong id="s-email"></strong></p>
+        <p style="font-size:13px;color:var(--text-muted);max-width:340px;margin:0 auto">The employer will be in touch at <strong id="s-email"></strong> if your application is shortlisted.</p>
         <div class="success-what-now">
           <div class="success-item">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 5h6M5 8h6M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
@@ -926,13 +926,13 @@ select {
 </div>
 
 <script type="module">
-import { db, storage }                 from './firebase.js'
-import { doc, getDoc, addDoc,
-         collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
-import { ref, uploadBytesResumable,
-         getDownloadURL }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
+import { db, storage }                    from './firebase.js'
+import { doc, getDoc, addDoc, getDocs,
+         collection, query, where,
+         serverTimestamp }                from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+import { ref, uploadBytesResumable }      from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"
 
-// ── Expose to inline onclick handlers ─────────────────────────
+// ── Expose to inline handlers ──────────────────────────────────────────────
 window.goStep1             = goStep1
 window.goStep2             = goStep2
 window.goStep3             = goStep3
@@ -952,18 +952,16 @@ window.genericDrop         = genericDrop
 window.genericFileSelected = genericFileSelected
 window.toggleExtras        = toggleExtras
 
-// ── State ──────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
 let currentJob  = null
 let cvFile      = null
 let certFile    = null
 let idFile      = null
 let currentStep = 1
 
-function getParam(name) {
-  return new URLSearchParams(window.location.search).get(name)
-}
+function getParam(name) { return new URLSearchParams(window.location.search).get(name) }
 
-// ── Load real job from Firestore ───────────────────────────────
+// ── Load job from Firestore ────────────────────────────────────────────────
 async function loadJob() {
   const jobId = getParam('id') || getParam('job')
   if (!jobId) { showJobError('No job specified. Please go back and select a job.'); return }
@@ -974,24 +972,51 @@ async function loadJob() {
 
     currentJob = { id: snap.id, ...snap.data() }
 
-    if (currentJob.status === 'expired') {
+    // Check job status
+    if (currentJob.status === 'expired' || currentJob.status === 'paused' || currentJob.status === 'draft') {
       showJobError('This job listing has closed and is no longer accepting applications.')
       return
     }
 
-    // Populate page + sidebar card
+    // Also check if past closing date/time even if status is still 'live'
+    if (currentJob.closes) {
+      const closingTime = new Date(currentJob.closes + 'T' + (currentJob.closesTime || '17:00') + ':00')
+      if (closingTime < new Date()) {
+        showJobError('This job listing has passed its closing date and is no longer accepting applications.')
+        return
+      }
+    }
+
     const employer = currentJob.employerName || '—'
-    document.getElementById('page-title').textContent  = 'Apply for ' + currentJob.title
+
+    // Page title
+    document.getElementById('page-title').textContent = 'Apply for ' + currentJob.title
     document.title = 'Apply — ' + currentJob.title + ' at ' + employer + ' — Cronos Jobs'
+
+    // Sidebar job card
     document.getElementById('jc-title').textContent    = currentJob.title
     document.getElementById('jc-company').textContent  = employer
     document.getElementById('jc-location').textContent = [currentJob.city, currentJob.province].filter(Boolean).join(', ')
     document.getElementById('jc-type').textContent     = currentJob.type       || '—'
     document.getElementById('jc-dept').textContent     = currentJob.department || '—'
 
-    // Initials logo
-    const abbr = document.getElementById('jc-abbr')
-    abbr.textContent = employer.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    // Logo — use real logoUrl if available, otherwise branded initials
+    const logoWrap = document.getElementById('jc-logo')
+    const abbrEl   = document.getElementById('jc-abbr')
+    const abbr     = employer.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    const colour   = currentJob.brandColour || '#0099fa'
+
+    if (currentJob.logoUrl) {
+      logoWrap.innerHTML = `<img src="${currentJob.logoUrl}" alt="${employer}"
+        style="width:100%;height:100%;object-fit:contain;padding:6px;border-radius:inherit;"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;
+          font-size:18px;font-weight:700;color:${colour}">${abbr}</span>`
+    } else {
+      abbrEl.textContent   = abbr
+      abbrEl.style.color   = colour
+      logoWrap.style.background = colour + '15'
+    }
 
     // Closing deadline
     if (currentJob.closes) {
@@ -1009,11 +1034,12 @@ function showJobError(msg) {
   document.getElementById('page-title').textContent = 'Job not available'
   document.getElementById('jc-title').textContent   = msg
   const wrap = document.querySelector('.apply-steps-wrap') || document.querySelector('.apply-main')
-  if (wrap) wrap.innerHTML =
-    `<div style="text-align:center;padding:60px 24px;color:var(--text-muted)">
-       <p style="font-size:15px;margin-bottom:16px">${msg}</p>
-       <a href="index.html" style="color:var(--accent);font-weight:600;text-decoration:none">← Back to jobs</a>
-     </div>`
+  if (wrap) wrap.innerHTML = `
+    <div style="text-align:center;padding:60px 24px;color:var(--text-muted)">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin-bottom:16px;opacity:0.3"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 15v.5" stroke-linecap="round"/></svg>
+      <p style="font-size:15px;margin-bottom:16px;color:var(--text-primary)">${msg}</p>
+      <a href="index.html" style="color:var(--accent);font-weight:600;text-decoration:none">← Back to jobs</a>
+    </div>`
 }
 
 function fmtDate(iso) {
@@ -1023,7 +1049,7 @@ function fmtDate(iso) {
 
 loadJob()
 
-// ── Step navigation ────────────────────────────────────────────
+// ── Step navigation ────────────────────────────────────────────────────────
 function setStep(n) {
   [1, 2, 3].forEach(i => {
     document.getElementById('step-' + i).style.display = i === n ? 'block' : 'none'
@@ -1042,13 +1068,13 @@ function setStep(n) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// ── Validation helpers ─────────────────────────────────────────
+// ── Validation helpers ─────────────────────────────────────────────────────
 function clearErrs() {
   document.querySelectorAll('.field-err').forEach(e => e.classList.remove('show'))
   document.querySelectorAll('.err').forEach(e => e.classList.remove('err'))
 }
-function showErr(id)  { document.getElementById(id).classList.add('show') }
-function markErr(id)  { document.getElementById(id).classList.add('err') }
+function showErr(id)  { const el = document.getElementById(id); if (el) el.classList.add('show') }
+function markErr(id)  { const el = document.getElementById(id); if (el) el.classList.add('err') }
 function reqField(id, errId) {
   const el = document.getElementById(id)
   if (!el.value.trim()) { showErr(errId); markErr(id); return false }
@@ -1065,19 +1091,19 @@ function reqSelect(id, errId) {
   return true
 }
 
-// ── Step transitions ───────────────────────────────────────────
+// ── Step transitions ───────────────────────────────────────────────────────
 function goStep1() { setStep(1) }
 
 function goStep2() {
   clearErrs()
   let ok = true
-  ok = reqField('f-first',      'e-first')      && ok
-  ok = reqField('f-last',       'e-last')        && ok
-  ok = reqEmail('f-email',      'e-email')       && ok
-  ok = reqField('f-phone',      'e-phone')       && ok
-  ok = reqField('f-city',       'e-city')        && ok
-  ok = reqSelect('f-notice',    'e-notice')      && ok
-  ok = reqSelect('f-experience','e-experience')  && ok
+  ok = reqField('f-first',      'e-first')     && ok
+  ok = reqField('f-last',       'e-last')       && ok
+  ok = reqEmail('f-email',      'e-email')      && ok
+  ok = reqField('f-phone',      'e-phone')      && ok
+  ok = reqField('f-city',       'e-city')       && ok
+  ok = reqSelect('f-notice',    'e-notice')     && ok
+  ok = reqSelect('f-experience','e-experience') && ok
   if (!ok) { document.querySelector('.err')?.scrollIntoView({ behavior:'smooth', block:'center' }); return }
   setStep(2)
 }
@@ -1089,7 +1115,7 @@ function goStep3() {
   setStep(3)
 }
 
-// ── Review screen ──────────────────────────────────────────────
+// ── Review screen ──────────────────────────────────────────────────────────
 function buildReview() {
   const vals = {
     'Full name':       document.getElementById('f-first').value.trim() + ' ' + document.getElementById('f-last').value.trim(),
@@ -1103,9 +1129,7 @@ function buildReview() {
     'Cover note':      (() => { const v = document.getElementById('f-cover').value.trim(); return v ? v.substring(0, 80) + (v.length > 80 ? '…' : '') : '—' })(),
     'Extra docs':      [certFile?.name, idFile?.name].filter(Boolean).join(', ') || 'None',
   }
-  const grid    = document.getElementById('review-grid')
-  const entries = Object.entries(vals)
-  grid.innerHTML = entries.map(([k, v]) => `
+  document.getElementById('review-grid').innerHTML = Object.entries(vals).map(([k, v]) => `
     <div style="background:var(--surface);padding:9px 14px;">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:2px">${k}</div>
       <div style="font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.4">${v}</div>
@@ -1118,7 +1142,7 @@ function toggleAgree(id) {
   el.querySelector('input').checked = el.classList.contains('checked')
 }
 
-// ── Submit: upload files then save to Firestore ────────────────
+// ── Submit ─────────────────────────────────────────────────────────────────
 async function submitApp() {
   clearErrs()
   const c1 = document.getElementById('chk1').checked
@@ -1127,27 +1151,40 @@ async function submitApp() {
 
   const btn = document.getElementById('submit-btn')
   btn.classList.add('loading')
+  const originalText = btn.textContent
+  btn.textContent = 'Submitting…'
+  btn.disabled = true
 
   try {
-    const appId  = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase()
-    const jobId  = currentJob?.id
-    const empId  = currentJob?.employerId
+    // 1. Check for duplicate application (same email + same job)
+    const dupCheck = await getDocs(
+      query(collection(db, 'applications'),
+        where('jobId',  '==', currentJob.id),
+        where('email',  '==', document.getElementById('f-email').value.trim()))
+    )
+    if (!dupCheck.empty) {
+      showInlineError('You have already applied for this position with this email address.')
+      return
+    }
 
-    // 1. Upload CV to Firebase Storage
-    let cvPath     = null
-    let cvMime     = null
-    let cvFilename = null
+    const appId = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+    const jobId = currentJob?.id
+    const empId = currentJob?.employerId
+
+    // 2. Upload CV with progress feedback
+    let cvPath = null, cvMime = null, cvFilename = null
     if (cvFile) {
+      btn.textContent = 'Uploading CV…'
       cvPath     = `cvs/${jobId}/${appId}_${cvFile.name.replace(/\s+/g, '_')}`
       cvMime     = cvFile.type
       cvFilename = cvFile.name
       await uploadFile(cvFile, cvPath)
     }
 
-    // 2. Upload extra docs (optional)
-    let certPath = null
-    let idPath   = null
+    // 3. Upload extra docs
+    let certPath = null, idPath = null
     if (certFile) {
+      btn.textContent = 'Uploading documents…'
       certPath = `docs/${jobId}/${appId}_cert_${certFile.name.replace(/\s+/g, '_')}`
       await uploadFile(certFile, certPath)
     }
@@ -1156,16 +1193,16 @@ async function submitApp() {
       await uploadFile(idFile, idPath)
     }
 
-    // 3. Save application document to Firestore
+    // 4. Save application to Firestore
+    btn.textContent = 'Saving application…'
     await addDoc(collection(db, 'applications'), {
       ref:               appId,
-      jobId:             jobId,
+      jobId,
       jobTitle:          currentJob?.title          || '',
       jobDepartment:     currentJob?.department     || '',
       employerId:        empId,
       employerName:      currentJob?.employerName   || '',
       applyEmail:        currentJob?.applyEmail     || '',
-      // Candidate details
       firstName:         document.getElementById('f-first').value.trim(),
       lastName:          document.getElementById('f-last').value.trim(),
       email:             document.getElementById('f-email').value.trim(),
@@ -1173,77 +1210,87 @@ async function submitApp() {
       city:              document.getElementById('f-city').value.trim(),
       notice:            document.getElementById('f-notice').options[document.getElementById('f-notice').selectedIndex].text,
       experience:        document.getElementById('f-experience').options[document.getElementById('f-experience').selectedIndex].text,
-      salaryExpectation: document.getElementById('f-salary')?.value.trim() || null,
-      coverNote:         document.getElementById('f-cover').value.trim()   || null,
-      // Files
-      cvPath,
-      cvMime,
-      cvFilename,
-      certPath,
-      idPath,
-      // Status
+      salaryExpectation: document.getElementById('f-salary')?.value.trim()  || null,
+      coverNote:         document.getElementById('f-cover').value.trim()    || null,
+      cvPath, cvMime, cvFilename, certPath, idPath,
       status:    'new',
       notes:     null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
 
-    // 4. Show success
+    // 5. Show success
     document.getElementById('s-ref').textContent     = appId
     document.getElementById('s-email').textContent   = document.getElementById('f-email').value.trim()
     document.getElementById('s-company').textContent = currentJob?.employerName || 'the employer'
 
-    ;[1, 2, 3].forEach(i => document.getElementById('step-' + i).style.display = 'none')
-    document.getElementById('success-panel').classList.add('show')
-
     ;[1, 2, 3].forEach(i => {
+      document.getElementById('step-' + i).style.display = 'none'
       const ps = document.getElementById('prog-' + i)
-      if (ps) ps.className = 'prog-step done'
       const pn = document.getElementById('pn-' + i)
-      if (pn) pn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       const pl = document.getElementById('pl-' + i)
+      if (ps) ps.className = 'prog-step done'
+      if (pn) pn.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       if (pl) pl.className = 'prog-line done'
     })
-
+    document.getElementById('success-panel').classList.add('show')
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
   } catch (err) {
-    alert('Submission failed. Please check your connection and try again. (' + err.message + ')')
+    showInlineError('Submission failed. Please check your connection and try again.')
+    console.error(err)
   } finally {
     btn.classList.remove('loading')
+    btn.textContent = originalText
+    btn.disabled    = false
   }
 }
 
-// Upload a single file to Firebase Storage with progress
+// ── Inline error helper ────────────────────────────────────────────────────
+function showInlineError(msg) {
+  let errBox = document.getElementById('submit-inline-error')
+  if (!errBox) {
+    errBox = document.createElement('div')
+    errBox.id = 'submit-inline-error'
+    errBox.style.cssText = 'background:var(--red-light);border:1px solid #fca9a9;border-radius:10px;padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px;line-height:1.6;'
+    const btn = document.getElementById('submit-btn')
+    btn?.parentNode?.insertBefore(errBox, btn)
+  }
+  errBox.textContent = msg
+  errBox.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+// ── File upload with progress ──────────────────────────────────────────────
 function uploadFile(file, path) {
   return new Promise((resolve, reject) => {
-    const uploadTask = uploadBytesResumable(ref(storage, path), file)
-    uploadTask.on('state_changed', null,
-      (err) => reject(err),
-      ()    => resolve()
-    )
+    uploadBytesResumable(ref(storage, path), file)
+      .on('state_changed', null, reject, resolve)
   })
 }
 
-// ── Char counter ───────────────────────────────────────────────
+// ── Char counter ───────────────────────────────────────────────────────────
 function updateCount() {
   const val = document.getElementById('f-cover').value.length
   const el  = document.getElementById('cover-count')
   el.textContent = val + ' / 800'
-  el.className = 'char-count' + (val > 700 ? ' warn' : '')
+  el.className   = 'char-count' + (val > 700 ? ' warn' : '')
 }
 
-// ── CV drag & drop ─────────────────────────────────────────────
+// ── CV drag & drop ─────────────────────────────────────────────────────────
 function cvDragOver(e)  { e.preventDefault(); document.getElementById('cv-drop').classList.add('drag') }
 function cvDragLeave()  { document.getElementById('cv-drop').classList.remove('drag') }
 function cvDrop(e) {
   e.preventDefault(); cvDragLeave()
-  const f = e.dataTransfer.files[0]
-  if (f) processCV(f)
+  const f = e.dataTransfer.files[0]; if (f) processCV(f)
 }
 function cvFileSelected(input) { if (input.files[0]) processCV(input.files[0]) }
 function processCV(f) {
-  if (f.size > 5 * 1024 * 1024) { alert('File too large. Maximum 5MB.'); return }
+  const allowed = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+  if (!allowed.includes(f.type) && !f.name.match(/\.(pdf|doc|docx)$/i)) {
+    showInlineError('Please upload a PDF or Word document for your CV.')
+    return
+  }
+  if (f.size > 5 * 1024 * 1024) { showInlineError('CV file is too large. Maximum 5MB.'); return }
   cvFile = f
   document.getElementById('cv-drop').classList.add('has-file')
   document.getElementById('cv-title').textContent = 'CV uploaded'
@@ -1251,6 +1298,8 @@ function processCV(f) {
   document.getElementById('cv-name').textContent  = f.name
   document.getElementById('cv-size').textContent  = (f.size / 1024).toFixed(0) + ' KB'
   document.getElementById('cv-preview').classList.add('show')
+  // Clear any existing CV error
+  const errEl = document.getElementById('e-cv'); if (errEl) errEl.classList.remove('show')
 }
 function cvRemove() {
   cvFile = null
@@ -1258,37 +1307,38 @@ function cvRemove() {
   document.getElementById('cv-title').textContent = 'Drop your CV here'
   document.getElementById('cv-sub').innerHTML     = 'or <span>click to browse</span> &nbsp;·&nbsp; PDF, DOC, DOCX &nbsp;·&nbsp; Max 5MB'
   document.getElementById('cv-preview').classList.remove('show')
-  document.getElementById('f-cv').value = ''
+  document.getElementById('f-cv').value           = ''
 }
 
-// ── Extra docs ─────────────────────────────────────────────────
+// ── Extra docs ─────────────────────────────────────────────────────────────
 function genericDragOver(e, dropId)  { e.preventDefault(); document.getElementById(dropId).classList.add('drag') }
 function genericDragLeave(dropId)    { document.getElementById(dropId).classList.remove('drag') }
 function genericDrop(e, inputId, dropId, key) {
   e.preventDefault(); genericDragLeave(dropId)
-  const f = e.dataTransfer.files[0]
-  if (f) processGeneric(f, key)
+  const f = e.dataTransfer.files[0]; if (f) processGeneric(f, key)
 }
 function genericFileSelected(input, key) { if (input.files[0]) processGeneric(input.files[0], key) }
 function processGeneric(f, key) {
-  if (f.size > 5 * 1024 * 1024) { alert('File too large. Maximum 5MB.'); return }
+  if (f.size > 5 * 1024 * 1024) { showInlineError('File is too large. Maximum 5MB.'); return }
   if (key === 'cert') certFile = f
   if (key === 'id')   idFile   = f
   document.getElementById(key + '-title').textContent = f.name
   document.getElementById(key + '-sub').textContent   = (f.size / 1024).toFixed(0) + ' KB'
   const icon = document.getElementById(key + '-icon')
-  icon.style.background  = 'var(--accent)'
-  icon.style.borderColor = 'var(--accent)'
-  icon.style.color       = '#fff'
+  if (icon) {
+    icon.style.background  = 'var(--accent)'
+    icon.style.borderColor = 'var(--accent)'
+    icon.style.color       = '#fff'
+  }
 }
 
-// ── Extras accordion ───────────────────────────────────────────
+// ── Extras accordion ───────────────────────────────────────────────────────
 function toggleExtras() {
   document.getElementById('extras-toggle').classList.toggle('open')
   document.getElementById('extras-body').classList.toggle('show')
 }
 
-// ── Clear error on input ───────────────────────────────────────
+// ── Clear error on input ───────────────────────────────────────────────────
 document.querySelectorAll('input, select, textarea').forEach(el => {
   el.addEventListener('input',  () => el.classList.remove('err'))
   el.addEventListener('change', () => el.classList.remove('err'))

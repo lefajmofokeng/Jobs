@@ -700,20 +700,25 @@ import { collection, query, where,
          orderBy, getDocs, addDoc,
          serverTimestamp }                 from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-// ── Expose to inline handlers ──────────────────────
-window.submitAlert  = submitAlert
-window.closeDrawer  = closeDrawer
+// ── Expose to inline handlers ──────────────────────────────────────────────
+window.submitAlert = submitAlert
+window.closeDrawer = closeDrawer
 
-// ── State ──────────────────────────────────────────
-let activeDept     = 'all'
-let activeLocation = 'all'
-let activeType     = 'all'
-let searchQ        = ''
-let companyJobs    = []
-let currentSlug    = ''
+// ── State ──────────────────────────────────────────────────────────────────
+let activeDept      = 'all'
+let activeLocation  = 'all'
+let activeType      = 'all'
+let searchQ         = ''
+let companyJobs     = []
+let currentSlug     = ''
 let currentEmployerId = ''
 
-// ── Get slug from subdomain or ?company= param ─────
+// ── Safe HTML escape ───────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+// ── Get slug from subdomain or ?company= param ─────────────────────────────
 function getSlug() {
   const host = window.location.hostname
   if (host.includes('.cronos.co.za')) return host.split('.cronos.co.za')[0].toLowerCase()
@@ -722,7 +727,7 @@ function getSlug() {
   return params.get('company')?.toLowerCase() || params.get('slug')?.toLowerCase() || null
 }
 
-// ── Colour helpers ─────────────────────────────────
+// ── Colour helpers ─────────────────────────────────────────────────────────
 function setColor(hex) {
   document.documentElement.style.setProperty('--brand', hex)
   document.documentElement.style.setProperty('--brand-dark',  adjustColor(hex, -20))
@@ -740,25 +745,28 @@ function hexToRgba(hex, alpha) {
   return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`
 }
 
-// ── Date helpers ───────────────────────────────────
+// ── Date helpers ───────────────────────────────────────────────────────────
 function isExpired(closes, time) {
   if (!closes) return false
   return new Date(closes + 'T' + (time || '17:00') + ':00') < new Date()
 }
 function daysAgoLabel(val) {
   if (!val) return ''
-  const d = val?.toDate ? val.toDate() : new Date(val)
-  const days = Math.floor((new Date() - d) / 86400000)
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 7)  return days + ' days ago'
-  if (days < 14) return '1 week ago'
-  return Math.floor(days / 7) + ' weeks ago'
+  try {
+    const d    = val?.toDate ? val.toDate() : new Date(val)
+    if (isNaN(d)) return ''
+    const days = Math.floor((new Date() - d) / 86400000)
+    if (days === 0) return 'Today'
+    if (days === 1) return 'Yesterday'
+    if (days < 7)  return days + ' days ago'
+    if (days < 14) return '1 week ago'
+    return Math.floor(days / 7) + ' weeks ago'
+  } catch (e) { return '' }
 }
 function typeClass(t) { return t==='full-time'?'tag-full':t==='part-time'?'tag-part':'tag-contract' }
 function typeLabel(t) { return t==='full-time'?'Full-time':t==='part-time'?'Part-time':'Contract' }
 
-// ── Filter ─────────────────────────────────────────
+// ── Filter ─────────────────────────────────────────────────────────────────
 function getFiltered() {
   return companyJobs.filter(j => {
     if (activeDept !== 'all' && (j.department || j.dept) !== activeDept) return false
@@ -766,18 +774,23 @@ function getFiltered() {
     if (activeType !== 'all' && j.type !== activeType) return false
     if (searchQ) {
       const q = searchQ.toLowerCase()
-      if (!(j.title.toLowerCase().includes(q) || (j.description||'').toLowerCase().includes(q) || (j.city||'').toLowerCase().includes(q))) return false
+      if (!((j.title||'').toLowerCase().includes(q) ||
+            (j.description||'').toLowerCase().includes(q) ||
+            (j.city||'').toLowerCase().includes(q))) return false
     }
     return true
   })
 }
 
-// ── Dept tab counts ────────────────────────────────
+// ── Dept tab counts ────────────────────────────────────────────────────────
 function updateDeptTabCounts() {
   const filtered = companyJobs.filter(j => {
     if (activeLocation !== 'all' && (j.city||'').toLowerCase() !== activeLocation) return false
     if (activeType !== 'all' && j.type !== activeType) return false
-    if (searchQ) { const q = searchQ.toLowerCase(); if (!(j.title.toLowerCase().includes(q) || (j.description||'').toLowerCase().includes(q))) return false }
+    if (searchQ) {
+      const q = searchQ.toLowerCase()
+      if (!((j.title||'').toLowerCase().includes(q) || (j.description||'').toLowerCase().includes(q))) return false
+    }
     return true
   })
   document.querySelectorAll('.dept-tab').forEach(tab => {
@@ -789,7 +802,7 @@ function updateDeptTabCounts() {
   })
 }
 
-// ── Render jobs ────────────────────────────────────
+// ── Render jobs ────────────────────────────────────────────────────────────
 function renderJobs() {
   const list = getFiltered()
   const el   = document.getElementById('jobs-list')
@@ -808,17 +821,17 @@ function renderJobs() {
   el.innerHTML = list.map((j, i) => `
     <a class="job-card" href="job-detail.html?id=${j.id}" style="animation-delay:${Math.min(i,6)*0.05}s">
       <div class="job-card-left">
-        <div class="job-card-title">${j.title}</div>
+        <div class="job-card-title">${esc(j.title)}</div>
         <div class="job-card-tags">
           <span class="tag tag-location">
             <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.55 3 7 3 7s3-4.45 3-7c0-1.66-1.34-3-3-3z" stroke="currentColor" stroke-width="1.2"/></svg>
-            ${j.city || ''}
+            ${esc(j.city || '')}
           </span>
           <span class="tag ${typeClass(j.type)}">${typeLabel(j.type)}</span>
-          <span class="tag tag-dept">${j.department || j.dept || ''}</span>
-          ${(j.slots||1) > 1 ? `<span class="tag" style="background:var(--accent-light);color:var(--accent);border-color:#bfdbfe">${j.slots} openings</span>` : ''}
+          <span class="tag tag-dept">${esc(j.department || j.dept || '')}</span>
+          ${(j.slots||1) > 1 ? `<span class="tag" style="background:var(--accent-light);color:var(--accent);border-color:#bfdbfe">${esc(String(j.slots))} openings</span>` : ''}
         </div>
-        <div class="job-card-desc">${j.description || ''}</div>
+        <div class="job-card-desc">${esc(j.description || '')}</div>
       </div>
       <div class="job-card-right">
         <span class="job-time">${daysAgoLabel(j.createdAt)}</span>
@@ -827,7 +840,7 @@ function renderJobs() {
     </a>`).join('')
 }
 
-// ── Boot: load company + jobs from Firestore ───────
+// ── Boot ───────────────────────────────────────────────────────────────────
 async function boot() {
   const slug = getSlug()
   currentSlug = slug || ''
@@ -839,10 +852,10 @@ async function boot() {
   }
 
   try {
-    // 1. Find employer by slug
+    // 1. Find employer by slug — must be verified
     const empSnap = await getDocs(
       query(collection(db, 'employers'),
-        where('slug', '==', slug),
+        where('slug',     '==', slug),
         where('verified', '==', true))
     )
 
@@ -857,16 +870,33 @@ async function boot() {
     const color = co.brandColour || '#0099fa'
     const abbr  = (co.companyName || 'CO').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
-    // 2. Load live jobs for this employer
-    const jobsSnap = await getDocs(
-      query(collection(db, 'jobs'),
-        where('employerId', '==', co.id),
-        where('status', '==', 'live'),
-        orderBy('createdAt', 'desc'))
-    )
-    companyJobs = jobsSnap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(j => !isExpired(j.closes, j.closesTime))
+    // 2. Load live jobs — with fallback if index missing
+    try {
+      const jobsSnap = await getDocs(
+        query(collection(db, 'jobs'),
+          where('employerId', '==', co.id),
+          where('status',     '==', 'live'),
+          orderBy('createdAt', 'desc'))
+      )
+      companyJobs = jobsSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(j => !isExpired(j.closes, j.closesTime))
+    } catch (indexErr) {
+      // Fallback: load without ordering if index doesn't exist yet
+      const jobsSnap = await getDocs(
+        query(collection(db, 'jobs'),
+          where('employerId', '==', co.id),
+          where('status',     '==', 'live'))
+      )
+      companyJobs = jobsSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(j => !isExpired(j.closes, j.closesTime))
+        .sort((a, b) => {
+          const da = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
+          const db_ = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
+          return db_ - da
+        })
+    }
 
     // 3. Apply brand colour
     setColor(color)
@@ -874,15 +904,18 @@ async function boot() {
     // 4. Page meta
     const jobCount = companyJobs.length
     document.title = `${co.companyName} — Jobs & Careers | Cronos`
-    document.getElementById('og-title')?.setAttribute('content', `${co.companyName} is hiring on Cronos Jobs`)
-    document.getElementById('og-desc')?.setAttribute('content',  `${jobCount} open position${jobCount !== 1 ? 's' : ''} at ${co.companyName}. Apply free on Cronos Jobs.`)
+    document.getElementById('og-title')?.setAttribute('content', `${esc(co.companyName)} is hiring on Cronos Jobs`)
+    document.getElementById('og-desc')?.setAttribute('content',
+      `${jobCount} open position${jobCount !== 1 ? 's' : ''} at ${co.companyName}. Apply free on Cronos Jobs.`)
 
     // 5. Nav
     document.getElementById('nav-company-name').textContent = co.companyName + ' — Careers'
     const navLogoWrap = document.getElementById('nav-logo-wrap')
     navLogoWrap.style.background = color
     if (co.logoUrl) {
-      navLogoWrap.innerHTML = `<img src="${co.logoUrl}" alt="${co.companyName}" onerror="this.outerHTML='<span>${abbr}</span>'">`
+      navLogoWrap.innerHTML = `<img src="${co.logoUrl}" alt="${esc(co.companyName)}"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span style="display:none;font-size:14px;font-weight:700;color:#fff">${esc(abbr)}</span>`
     } else {
       document.getElementById('nav-logo-abbr').textContent = abbr
     }
@@ -891,14 +924,18 @@ async function boot() {
     document.getElementById('hero-cover').style.background = color
     document.getElementById('hero-logo').style.background  = color
     if (co.logoUrl) {
-      document.getElementById('hero-logo').innerHTML = `<img src="${co.logoUrl}" alt="${co.companyName}" onerror="this.outerHTML='<span style=\\'font-size:22px;font-weight:700;color:#fff;\\'>${abbr}</span>'">`
+      document.getElementById('hero-logo').innerHTML =
+        `<img src="${co.logoUrl}" alt="${esc(co.companyName)}"
+          style="width:100%;height:100%;object-fit:contain;padding:8px;"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+         <span style="display:none;font-size:22px;font-weight:700;color:#fff">${esc(abbr)}</span>`
     } else {
       document.getElementById('hero-logo-abbr').textContent = abbr
     }
     document.getElementById('hero-company-name').textContent = co.companyName
-    document.getElementById('meta-hq').textContent           = co.province || co.city || '—'
-    document.getElementById('meta-industry-text').textContent= co.industry     || '—'
-    document.getElementById('meta-size-text').textContent    = co.companySize  || '—'
+    document.getElementById('meta-hq').textContent            = co.province || co.city  || '—'
+    document.getElementById('meta-industry-text').textContent = co.industry              || '—'
+    document.getElementById('meta-size-text').textContent     = co.companySize           || '—'
 
     // 7. Hiring badge
     if (jobCount === 0) {
@@ -917,18 +954,19 @@ async function boot() {
     document.getElementById('sidebar-about').textContent = co.about || ''
     const websiteEl = document.getElementById('sidebar-website')
     if (co.website) {
-      websiteEl.href        = co.website
-      websiteEl.textContent = 'Visit ' + co.website.replace('https://www.','').replace('https://','') + ' →'
+      websiteEl.href        = co.website.startsWith('http') ? co.website : 'https://' + co.website
+      websiteEl.textContent = 'Visit ' + co.website.replace('https://www.','').replace('https://','').replace('http://www.','').replace('http://','') + ' →'
     } else {
       websiteEl.style.display = 'none'
     }
     document.getElementById('info-industry').textContent = co.industry    || '—'
     document.getElementById('info-size').textContent     = co.companySize || '—'
     document.getElementById('info-hq').textContent       = co.province    || '—'
+    const foundedWrap = document.getElementById('info-founded-wrap')
     if (co.founded) {
       document.getElementById('info-founded').textContent = co.founded
-    } else {
-      document.getElementById('info-founded-wrap') && (document.getElementById('info-founded-wrap').style.display = 'none')
+    } else if (foundedWrap) {
+      foundedWrap.style.display = 'none'
     }
 
     // 10. Alert descriptions
@@ -937,7 +975,8 @@ async function boot() {
     document.getElementById('mobile-alert-desc').textContent  = alertDesc
 
     // 11. Footer
-    document.getElementById('footer-text').innerHTML = `${co.companyName} &copy; ${new Date().getFullYear()} &middot; Hiring powered by <strong>Cronos Jobs</strong>`
+    document.getElementById('footer-text').innerHTML =
+      `${esc(co.companyName)} &copy; ${new Date().getFullYear()} &middot; Hiring powered by <strong>Cronos Jobs</strong>`
 
     // 12. Location dropdown
     const locSelect = document.getElementById('location-select')
@@ -947,13 +986,11 @@ async function boot() {
       locSelect.appendChild(opt)
     })
 
-    // 13. Dept tabs
+    // 13. Dept tabs + render
     buildDeptTabs(depts)
-
-    // 14. Render jobs & show page
     renderJobs()
-    document.getElementById('skeleton').style.display      = 'none'
-    document.getElementById('page-content').style.display  = 'block'
+    document.getElementById('skeleton').style.display     = 'none'
+    document.getElementById('page-content').style.display = 'block'
 
   } catch (err) {
     console.error('Error loading company page:', err)
@@ -962,13 +999,13 @@ async function boot() {
   }
 }
 
-// ── Dept tabs ──────────────────────────────────────
+// ── Dept tabs ──────────────────────────────────────────────────────────────
 function buildDeptTabs(depts) {
   const container = document.getElementById('dept-tabs')
   let html = `<button class="dept-tab active" data-dept="all">All <span class="dept-tab-count">${companyJobs.length}</span></button>`
   depts.sort().forEach(dept => {
     const count = companyJobs.filter(j => (j.department||j.dept) === dept).length
-    html += `<button class="dept-tab" data-dept="${dept}">${dept} <span class="dept-tab-count">${count}</span></button>`
+    html += `<button class="dept-tab" data-dept="${esc(dept)}">${esc(dept)} <span class="dept-tab-count">${count}</span></button>`
   })
   container.innerHTML = html
   container.addEventListener('click', e => {
@@ -980,7 +1017,7 @@ function buildDeptTabs(depts) {
   })
 }
 
-// ── Filter listeners ───────────────────────────────
+// ── Filter listeners ───────────────────────────────────────────────────────
 document.getElementById('location-select').addEventListener('change', e => { activeLocation = e.target.value; renderJobs() })
 document.getElementById('type-select').addEventListener('change',     e => { activeType     = e.target.value; renderJobs() })
 let searchTimer
@@ -989,39 +1026,56 @@ document.getElementById('search-input').addEventListener('input', e => {
   searchTimer = setTimeout(() => { searchQ = e.target.value; renderJobs() }, 220)
 })
 
-// ── Job alert: save email to Firestore ─────────────
+// ── Job alert ──────────────────────────────────────────────────────────────
 async function submitAlert(source) {
-  const emailEl = document.getElementById(source + '-alert-email')
-  const email   = emailEl.value.trim()
+  const emailEl  = document.getElementById(source + '-alert-email')
+  const submitEl = document.getElementById(source + '-alert-btn')
+  const email    = emailEl.value.trim()
+
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     emailEl.style.borderColor = '#ef4444'; emailEl.focus()
-    setTimeout(() => emailEl.style.borderColor = '', 2000)
+    setTimeout(() => { emailEl.style.borderColor = '' }, 2000)
     return
   }
+
+  // Disable button to prevent double submission
+  if (submitEl) { submitEl.disabled = true; submitEl.textContent = 'Subscribing…' }
+
   try {
-    await addDoc(collection(db, 'jobAlerts'), {
-      email,
-      employerId:   currentEmployerId,
-      companySlug:  currentSlug,
-      companyName:  document.getElementById('hero-company-name')?.textContent || '',
-      createdAt:    serverTimestamp(),
-    })
+    // Check for duplicate alert (same email + same employer)
+    const dupCheck = await getDocs(
+      query(collection(db, 'jobAlerts'),
+        where('email',      '==', email),
+        where('employerId', '==', currentEmployerId))
+    )
+    if (dupCheck.empty) {
+      await addDoc(collection(db, 'jobAlerts'), {
+        email,
+        employerId:   currentEmployerId,
+        companySlug:  currentSlug,
+        companyName:  document.getElementById('hero-company-name')?.textContent || '',
+        createdAt:    serverTimestamp(),
+      })
+    }
+    // Show success whether new or already subscribed
   } catch (err) {
     console.error('Alert save failed:', err)
-    // Still show success to user — don't block on error
+    // Still show success — don't block on Firestore error
   }
+
   document.getElementById(source + '-alert-form').style.display = 'none'
   document.getElementById(source + '-alert-success').classList.add('show')
 }
 
-// ── Hamburger ──────────────────────────────────────
+// ── Hamburger ──────────────────────────────────────────────────────────────
 const hamburger = document.getElementById('nav-hamburger')
 const drawer    = document.getElementById('mobile-drawer')
 hamburger.addEventListener('click', () => { const open = drawer.classList.toggle('open'); hamburger.classList.toggle('open', open) })
 function closeDrawer() { drawer.classList.remove('open'); hamburger.classList.remove('open') }
-document.addEventListener('click', e => { if (!e.target.closest('.nav') && !e.target.closest('.mobile-drawer')) closeDrawer() })
+document.addEventListener('click', e => {
+  if (!e.target.closest('.nav') && !e.target.closest('.mobile-drawer')) closeDrawer()
+})
 
-// ── Go ─────────────────────────────────────────────
 boot()
 </script>
 </body>

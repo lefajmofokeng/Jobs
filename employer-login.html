@@ -162,7 +162,7 @@ label.field-label{font-size:13px;font-weight:600;color:var(--text-primary);}
       </div>
     </div>
     <div class="login-left-bottom">
-      <p class="left-footer-text">Not verified yet? <a href="verify.html">Apply for employer verification →</a></p>
+      <p class="left-footer-text">Want to list jobs? <a href="employer-join.html">Apply for access →</a></p>
     </div>
   </div>
 
@@ -172,7 +172,7 @@ label.field-label{font-size:13px;font-weight:600;color:var(--text-primary);}
 
       <p class="form-eyebrow">Employer Portal</p>
       <h2 class="form-title">Sign in to your account</h2>
-      <p class="form-subtitle">Don't have an account? <a href="verify.html">Apply for verification first</a></p>
+      <p class="form-subtitle">Don't have an account? <a href="employer-join.html">Apply for access first →</a></p>
 
       <!-- Error banner -->
       <div class="login-error-banner" id="login-error">
@@ -213,7 +213,7 @@ label.field-label{font-size:13px;font-weight:600;color:var(--text-primary);}
 
       <div class="divider"><div class="divider-line"></div><span class="divider-text">New to Cronos?</span><div class="divider-line"></div></div>
 
-      <a href="verify.html" class="btn-verify">
+      <a href="employer-join.html" class="btn-verify">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2a5 5 0 100 10A5 5 0 0010 2zM4 18a6 6 0 0112 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         Apply for employer verification
       </a>
@@ -253,9 +253,25 @@ import { signInWithEmailAndPassword,
          sendPasswordResetEmail,
          onAuthStateChanged }                        from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-// ── If already logged in, skip straight to dashboard ──────────────────────
-onAuthStateChanged(auth, (user) => {
-  if (user) window.location.href = 'employer-dashboard.html';
+// ── If already logged in, check full access before redirecting ────────────
+let authChecked = false;
+onAuthStateChanged(auth, async (user) => {
+  if (authChecked) return;
+  authChecked = true;
+  if (!user) return; // not logged in — show the login form normally
+
+  // User is logged in — check if they have full access
+  const profile = await getEmployerProfile(user.uid);
+  if (!profile) return; // no profile — let them see the form and get an error
+
+  const vStatus = profile.verificationStatus || 'pending';
+  const pStatus = profile.planStatus || 'inactive';
+
+  // Only auto-redirect if fully approved AND has active plan
+  if (vStatus === 'approved' && (pStatus === 'active' || pStatus === 'expiring')) {
+    window.location.href = 'employer-dashboard.html';
+  }
+  // Otherwise — stay on login page so gate messages show if they try to log in
 });
 
 // ── Expose functions to inline handlers ───────────────────────────────────
@@ -267,6 +283,29 @@ window.closeForgotOnOverlay  = closeForgotOnOverlay;
 window.sendReset             = sendReset;
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeForgot(); });
+
+// ── Gate message helper ───────────────────────────────────────────────────
+function showGateMessage(title, message, btnText, btnHref) {
+  const errEl  = document.getElementById('login-error');
+  const msgHtml = `<div style="display:flex;flex-direction:column;gap:6px;">
+    <strong style="font-size:14px;">${title}</strong>
+    <span style="font-size:13px;opacity:0.9;">${message}</span>
+    ${btnText && btnHref ? `<a href="${btnHref}" style="margin-top:6px;display:inline-block;font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:8px 16px;border-radius:50px;text-decoration:none;width:fit-content;">${btnText} →</a>` : ''}
+  </div>`;
+  errEl.innerHTML = msgHtml;
+  errEl.classList.add('show');
+  errEl.style.background = '#1a2340';
+  errEl.style.border = '1px solid rgba(0,153,250,0.3)';
+  errEl.style.color = '#fff';
+}
+
+function showError(msg) {
+  const errEl = document.getElementById('login-error');
+  errEl.querySelector('span') 
+    ? errEl.querySelector('span').textContent = msg
+    : errEl.textContent = msg;
+  errEl.classList.add('show');
+}
 
 // ── Login ──────────────────────────────────────────────────────────────────
 async function handleLogin(e) {
@@ -310,15 +349,63 @@ async function handleLogin(e) {
     // 2. Fetch employer profile from Firestore
     const profile = await getEmployerProfile(cred.user.uid);
 
-    // 3. Check subscription status — show notice if inactive
-    if (profile && profile.planStatus === 'inactive' && profile.verified) {
+    // 3. Check verification and subscription status
+    if (!profile) {
+      // No profile found — account issue
+      showError('Your account could not be found. Please contact support.');
+      btn.disabled = false;
+      btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      return;
+    }
+
+    const vStatus = profile.verificationStatus || 'pending';
+    const pStatus = profile.planStatus || 'inactive';
+
+    // Not yet submitted verification
+    if (vStatus === 'pending') {
+      btn.disabled = false;
+      btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      showGateMessage(
+        'Verification required',
+        'You need to complete your business verification before you can access the employer portal.',
+        'Complete verification', 'verify.html'
+      );
+      return;
+    }
+
+    // Verification submitted but not yet approved by Cronos
+    if (vStatus === 'submitted') {
+      btn.disabled = false;
+      btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      showGateMessage(
+        'Verification under review',
+        'Your business verification is being reviewed by the Cronos team. You will receive an email once approved — this usually takes 1–2 business days.',
+        null, null
+      );
+      return;
+    }
+
+    // Verification rejected
+    if (vStatus === 'rejected') {
+      btn.disabled = false;
+      btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      showGateMessage(
+        'Verification unsuccessful',
+        'Your business verification was not approved. Please contact support@cronos.co.za for more information.',
+        null, null
+      );
+      return;
+    }
+
+    // Verified but no active subscription
+    if (vStatus === 'approved' && (pStatus === 'inactive' || pStatus === 'none')) {
       btn.disabled = false;
       btn.innerHTML = 'Sign in to dashboard <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       document.getElementById('sub-notice').style.display = 'flex';
       return;
     }
 
-    // 4. All good — go to dashboard
+    // 4. All checks passed — go to dashboard
     window.location.href = 'employer-dashboard.html';
 
   } catch (err) {
@@ -334,9 +421,10 @@ async function handleLogin(e) {
       'auth/network-request-failed': 'Network error — please check your connection and try again.',
     };
     const errEl = document.getElementById('login-error');
-    errEl.querySelector('span') 
-      ? errEl.querySelector('span').textContent = messages[err.code] || 'Something went wrong. Please try again.'
-      : errEl.textContent = messages[err.code] || 'Something went wrong. Please try again.';
+    errEl.innerHTML = messages[err.code] || 'Something went wrong. Please try again. (' + err.code + ')';
+    errEl.style.background = '';
+    errEl.style.border = '';
+    errEl.style.color = '';
     errEl.classList.add('show');
   }
 }
